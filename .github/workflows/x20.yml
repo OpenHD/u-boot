@@ -45,3 +45,4 @@ jobs:
       - name: build
         run: |
           CROSS_COMPILE=arm-linux-gnueabi- make openhd_x20dev_defconfig
+          make
