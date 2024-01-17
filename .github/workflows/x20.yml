@@ -44,5 +44,4 @@ jobs:
       
       - name: build
         run: |
-          make openhd_x20dev_defconfig
-          make install
+          CROSS_COMPILE=gcc-arm-none-eabi- make openhd_x20dev_defconfig
