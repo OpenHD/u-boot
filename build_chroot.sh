@@ -13,13 +13,13 @@
 # CUSTOM=$(cat custom.txt)
 # ARCH=$(cat arch.txt)
 
-# echo ${DISTRO}
-# echo ${FLAVOR}
-# echo ${CUSTOM}
-# echo ${ARCH}
+echo ${DISTRO}
+echo ${FLAVOR}
+echo ${CUSTOM}
+echo ${ARCH}
 
-# make openhd_x20dev_defconfig
-# make
+make openhd_x20dev_defconfig
+make
 
 # # mkdir -p /opt/out/
 # # echo "push to cloudsmith"
