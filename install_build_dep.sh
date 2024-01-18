@@ -7,3 +7,4 @@ sudo apt install -y liblz4-tool libgnutls28-dev libguestfs-tools libncurses-dev 
 sudo apt install -y pkg-config python3 python3-asteval python3-coverage python3-filelock python3-pkg-resources python3-pycryptodome python3-pyelftools 
 sudo apt install -y python3-pytest python3-pytest-xdist python3-sphinxcontrib.apidoc python3-sphinx-rtd-theme python3-subunit python3-testtools
 sudo apt install -y python3-virtualenv swig3.0 uuid-dev
+ln -s /usr/bin/swig3.0 /usr/bin/swig
