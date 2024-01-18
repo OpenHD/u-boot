@@ -3,7 +3,7 @@
 
 echo "installing deps"
 sudo apt update
-cat /etc/apt/sources.d/*
+ls /etc/apt/sources.d/
 
 apt search swig
 
@@ -20,5 +20,4 @@ apt search swig
 # ./configure
 # make
 # sudo make install
-
-cd ..
+#cd ..
