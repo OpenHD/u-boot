@@ -3,7 +3,8 @@
 
 echo "installing deps"
 sudo apt update
-ls /etc/apt/sources.d/
+cat  /etc/apt/sources.list
+ls /etc/apt/sources-list.d/
 
 apt search swig
 
