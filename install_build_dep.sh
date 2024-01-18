@@ -3,9 +3,7 @@
 
 echo "installing deps"
 sudo apt update
-cat  /etc/apt/sources.list
-ls /etc/apt/sources-list.d/
-
+ls  /etc/apt/
 apt search swig
 
 # sudo apt install -y gcc-arm* libc6-armel-cross libc6-dev-armel-cross binutils-arm-linux-gnueabi libncurses5-dev build-essential bison flex libssl-dev bc gcc gcc-arm-none-eabi bc bison build-essential coccinelle device-tree-compiler dfu-util efitools flex gdisk graphviz imagemagick || exit 1
