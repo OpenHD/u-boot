@@ -5,6 +5,7 @@
 sudo apt install -y python3-pip
 sudo pip3 install --upgrade cloudsmith-cli
 ls -a
+./install_build_dep.sh
 API_KEY=$(cat cloudsmith_api_key.txt)
 DISTRO=$(cat distro.txt)
 FLAVOR=$(cat flavor.txt)
