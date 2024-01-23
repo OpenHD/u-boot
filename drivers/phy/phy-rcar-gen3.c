@@ -17,7 +17,6 @@
 #include <usb.h>
 #include <asm/io.h>
 #include <linux/bitops.h>
-#include <linux/printk.h>
 #include <power/regulator.h>
 
 /* USB2.0 Host registers (original offset is +0x200) */

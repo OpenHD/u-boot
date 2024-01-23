@@ -25,22 +25,13 @@ int __weak bootz_setup(ulong image, ulong *start, ulong *end)
  * zImage booting support
  */
 static int bootz_start(struct cmd_tbl *cmdtp, int flag, int argc,
-		       char *const argv[], struct bootm_headers *images)
+		       char *const argv[], bootm_headers_t *images)
 {
-	ulong zi_start, zi_end;
-	struct bootm_info bmi;
 	int ret;
+	ulong zi_start, zi_end;
 
-	bootm_init(&bmi);
-	if (argc)
-		bmi.addr_img = argv[0];
-	if (argc > 1)
-		bmi.conf_ramdisk = argv[1];
-	if (argc > 2)
-		bmi.conf_fdt = argv[2];
-	/* do not set up argc and argv[] since nothing uses them */
-
-	ret = bootm_run_states(&bmi, BOOTM_STATE_START);
+	ret = do_bootm_states(cmdtp, flag, argc, argv, BOOTM_STATE_START,
+			      images, 1);
 
 	/* Setup Linux kernel zImage entry point */
 	if (!argc) {
@@ -63,9 +54,7 @@ static int bootz_start(struct cmd_tbl *cmdtp, int flag, int argc,
 	 * Handle the BOOTM_STATE_FINDOTHER state ourselves as we do not
 	 * have a header that provide this informaiton.
 	 */
-	if (bootm_find_images(image_load_addr, cmd_arg1(argc, argv),
-			      cmd_arg2(argc, argv), images->ep,
-			      zi_end - zi_start))
+	if (bootm_find_images(flag, argc, argv, images->ep, zi_end - zi_start))
 		return 1;
 
 	return 0;
@@ -73,7 +62,6 @@ static int bootz_start(struct cmd_tbl *cmdtp, int flag, int argc,
 
 int do_bootz(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
-	struct bootm_info bmi;
 	int ret;
 
 	/* Consume 'bootz' */
@@ -89,22 +77,19 @@ int do_bootz(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 	bootm_disable_interrupts();
 
 	images.os.os = IH_OS_LINUX;
-
-	bootm_init(&bmi);
-	if (argc)
-		bmi.addr_img = argv[0];
-	if (argc > 1)
-		bmi.conf_ramdisk = argv[1];
-	if (argc > 2)
-		bmi.conf_fdt = argv[2];
-	bmi.cmd_name = "bootz";
-
-	ret = bootz_run(&bmi);
+	ret = do_bootm_states(cmdtp, flag, argc, argv,
+#ifdef CONFIG_SYS_BOOT_RAMDISK_HIGH
+			      BOOTM_STATE_RAMDISK |
+#endif
+			      BOOTM_STATE_OS_PREP | BOOTM_STATE_OS_FAKE_GO |
+			      BOOTM_STATE_OS_GO,
+			      &images, 1);
 
 	return ret;
 }
 
-U_BOOT_LONGHELP(bootz,
+#ifdef CONFIG_SYS_LONGHELP
+static char bootz_help_text[] =
 	"[addr [initrd[:size]] [fdt]]\n"
 	"    - boot Linux zImage stored in memory\n"
 	"\tThe argument 'initrd' is optional and specifies the address\n"
@@ -117,7 +102,8 @@ U_BOOT_LONGHELP(bootz,
 	"\tuse a '-' for the second argument. If you do not pass a third\n"
 	"\ta bd_info struct will be passed instead\n"
 #endif
-	);
+	"";
+#endif
 
 U_BOOT_CMD(
 	bootz,	CONFIG_SYS_MAXARGS,	1,	do_bootz,

@@ -18,8 +18,8 @@ from binman.etype import image_header
 from binman.etype import section
 from dtoc import fdt
 from dtoc import fdt_util
-from u_boot_pylib import tools
-from u_boot_pylib import tout
+from patman import tools
+from patman import tout
 
 class Image(section.Entry_section):
     """A Image, representing an output from binman
@@ -38,7 +38,6 @@ class Image(section.Entry_section):
             repacked later
         test_section_timeout: Use a zero timeout for section multi-threading
             (for testing)
-        symlink: Name of symlink to image
 
     Args:
         copy_to_orig: Copy offset/size to orig_offset/orig_size after reading
@@ -77,7 +76,7 @@ class Image(section.Entry_section):
                  generate=True):
         super().__init__(None, 'section', node, test=test)
         self.copy_to_orig = copy_to_orig
-        self.name = name
+        self.name = 'main-section'
         self.image_name = name
         self._filename = '%s.bin' % self.image_name
         self.fdtmap_dtb = None
@@ -94,8 +93,10 @@ class Image(section.Entry_section):
 
     def ReadNode(self):
         super().ReadNode()
+        filename = fdt_util.GetString(self._node, 'filename')
+        if filename:
+            self._filename = filename
         self.allow_repack = fdt_util.GetBool(self._node, 'allow-repack')
-        self._symlink = fdt_util.GetString(self._node, 'symlink')
 
     @classmethod
     def FromFile(cls, fname):
@@ -179,12 +180,6 @@ class Image(section.Entry_section):
             data = self.GetPaddedData()
             fd.write(data)
         tout.info("Wrote %#x bytes" % len(data))
-        # Create symlink to file if symlink given
-        if self._symlink is not None:
-            sname = tools.get_output_filename(self._symlink)
-            if os.path.islink(sname):
-                os.remove(sname)
-            os.symlink(fname, sname)
 
     def WriteMap(self):
         """Write a map of the image to a .map file

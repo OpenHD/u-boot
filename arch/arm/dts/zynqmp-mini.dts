@@ -4,7 +4,7 @@
  *
  * (C) Copyright 2017, Xilinx, Inc.
  *
- * Michal Simek <michal.simek@amd.com>
+ * Michal Simek <michal.simek@xilinx.com>
  */
 
 /dts-v1/;
@@ -31,7 +31,7 @@
 	dcc: dcc {
 		compatible = "arm,dcc";
 		status = "disabled";
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 

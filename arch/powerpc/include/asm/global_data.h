@@ -8,7 +8,8 @@
 #ifndef	__ASM_GBL_DATA_H
 #define __ASM_GBL_DATA_H
 
-#include <linux/types.h>
+#include <config.h>
+#include "asm/types.h"
 
 /* Architecture-specific global data */
 struct arch_global_data {
@@ -30,6 +31,8 @@ struct arch_global_data {
 	defined(CONFIG_ARCH_MPC834X) || defined(CONFIG_ARCH_MPC837X)
 	u32 tsec1_clk;
 	u32 tsec2_clk;
+	u32 usbdr_clk;
+# elif defined(CONFIG_ARCH_MPC8309)
 	u32 usbdr_clk;
 # endif
 # if defined(CONFIG_ARCH_MPC834X)
@@ -91,6 +94,12 @@ struct arch_global_data {
 
 #include <asm-generic/global_data.h>
 
+#if 1
 #define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r2")
+#else /* We could use plain global data, but the resulting code is bigger */
+#define XTRN_DECLARE_GLOBAL_DATA_PTR	extern
+#define DECLARE_GLOBAL_DATA_PTR     XTRN_DECLARE_GLOBAL_DATA_PTR \
+				    gd_t *gd
+#endif
 
 #endif /* __ASM_GBL_DATA_H */

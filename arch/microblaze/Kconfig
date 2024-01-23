@@ -4,9 +4,6 @@ menu "MicroBlaze architecture"
 config SYS_ARCH
 	default "microblaze"
 
-config STATIC_RELA
-	def_bool y
-
 choice
 	prompt "Target select"
 	optional
@@ -27,6 +24,14 @@ config TARGET_MICROBLAZE_GENERIC
 	imply CMD_DM
 
 endchoice
+
+config DCACHE
+	bool "Enable dcache support"
+	default y
+
+config ICACHE
+	bool "Enable icache support"
+	default y
 
 source "board/xilinx/Kconfig"
 source "board/xilinx/microblaze-generic/Kconfig"

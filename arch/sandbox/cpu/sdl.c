@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdbool.h>
-#include <sysreset.h>
 #include <linux/input.h>
 #include <SDL2/SDL.h>
 #include <asm/state.h>
@@ -72,7 +71,7 @@ static struct sdl_info {
 static void sandbox_sdl_poll_events(void)
 {
 	/*
-	 * We don't want to include cpu_func.h in this file since it uses
+	 * We don't want to include common.h in this file since it uses
 	 * system headers. So add a declation here.
 	 */
 	extern void reset_cpu(void);
@@ -82,7 +81,7 @@ static void sandbox_sdl_poll_events(void)
 		switch (event.type) {
 		case SDL_QUIT:
 			puts("LCD window closed - quitting\n");
-			sysreset_walk(SYSRESET_POWER_OFF);
+			reset_cpu();
 			break;
 		}
 	}
@@ -442,6 +441,7 @@ void sandbox_sdl_fill_audio(void *udata, Uint8 *stream, int len)
 {
 	struct buf_info *buf;
 	int avail;
+	bool have_data = false;
 	int i;
 
 	for (i = 0; i < 2; i++) {
@@ -453,9 +453,10 @@ void sandbox_sdl_fill_audio(void *udata, Uint8 *stream, int len)
 		}
 		if (avail > len)
 			avail = len;
+		have_data = true;
 
-		memcpy(stream, buf->data + buf->pos, avail);
-		stream += avail;
+		SDL_MixAudio(stream, buf->data + buf->pos, avail,
+			     SDL_MIX_MAXVOLUME);
 		buf->pos += avail;
 		len -= avail;
 
@@ -465,8 +466,7 @@ void sandbox_sdl_fill_audio(void *udata, Uint8 *stream, int len)
 		else
 			break;
 	}
-	memset(stream, 0, len);
-	sdl.stopping = !!len;
+	sdl.stopping = !have_data;
 }
 
 int sandbox_sdl_sound_init(int rate, int channels)
@@ -484,7 +484,7 @@ int sandbox_sdl_sound_init(int rate, int channels)
 	wanted.freq = rate;
 	wanted.format = AUDIO_S16;
 	wanted.channels = channels;
-	wanted.samples = 960;  /* Good low-latency value for callback */
+	wanted.samples = 1024;  /* Good low-latency value for callback */
 	wanted.callback = sandbox_sdl_fill_audio;
 	wanted.userdata = NULL;
 

@@ -1,8 +1,11 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
+ * Copyright 2014 Texas Instruments, Inc.
+ *
  * Device Tree Source for K2G SOC
  *
- * Copyright (C) 2016-2017 Texas Instruments Incorporated - https://www.ti.com/
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  */
 
 #include <dt-bindings/interrupt-controller/arm-gic.h>
@@ -40,7 +43,7 @@
 		};
 	};
 
-	gic: interrupt-controller@2561000 {
+	gic: interrupt-controller {
 		compatible = "arm,cortex-a15-gic";
 		#interrupt-cells = <3>;
 		interrupt-controller;

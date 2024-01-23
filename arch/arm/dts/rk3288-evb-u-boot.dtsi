@@ -17,41 +17,41 @@
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &emmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio8 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc_bus4 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &sdmmc_clk {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &sdmmc_cmd {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &sdmmc_pwr {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

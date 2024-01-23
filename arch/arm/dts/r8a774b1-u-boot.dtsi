@@ -8,7 +8,7 @@
 #include "r8a779x-u-boot.dtsi"
 
 &extalr_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 /delete-node/ &audma0;
@@ -27,6 +27,7 @@
 /delete-node/ &hdmi0;
 /delete-node/ &lvds0;
 /delete-node/ &rcar_sound;
+/delete-node/ &sdhi2;
 /delete-node/ &sound_card;
 /delete-node/ &vin0;
 /delete-node/ &vin1;

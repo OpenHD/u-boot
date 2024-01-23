@@ -20,7 +20,7 @@ struct virtio_rng_priv {
 static int virtio_rng_read(struct udevice *dev, void *data, size_t len)
 {
 	int ret;
-	unsigned int rsize = 1;
+	unsigned int rsize;
 	unsigned char buf[BUFFER_SIZE] __aligned(4);
 	unsigned char *ptr = data;
 	struct virtio_sg sg;
@@ -29,12 +29,7 @@ static int virtio_rng_read(struct udevice *dev, void *data, size_t len)
 
 	while (len) {
 		sg.addr = buf;
-		/*
-		 * Work around implementations which always return 8 bytes
-		 * less than requested, down to 0 bytes, which would
-		 * cause an endless loop otherwise.
-		 */
-		sg.length = min(rsize ? len : len + 8, sizeof(buf));
+		sg.length = min(len, sizeof(buf));
 		sgs[0] = &sg;
 
 		ret = virtqueue_add(priv->rng_vq, sgs, 0, 1);
@@ -45,9 +40,6 @@ static int virtio_rng_read(struct udevice *dev, void *data, size_t len)
 
 		while (!virtqueue_get_buf(priv->rng_vq, &rsize))
 			;
-
-		if (rsize > sg.length)
-			return -EIO;
 
 		memcpy(ptr, buf, rsize);
 		len -= rsize;

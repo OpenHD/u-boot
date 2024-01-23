@@ -31,46 +31,42 @@
 	>;
 };
 
-&emmc {
-	bootph-all;
-};
-
 &gpio3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio7 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio8 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &i2c0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rk808 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &spi2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &spi_flash {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

@@ -13,7 +13,7 @@ from binman.entry import EntryArg
 from binman.etype.collection import Entry_collection
 
 from dtoc import fdt_util
-from u_boot_pylib import tools
+from patman import tools
 
 class Entry_vblock(Entry_collection):
     """An entry which contains a Chromium OS verified boot block
@@ -98,5 +98,4 @@ class Entry_vblock(Entry_collection):
         return self.ProcessContentsUpdate(data)
 
     def AddBintools(self, btools):
-        super().AddBintools(btools)
         self.futility = self.AddBintool(btools, 'futility')

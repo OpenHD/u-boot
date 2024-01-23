@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 from binman.entry import Entry, EntryArg
 from dtoc import fdt_util
-from u_boot_pylib import tools
+from patman import tools
 
 
 class Entry_text(Entry):

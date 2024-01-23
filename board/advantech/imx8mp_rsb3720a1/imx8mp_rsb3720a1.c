@@ -28,6 +28,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+
+static const iomux_v3_cfg_t wdog_pads[] = {
+	MX8MP_PAD_GPIO1_IO02__WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
+};
+
 #ifdef CONFIG_NAND_MXS
 static void setup_gpmi_nand(void)
 {
@@ -35,7 +41,7 @@ static void setup_gpmi_nand(void)
 }
 #endif
 
-#if IS_ENABLED(CONFIG_EFI_HAVE_CAPSULE_SUPPORT)
+#if CONFIG_IS_ENABLED(EFI_HAVE_CAPSULE_SUPPORT)
 struct efi_fw_image fw_images[] = {
 #if defined(CONFIG_TARGET_IMX8MP_RSB3720A1_4G)
 	{
@@ -54,15 +60,21 @@ struct efi_fw_image fw_images[] = {
 
 struct efi_capsule_update_info update_info = {
 	.dfu_string = "mmc 2=flash-bin raw 0 0x1B00 mmcpart 1",
-	.num_images = ARRAY_SIZE(fw_images),
 	.images = fw_images,
 };
 
+u8 num_image_type_guids = ARRAY_SIZE(fw_images);
 #endif /* EFI_HAVE_CAPSULE_SUPPORT */
 
 
 int board_early_init_f(void)
 {
+	struct wdog_regs *wdog = (struct wdog_regs *)WDOG1_BASE_ADDR;
+
+	imx_iomux_v3_setup_multiple_pads(wdog_pads, ARRAY_SIZE(wdog_pads));
+
+	set_wdog_reset(wdog);
+
 	init_uart_clk(2);
 
 	return 0;
@@ -113,7 +125,7 @@ static const iomux_v3_cfg_t eqos_rst_pads[] = {
 	MX8MP_PAD_SAI2_RXC__GPIO4_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
-static void setup_eqos(void)
+static void setup_iomux_eqos(void)
 {
 	imx_iomux_v3_setup_multiple_pads(eqos_rst_pads,
 					 ARRAY_SIZE(eqos_rst_pads));
@@ -123,6 +135,21 @@ static void setup_eqos(void)
 	mdelay(15);
 	gpio_direction_output(EQOS_RST_PAD, 1);
 	mdelay(100);
+}
+
+static int setup_eqos(void)
+{
+	struct iomuxc_gpr_base_regs *gpr =
+		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
+
+	setup_iomux_eqos();
+
+	/* set INTF as RGMII, enable RGMII TXC clock */
+	clrsetbits_le32(&gpr->gpr[1],
+			IOMUXC_GPR_GPR1_GPR_ENET_QOS_INTF_SEL_MASK, BIT(16));
+	setbits_le32(&gpr->gpr[1], BIT(19) | BIT(21));
+
+	return set_clk_eqos(ENET_125MHZ);
 }
 #endif /* CONFIG_DWC_ETH_QOS */
 
@@ -191,10 +218,9 @@ int board_late_init(void)
 	return 0;
 }
 
-#ifdef CONFIG_SPL_MMC
+#ifdef CONFIG_SPL_MMC_SUPPORT
 #define UBOOT_RAW_SECTOR_OFFSET 0x40
-unsigned long board_spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
-					   unsigned long raw_sector)
+unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc)
 {
 	u32 boot_dev = spl_boot_device();
 
@@ -205,4 +231,4 @@ unsigned long board_spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
 		return CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR;
 	}
 }
-#endif /* CONFIG_SPL_MMC */
+#endif /* CONFIG_SPL_MMC_SUPPORT */

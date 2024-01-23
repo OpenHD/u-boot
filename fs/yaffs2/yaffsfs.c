@@ -468,7 +468,7 @@ static int yaffsfs_alt_dir_path(const YCHAR *path, YCHAR **ret_path)
 	return 0;
 }
 
-static LIST_HEAD(yaffsfs_deviceList);
+LIST_HEAD(yaffsfs_deviceList);
 
 /*
  * yaffsfs_FindDevice

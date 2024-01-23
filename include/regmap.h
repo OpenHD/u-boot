@@ -378,18 +378,17 @@ int regmap_init_mem(ofnode node, struct regmap **mapp);
  *
  * @dev:	Device that uses this map
  * @reg:	List of address, size pairs
- * @size:	Size of one reg array item
  * @count:	Number of pairs (e.g. 1 if the regmap has a single entry)
  * @mapp:	Returns allocated map
  * Return: 0 if OK, -ve on error
  *
  * This creates a new regmap with a list of regions passed in, rather than
- * using the device tree.
+ * using the device tree. It only supports 32-bit machines.
  *
  * Use regmap_uninit() to free it.
  *
  */
-int regmap_init_mem_plat(struct udevice *dev, void *reg, int size, int count,
+int regmap_init_mem_plat(struct udevice *dev, fdt_val_t *reg, int count,
 			 struct regmap **mapp);
 
 int regmap_init_mem_index(ofnode node, struct regmap **mapp, int index);
@@ -461,7 +460,7 @@ struct reg_field {
 struct regmap_field;
 
 /**
- * REG_FIELD() - A convenient way to initialize a 'struct reg_field'.
+ * REG_FIELD() - A convenient way to initialize a 'struct reg_feild'.
  *
  * @_reg: Offset of the register within the regmap bank
  * @_lsb: lsb of the register field.
@@ -520,9 +519,9 @@ void devm_regmap_field_free(struct udevice *dev, struct regmap_field *field);
 int regmap_field_write(struct regmap_field *field, unsigned int val);
 
 /**
- * regmap_field_read() - Read a 32-bit value from a regmap
+ * regmap_read() - Read a 32-bit value from a regmap
  *
- * @field:	Regmap field to read from
+ * @field:	Regmap field to write to
  * @valp:	Pointer to the buffer to receive the data read from the regmap
  *		field
  *

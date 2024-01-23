@@ -4,6 +4,7 @@
  *
  *  Copyright (C) 2021 Arm Ltd.
  */
+#include <common.h>
 #include <efi_loader.h>
 #include <efi_selftest.h>
 

@@ -6,13 +6,6 @@
 #include "imx8mm-venice-u-boot.dtsi"
 
 &gpio1 {
-	m2pwren {
-		gpio-hog;
-		output-low;
-		gpios = <8 GPIO_ACTIVE_HIGH>;
-		line-name = "m2_pwren";
-	};
-
 	m2rst {
 		gpio-hog;
 		output-low;
@@ -103,13 +96,6 @@
 		line-name = "app_gpio1";
 	};
 
-	vdd4p0en {
-		gpio-hog;
-		output-low;
-		gpios = <22 GPIO_ACTIVE_HIGH>;
-		line-name = "vdd_4p0_en";
-	};
-
 	uart1rs485 {
 		gpio-hog;
 		output-low;
@@ -176,17 +162,17 @@
 };
 
 &pinctrl_fec1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &{/soc@0/bus@30800000/i2c@30a20000/pmic@4b} {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &{/soc@0/bus@30800000/i2c@30a20000/pmic@4b/regulators} {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_pmic {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

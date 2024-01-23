@@ -73,14 +73,6 @@ enum env_redund_flags {
 int env_get_id(void);
 
 /**
- * env_inc_id() - Increase the sequence number for the environment
- *
- * Increment the value that is used by env_get_id() to inform callers
- * if the environment has changed since they last checked.
- */
-void env_inc_id(void);
-
-/**
  * env_init() - Set up the pre-relocation environment
  *
  * This locates the environment or uses the default if nothing is available.
@@ -234,7 +226,7 @@ int env_complete(char *var, int maxv, char *cmdv[], int maxsz, char *buf,
  *
  * @name: Environment variable to get (e.g. "ethaddr")
  * @enetaddr: Place to put MAC address (6 bytes)
- * Return: 1 if OK, 0 on error
+ * Return: 0 if OK, 1 on error
  */
 int eth_env_get_enetaddr(const char *name, uint8_t *enetaddr);
 
@@ -243,9 +235,14 @@ int eth_env_get_enetaddr(const char *name, uint8_t *enetaddr);
  *
  * @name: Environment variable to set (e.g. "ethaddr")
  * @enetaddr: Pointer to MAC address to put into the variable (6 bytes)
- * Return: 0 if OK, non-zero otherwise
+ * Return: 0 if OK, 1 on error
  */
 int eth_env_set_enetaddr(const char *name, const uint8_t *enetaddr);
+
+/**
+ * env_fix_drivers() - Updates envdriver as per relocation
+ */
+void env_fix_drivers(void);
 
 /**
  * env_set_default_vars() - reset variables to their default value
@@ -358,6 +355,14 @@ char *env_get_default(const char *name);
 
 /* [re]set to the default environment */
 void env_set_default(const char *s, int flags);
+
+/**
+ * env_reloc() - Relocate the 'env' sub-commands
+ *
+ * This is used for those unfortunate archs with crappy toolchains
+ */
+void env_reloc(void);
+
 
 /**
  * env_import_fdt() - Import environment values from device tree blob

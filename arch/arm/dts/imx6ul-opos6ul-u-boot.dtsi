@@ -7,22 +7,22 @@
 
 / {
 	soc {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };
 
 &aips2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &iomuxc {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

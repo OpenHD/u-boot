@@ -1,3 +1,11 @@
+config SYS_CONFIG_NAME
+	string "Board configuration name"
+	default "exynos78x0-common.h"
+	help
+	  This option contains information about board configuration name.
+	  Based on this option include/configs/<CONFIG_SYS_CONFIG_NAME>.h header
+	  will be used for board configuration.
+
 if TARGET_A5Y17LTE
 config SYS_BOARD
 	default "axy17lte"
@@ -8,7 +16,7 @@ config SYS_VENDOR
 	default "samsung"
 
 config SYS_CONFIG_NAME
-	default "exynos78x0-common"
+	default "a5y17lte"
 
 config EXYNOS7880
     bool "Exynos 7880 SOC support"
@@ -25,7 +33,7 @@ config SYS_VENDOR
 	default "samsung"
 
 config SYS_CONFIG_NAME
-	default "exynos78x0-common"
+	default "a5y17lte"
 
 config EXYNOS7880
     bool "Exynos 7880 SOC support"
@@ -42,7 +50,7 @@ config SYS_VENDOR
 	default "samsung"
 
 config SYS_CONFIG_NAME
-	default "exynos78x0-common"
+	default "a3y17lte"
 
 config EXYNOS7870
     bool "Exynos 7870 SOC support"

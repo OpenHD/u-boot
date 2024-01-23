@@ -9,8 +9,6 @@
 #ifndef __GETOPT_H
 #define __GETOPT_H
 
-#include <stdbool.h>
-
 /**
  * struct getopt_state - Saved state across getopt() calls
  */

@@ -24,16 +24,16 @@
 };
 
 &mmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &qspi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &flash0 {
 	compatible = "n25q00", "jedec,spi-nor";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	partition@qspi-boot {
 		/* 8MB for raw data. */
@@ -50,7 +50,7 @@
 
 &uart0 {
 	clock-frequency = <100000000>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart1 {

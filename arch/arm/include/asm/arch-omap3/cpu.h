@@ -7,7 +7,6 @@
 #ifndef _CPU_H
 #define _CPU_H
 
-#include <asm/arch/omap.h>
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>
 #endif /* !(__KERNEL_STRICT_NAMES || __ASSEMBLY__) */

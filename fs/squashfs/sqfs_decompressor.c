@@ -18,10 +18,6 @@
 #include <u-boot/zlib.h>
 #endif
 
-#if IS_ENABLED(CONFIG_LZ4)
-#include <u-boot/lz4.h>
-#endif
-
 #if IS_ENABLED(CONFIG_ZSTD)
 #include <linux/zstd.h>
 #endif
@@ -42,13 +38,9 @@ int sqfs_decompressor_init(struct squashfs_ctxt *ctxt)
 	case SQFS_COMP_ZLIB:
 		break;
 #endif
-#if IS_ENABLED(CONFIG_LZ4)
-	case SQFS_COMP_LZ4:
-		break;
-#endif
 #if IS_ENABLED(CONFIG_ZSTD)
 	case SQFS_COMP_ZSTD:
-		ctxt->zstd_workspace = malloc(zstd_dctx_workspace_bound());
+		ctxt->zstd_workspace = malloc(ZSTD_DCtxWorkspaceBound());
 		if (!ctxt->zstd_workspace)
 			return -ENOMEM;
 		break;
@@ -72,10 +64,6 @@ void sqfs_decompressor_cleanup(struct squashfs_ctxt *ctxt)
 #endif
 #if IS_ENABLED(CONFIG_ZLIB)
 	case SQFS_COMP_ZLIB:
-		break;
-#endif
-#if IS_ENABLED(CONFIG_LZ4)
-	case SQFS_COMP_LZ4:
 		break;
 #endif
 #if IS_ENABLED(CONFIG_ZSTD)
@@ -111,14 +99,11 @@ static int sqfs_zstd_decompress(struct squashfs_ctxt *ctxt, void *dest,
 	size_t wsize;
 	int ret;
 
-	wsize = zstd_dctx_workspace_bound();
+	wsize = ZSTD_DCtxWorkspaceBound();
+	ctx = ZSTD_initDCtx(ctxt->zstd_workspace, wsize);
+	ret = ZSTD_decompressDCtx(ctx, dest, dest_len, source, src_len);
 
-	ctx = zstd_init_dctx(ctxt->zstd_workspace, wsize);
-	if (!ctx)
-		return -EINVAL;
-	ret = zstd_decompress_dctx(ctx, dest, dest_len, source, src_len);
-
-	return zstd_is_error(ret);
+	return ZSTD_isError(ret);
 }
 #endif /* CONFIG_ZSTD */
 
@@ -151,22 +136,11 @@ int sqfs_decompress(struct squashfs_ctxt *ctxt, void *dest,
 
 		break;
 #endif
-#if IS_ENABLED(CONFIG_LZ4)
-	case SQFS_COMP_LZ4:
-		ret = LZ4_decompress_safe(source, dest, src_len, *dest_len);
-		if (ret < 0) {
-			printf("LZ4 decompression failed.\n");
-			return -EINVAL;
-		}
-
-		ret = 0;
-		break;
-#endif
 #if IS_ENABLED(CONFIG_ZSTD)
 	case SQFS_COMP_ZSTD:
 		ret = sqfs_zstd_decompress(ctxt, dest, *dest_len, source, src_len);
 		if (ret) {
-			printf("ZSTD Error code: %d\n", zstd_get_error_code(ret));
+			printf("ZSTD Error code: %d\n", ZSTD_getErrorCode(ret));
 			return -EINVAL;
 		}
 

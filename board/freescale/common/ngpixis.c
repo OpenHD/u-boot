@@ -234,13 +234,15 @@ int pixis_reset_cmd(struct cmd_tbl *cmdtp, int flag, int argc,
 	return 0;
 }
 
-U_BOOT_LONGHELP(pixis,
+#ifdef CONFIG_SYS_LONGHELP
+static char pixis_help_text[] =
 	"- hard reset to default bank\n"
 	"pixis_reset altbank - reset to alternate bank\n"
 #ifdef DEBUG
 	"pixis_reset dump - display the PIXIS registers\n"
 #endif
-	"pixis_reset sysclk <SYSCLK_freq> - reset with SYSCLK frequency(KHz)\n");
+	"pixis_reset sysclk <SYSCLK_freq> - reset with SYSCLK frequency(KHz)\n";
+#endif
 
 U_BOOT_CMD(
 	pixis_reset, CONFIG_SYS_MAXARGS, 1, pixis_reset_cmd,

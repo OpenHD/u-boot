@@ -5,30 +5,14 @@
 
 #include "imx6ul-u-boot.dtsi"
 
-&soc {
-	bootph-all;
-};
-
-&aips1 {
-	bootph-all;
-};
-
-&pinctrl_uart1 {
-	bootph-all;
-};
-
-&uart1 {
-	bootph-all;
-};
-
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

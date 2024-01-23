@@ -84,3 +84,12 @@ void tegra_pmc_writel(u32 value, unsigned long offset)
 
 	writel(value, NV_PA_PMC_BASE + offset);
 }
+
+void reset_cpu(void)
+{
+	u32 value;
+
+	value = tegra_pmc_readl(PMC_CNTRL);
+	value |= PMC_CNTRL_MAIN_RST;
+	tegra_pmc_writel(value, PMC_CNTRL);
+}

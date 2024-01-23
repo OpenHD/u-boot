@@ -12,6 +12,9 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/fsl_serdes.h>
+#ifdef CONFIG_FSL_LS_PPA
+#include <asm/arch/ppa.h>
+#endif
 #include <asm/arch/mmu.h>
 #include <asm/arch/soc.h>
 #include <fsl_esdhc.h>
@@ -99,7 +102,7 @@ int dram_init(void)
 		else
 			gd->ram_size = SYS_SDRAM_SIZE_512;
 #else
-		gd->ram_size = CFG_SYS_SDRAM_SIZE;
+		gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 #endif
 	}
 	return 0;
@@ -136,7 +139,7 @@ int dram_init(void)
 		gd->ram_size = SYS_SDRAM_SIZE_512;
 	}
 #else
-	gd->ram_size = CFG_SYS_SDRAM_SIZE;
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 #endif
 	mmdc_init(&mparam);
 
@@ -168,6 +171,9 @@ int board_init(void)
 	if (current_el() == 3)
 		out_le32(&cci->ctrl_ord, CCI400_CTRLORD_EN_BARRIER);
 
+#ifdef CONFIG_FSL_LS_PPA
+	ppa_init();
+#endif
 	return 0;
 }
 

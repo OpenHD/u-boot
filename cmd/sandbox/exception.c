@@ -31,10 +31,11 @@ static struct cmd_tbl cmd_sub[] = {
 			 "", ""),
 };
 
-U_BOOT_LONGHELP(exception,
+static char exception_help_text[] =
 	"<ex>\n"
 	"  The following exceptions are available:\n"
 	"  undefined  - undefined instruction\n"
-	"  sigsegv    - illegal memory access\n");
+	"  sigsegv    - illegal memory access\n"
+	;
 
 #include <exception.h>

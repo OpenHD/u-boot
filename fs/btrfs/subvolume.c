@@ -2,7 +2,7 @@
 /*
  * BTRFS filesystem implementation for U-Boot
  *
- * 2017 Marek Behún, CZ.NIC, kabel@kernel.org
+ * 2017 Marek Behun, CZ.NIC, marek.behun@nic.cz
  */
 
 #include <malloc.h>
@@ -199,7 +199,6 @@ static int list_subvolums(struct btrfs_fs_info *fs_info)
 			ret = PTR_ERR(root);
 			if (ret == -ENOENT)
 				goto next;
-			goto out;
 		}
 		ret = list_one_subvol(root, result);
 		if (ret < 0)

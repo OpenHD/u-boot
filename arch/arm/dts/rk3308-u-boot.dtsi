@@ -3,8 +3,6 @@
  *(C) Copyright 2019 Rockchip Electronics Co., Ltd
  */
 
-#include "rockchip-u-boot.dtsi"
-
 / {
 	aliases {
 		mmc0 = &emmc;
@@ -13,29 +11,24 @@
 };
 
 &cru {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &dmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &emmc {
 	/* mmc to sram can't do dma, prevent aborts transferring TF-A parts */
 	u-boot,spl-fifo-mode;
-	bootph-all;
-};
-
-&sdmmc {
-	bootph-all;
-	u-boot,spl-fifo-mode;
+	u-boot,dm-pre-reloc;
 };
 
 &grf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &saradc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };

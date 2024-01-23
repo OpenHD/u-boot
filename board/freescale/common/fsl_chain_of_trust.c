@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2015 Freescale Semiconductor, Inc.
- * Copyright 2022 NXP
  */
 
 #include <common.h>
@@ -13,7 +12,6 @@
 #include <fsl_sfp.h>
 #include <log.h>
 #include <dm/root.h>
-#include <asm/fsl_secure_boot.h>
 
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_FRAMEWORK)
 #include <spl.h>
@@ -28,9 +26,9 @@
 #endif
 
 #if defined(CONFIG_MPC85xx)
-#define CFG_DCFG_ADDR	CFG_SYS_MPC85xx_GUTS_ADDR
+#define CONFIG_DCFG_ADDR	CONFIG_SYS_MPC85xx_GUTS_ADDR
 #else
-#define CFG_DCFG_ADDR	CFG_SYS_FSL_GUTS_ADDR
+#define CONFIG_DCFG_ADDR	CONFIG_SYS_FSL_GUTS_ADDR
 #endif
 
 #ifdef CONFIG_SYS_FSL_CCSR_GUR_LE
@@ -43,8 +41,8 @@
 int fsl_check_boot_mode_secure(void)
 {
 	uint32_t val;
-	struct ccsr_sfp_regs *sfp_regs = (void *)(CFG_SYS_SFP_ADDR);
-	struct ccsr_gur __iomem *gur = (void *)(CFG_DCFG_ADDR);
+	struct ccsr_sfp_regs *sfp_regs = (void *)(CONFIG_SYS_SFP_ADDR);
+	struct ccsr_gur __iomem *gur = (void *)(CONFIG_DCFG_ADDR);
 
 	val = sfp_in32(&sfp_regs->ospr) & ITS_MASK;
 	if (val == ITS_MASK)
@@ -78,14 +76,14 @@ int fsl_setenv_chain_of_trust(void)
 
 	/* If Boot mode is Secure, set the environment variables
 	 * bootdelay = 0 (To disable Boot Prompt)
-	 * bootcmd = CHAIN_BOOT_CMD (Validate and execute Boot script)
+	 * bootcmd = CONFIG_CHAIN_BOOT_CMD (Validate and execute Boot script)
 	 */
 	env_set("bootdelay", "-2");
 
 #ifdef CONFIG_ARM
 	env_set("secureboot", "y");
 #else
-	env_set("bootcmd", CHAIN_BOOT_CMD);
+	env_set("bootcmd", CONFIG_CHAIN_BOOT_CMD);
 #endif
 
 	return 0;
@@ -115,6 +113,11 @@ void spl_validate_uboot(uint32_t hdr_addr, uintptr_t img_addr)
 		fsl_secboot_handle_error(ERROR_ESBC_PAMU_INIT);
 #endif
 
+#ifdef CONFIG_FSL_CAAM
+	if (sec_init() < 0)
+		fsl_secboot_handle_error(ERROR_ESBC_SEC_INIT);
+#endif
+
 /*
  * dm_init_and_scan() is called as part of common SPL framework, so no
  * need to call it again but in case of powerpc platforms which currently
@@ -127,7 +130,7 @@ void spl_validate_uboot(uint32_t hdr_addr, uintptr_t img_addr)
 				   &img_addr);
 
 	if (res == 0)
-		printf("SPL: Validation of U-Boot successful\n");
+		printf("SPL: Validation of U-boot successful\n");
 }
 
 #ifdef CONFIG_SPL_FRAMEWORK
@@ -143,7 +146,7 @@ void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
 		(image_entry_noargs_t)(unsigned long)spl_image->entry_point;
 
 	hdr_addr = (spl_image->entry_point + spl_image->size -
-			FSL_U_BOOT_HDR_SIZE);
+			CONFIG_U_BOOT_HDR_SIZE);
 	spl_validate_uboot(hdr_addr, (uintptr_t)spl_image->entry_point);
 	/*
 	 * In case of failure in validation, spl_validate_uboot would

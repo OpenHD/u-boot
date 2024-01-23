@@ -4,139 +4,133 @@
  */
 
 &mu {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &clk {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &iomuxc {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio0 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio1 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio2 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio3 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio4 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio5 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio6 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_lsio_gpio7 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_dma {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_dma_lpuart1 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_conn {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_conn_sdch0 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_conn_sdch1 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pd_conn_sdch2 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio0 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio1 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio2 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio3 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio4 {
-	bootph-some-ram;
-
-	usbh_en {
-		gpio-hog;
-		gpios = <4 GPIO_ACTIVE_HIGH>;
-		output-high;
-	};
+	u-boot,dm-pre-proper;
 };
 
 &gpio5 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio6 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &gpio7 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &lpuart0 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &lpuart1 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &lpuart2 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &lpuart3 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &usdhc1 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &usdhc2 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &usdhc3 {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };

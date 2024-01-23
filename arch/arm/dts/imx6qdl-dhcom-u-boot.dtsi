@@ -8,12 +8,6 @@
 	aliases {
 		eeprom0 = &eeprom0;
 	};
-
-	wdt-reboot {
-		compatible = "wdt-reboot";
-		wdt = <&wdog1>;
-		bootph-pre-ram;
-	};
 };
 
 &fec {
@@ -30,8 +24,4 @@
 &reg_usb_otg_vbus {
 	gpio = <&gpio3 31 GPIO_ACTIVE_HIGH>;
 	enable-active-high;
-};
-
-&wdog1 {
-	bootph-pre-ram;
 };

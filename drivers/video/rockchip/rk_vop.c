@@ -307,8 +307,7 @@ static int rk_display_init(struct udevice *dev, ulong fbbase, ofnode ep_node)
 		      __func__, dev_read_name(dev));
 		return -EINVAL;
 	}
-	if (strstr(compat, "edp") ||
-	    strstr(compat, "rk3288-dp")) {
+	if (strstr(compat, "edp")) {
 		vop_id = VOP_MODE_EDP;
 	} else if (strstr(compat, "mipi")) {
 		vop_id = VOP_MODE_MIPI;
@@ -432,7 +431,7 @@ int rk_vop_probe(struct udevice *dev)
 	ret = reset_assert(&ahb_rst);
 	if (ret) {
 		dev_err(dev, "failed to assert ahb reset (ret=%d)\n", ret);
-		return ret;
+	return ret;
 	}
 	udelay(20);
 
@@ -447,7 +446,7 @@ int rk_vop_probe(struct udevice *dev)
 	efi_add_memory_map(plat->base, plat->size, EFI_RESERVED_MEMORY_TYPE);
 #endif
 
-	priv->regs = dev_read_addr_ptr(dev);
+	priv->regs = (struct rk3288_vop *)dev_read_addr(dev);
 
 	/*
 	 * Try all the ports until we find one that works. In practice this

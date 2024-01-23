@@ -984,7 +984,7 @@
 	};
 
 	/*
-	 * U-Boot Specific Change
+	 * U-boot Specific Change
 	 *
 	 * The OTG controller must come after the USB host pair for it
 	 * to work. This is likely due to lack of support for the USB

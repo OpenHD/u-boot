@@ -14,7 +14,7 @@
 #include <asm/axi.h>
 
 int axi_sandbox_get_emul(struct udevice *bus, ulong address,
-			 const enum axi_size_t size, struct udevice **emulp)
+			 enum axi_size_t size, struct udevice **emulp)
 {
 	struct udevice *dev;
 	u32 reg[2];

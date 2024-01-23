@@ -19,25 +19,22 @@
 #include <g_dnl.h>
 #include <usb.h>
 #include <net.h>
-#include <linux/printk.h>
 
 int run_usb_dnl_gadget(int usbctrl_index, char *usb_dnl_gadget)
 {
 	bool dfu_reset = false;
-	struct udevice *udc;
 	int ret, i = 0;
 
-	ret = udc_device_get_by_index(usbctrl_index, &udc);
+	ret = usb_gadget_initialize(usbctrl_index);
 	if (ret) {
-		pr_err("udc_device_get_by_index failed\n");
+		pr_err("usb_gadget_initialize failed\n");
 		return CMD_RET_FAILURE;
 	}
 	g_dnl_clear_detach();
 	ret = g_dnl_register(usb_dnl_gadget);
 	if (ret) {
 		pr_err("g_dnl_register failed");
-		ret = CMD_RET_FAILURE;
-		goto err_detach;
+		return CMD_RET_FAILURE;
 	}
 
 #ifdef CONFIG_DFU_TIMEOUT
@@ -57,7 +54,7 @@ int run_usb_dnl_gadget(int usbctrl_index, char *usb_dnl_gadget)
 			}
 
 			/*
-			 * This extra number of dm_usb_gadget_handle_interrupts()
+			 * This extra number of usb_gadget_handle_interrupts()
 			 * calls is necessary to assure correct transmission
 			 * completion with dfu-util
 			 */
@@ -70,7 +67,7 @@ int run_usb_dnl_gadget(int usbctrl_index, char *usb_dnl_gadget)
 
 		if (dfu_get_defer_flush()) {
 			/*
-			 * Call to dm_usb_gadget_handle_interrupts() is necessary
+			 * Call to usb_gadget_handle_interrupts() is necessary
 			 * to act on ZLP OUT transaction from HOST PC after
 			 * transmitting the whole file.
 			 *
@@ -79,7 +76,7 @@ int run_usb_dnl_gadget(int usbctrl_index, char *usb_dnl_gadget)
 			 * 5 seconds). In such situation the dfu-util program
 			 * exits with error message.
 			 */
-			dm_usb_gadget_handle_interrupts(udc);
+			usb_gadget_handle_interrupts(usbctrl_index);
 			ret = dfu_flush(dfu_get_defer_flush(), NULL, 0, 0);
 			dfu_set_defer_flush(NULL);
 			if (ret) {
@@ -104,13 +101,12 @@ int run_usb_dnl_gadget(int usbctrl_index, char *usb_dnl_gadget)
 		if (dfu_reinit_needed)
 			goto exit;
 
-		schedule();
-		dm_usb_gadget_handle_interrupts(udc);
+		WATCHDOG_RESET();
+		usb_gadget_handle_interrupts(usbctrl_index);
 	}
 exit:
 	g_dnl_unregister();
-err_detach:
-	udc_device_put(udc);
+	usb_gadget_release(usbctrl_index);
 
 	if (dfu_reset)
 		do_reset(NULL, 0, 0, NULL);

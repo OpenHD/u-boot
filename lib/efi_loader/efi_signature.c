@@ -4,6 +4,7 @@
  * Copyright (c) 2019 Linaro Limited, Author: AKASHI Takahiro
  */
 
+#include <common.h>
 #include <charset.h>
 #include <efi_loader.h>
 #include <efi_variable.h>

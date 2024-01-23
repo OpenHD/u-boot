@@ -9,6 +9,8 @@
 #ifndef _PCIE_LAYERSCAPE_FIXUP_COMMON_H_
 #define _PCIE_LAYERSCAPE_FIXUP_COMMON_H_
 
+#include <common.h>
+
 void ft_pci_setup_ls(void *blob, struct bd_info *bd);
 
 #ifdef CONFIG_PCIE_LAYERSCAPE_GEN4

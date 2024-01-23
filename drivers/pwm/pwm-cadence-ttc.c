@@ -17,7 +17,6 @@
 #include <linux/bitfield.h>
 #include <linux/math64.h>
 #include <linux/log2.h>
-#include <linux/time.h>
 #include <dm/device_compat.h>
 
 #define CLOCK_CONTROL		0
@@ -37,6 +36,8 @@
 #define COUNTER_DECREMENT_ENABLE	BIT(2)
 #define COUNTER_INTERVAL_ENABLE		BIT(1)
 #define COUNTER_COUNTING_DISABLE	BIT(0)
+
+#define NSEC_PER_SEC	1000000000L
 
 #define TTC_REG(reg, channel) ((reg) + (channel) * sizeof(u32))
 #define TTC_CLOCK_CONTROL(reg, channel) \

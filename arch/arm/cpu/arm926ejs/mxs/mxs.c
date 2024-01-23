@@ -71,7 +71,6 @@ void reset_cpu(void)
  * actually 0x20, this the associated <destination address>. Loading the PC
  * register with an address performs a jump to that address.
  */
-noinline __attribute__((target("arm")))
 void mx28_fixup_vt(uint32_t start_addr)
 {
 	/* ldr pc, [pc, #0x18] */
@@ -86,9 +85,6 @@ void mx28_fixup_vt(uint32_t start_addr)
 		/* cppcheck-suppress nullPointer */
 		vt[i + 8] = start_addr + (4 * i);
 	}
-
-	/* Make sure ARM core points to low vectors */
-	set_cr(get_cr() & ~CR_V);
 }
 
 #ifdef	CONFIG_ARCH_MISC_INIT
@@ -104,7 +100,7 @@ int arch_cpu_init(void)
 	struct mxs_clkctrl_regs *clkctrl_regs =
 		(struct mxs_clkctrl_regs *)MXS_CLKCTRL_BASE;
 
-	mx28_fixup_vt((uint32_t)_start);
+	mx28_fixup_vt((uint32_t)&_start);
 
 	/*
 	 * Enable NAND clock

@@ -20,9 +20,9 @@
 };
 
 &emmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

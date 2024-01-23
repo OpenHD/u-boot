@@ -21,7 +21,6 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/sys_proto.h>
 #include <dm.h>
-#include <linux/printk.h>
 
 /* The NAND flash driver defines */
 #define ZYNQ_NAND_CMD_PHASE		1
@@ -286,7 +285,7 @@ static int zynq_nand_init_nand_flash(struct mtd_info *mtd, int option)
 {
 	struct nand_chip *nand_chip = mtd_to_nand(mtd);
 	struct nand_drv *smc = nand_get_controller_data(nand_chip);
-	int status;
+	u32 status;
 
 	/* disable interrupts */
 	writel(ZYNQ_NAND_CLR_CONFIG, &smc->reg->cfr);
@@ -333,7 +332,7 @@ static int zynq_nand_calculate_hwecc(struct mtd_info *mtd, const u8 *data,
 	struct nand_drv *smc = nand_get_controller_data(nand_chip);
 	u32 ecc_value = 0;
 	u8 ecc_reg, ecc_byte;
-	int ecc_status;
+	u32 ecc_status;
 
 	/* Wait till the ECC operation is complete */
 	ecc_status = zynq_nand_waitfor_ecc_completion(mtd);
@@ -1086,7 +1085,7 @@ static int zynq_nand_probe(struct udevice *dev)
 	int ondie_ecc_enabled = 0;
 	int is_16bit_bw;
 
-	smc->reg = dev_read_addr_ptr(dev);
+	smc->reg = (struct zynq_nand_smc_regs *)dev_read_addr(dev);
 	of_nand = dev_read_subnode(dev, "nand-controller@0,0");
 	if (!ofnode_valid(of_nand)) {
 		of_nand = dev_read_subnode(dev, "flash@e1000000");
@@ -1096,7 +1095,7 @@ static int zynq_nand_probe(struct udevice *dev)
 		}
 	}
 
-	if (!ofnode_is_enabled(of_nand)) {
+	if (!ofnode_is_available(of_nand)) {
 		debug("Nand node in dt disabled\n");
 		return dm_scan_fdt_dev(dev);
 	}

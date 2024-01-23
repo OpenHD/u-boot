@@ -55,16 +55,6 @@ struct vring_desc {
 	__virtio16 next;
 };
 
-/* Shadow of struct vring_desc in guest byte order. */
-struct vring_desc_shadow {
-	u64 addr;
-	u32 len;
-	u16 flags;
-	u16 next;
-	/* Metadata about the descriptor. */
-	bool chain_head;
-};
-
 struct vring_avail {
 	__virtio16 flags;
 	__virtio16 idx;
@@ -86,8 +76,6 @@ struct vring_used {
 
 struct vring {
 	unsigned int num;
-	size_t size;
-	struct bounce_buffer *bouncebufs;
 	struct vring_desc *desc;
 	struct vring_avail *avail;
 	struct vring_used *used;
@@ -101,7 +89,6 @@ struct vring {
  * @index: the zero-based ordinal number for this queue
  * @num_free: number of elements we expect to be able to fit
  * @vring: actual memory layout for this queue
- * @vring_desc_shadow: guest-only copy of descriptors
  * @event: host publishes avail event idx
  * @free_head: head of free buffer list
  * @num_added: number we've added since last sync
@@ -115,7 +102,6 @@ struct virtqueue {
 	unsigned int index;
 	unsigned int num_free;
 	struct vring vring;
-	struct vring_desc_shadow *vring_desc_shadow;
 	bool event;
 	unsigned int free_head;
 	unsigned int num_added;
@@ -139,24 +125,21 @@ struct virtqueue {
 #define vring_used_event(vr)	((vr)->avail->ring[(vr)->num])
 #define vring_avail_event(vr)	(*(__virtio16 *)&(vr)->used->ring[(vr)->num])
 
+static inline void vring_init(struct vring *vr, unsigned int num, void *p,
+			      unsigned long align)
+{
+	vr->num = num;
+	vr->desc = p;
+	vr->avail = p + num * sizeof(struct vring_desc);
+	vr->used = (void *)(((uintptr_t)&vr->avail->ring[num] +
+		   sizeof(__virtio16) + align - 1) & ~(align - 1));
+}
+
 static inline unsigned int vring_size(unsigned int num, unsigned long align)
 {
 	return ((sizeof(struct vring_desc) * num +
 		sizeof(__virtio16) * (3 + num)  + align - 1) & ~(align - 1)) +
 		sizeof(__virtio16) * 3 + sizeof(struct vring_used_elem) * num;
-}
-
-static inline void vring_init(struct vring *vr, unsigned int num, void *p,
-			      unsigned long align,
-			      struct bounce_buffer *bouncebufs)
-{
-	vr->num = num;
-	vr->size = vring_size(num, align);
-	vr->bouncebufs = bouncebufs;
-	vr->desc = p;
-	vr->avail = p + num * sizeof(struct vring_desc);
-	vr->used = (void *)(((uintptr_t)&vr->avail->ring[num] +
-		   sizeof(__virtio16) + align - 1) & ~(align - 1));
 }
 
 /*

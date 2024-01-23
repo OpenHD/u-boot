@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2019-2022 NXP
+ * Copyright 2019, 2021 NXP
  */
 
 #include <common.h>
-#include <display_options.h>
 #include <init.h>
 #include <malloc.h>
 #include <errno.h>
@@ -20,6 +19,9 @@
 #include <asm/arch-fsl-layerscape/fsl_icid.h>
 #include <i2c.h>
 #include <asm/arch/soc.h>
+#ifdef CONFIG_FSL_LS_PPA
+#include <asm/arch/ppa.h>
+#endif
 #include <fsl_immap.h>
 #include <netdev.h>
 
@@ -71,6 +73,10 @@ u32 get_lpuart_clk(void)
 
 int board_init(void)
 {
+#ifdef CONFIG_FSL_LS_PPA
+	ppa_init();
+#endif
+
 #ifndef CONFIG_SYS_EARLY_PCI_INIT
 	pci_init();
 #endif
@@ -322,8 +328,3 @@ int checkboard(void)
 	return 0;
 }
 #endif
-
-void *video_hw_init(void)
-{
-	return NULL;
-}

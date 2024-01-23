@@ -5,7 +5,7 @@
  * Author:	Priyanka Jain <priyanka.jain@nxp.com>
  *		Sriram Dash <sriram.dash@nxp.com>
  *
- * Copyright 2018, 2023 NXP
+ * Copyright 2018 NXP
  *
  */
 
@@ -18,7 +18,6 @@
 	compatible = "fsl,lx2160ardb", "fsl,lx2160a";
 	aliases {
 		spi0 = &fspi;
-		serial0 = &uart0;
 	};
 };
 
@@ -111,7 +110,7 @@
 
 &i2c0 {
 	status = "okay";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &i2c4 {
@@ -136,13 +135,5 @@
 };
 
 &sata3 {
-	status = "okay";
-};
-
-&uart0 {
-	status = "okay";
-};
-
-&uart1 {
 	status = "okay";
 };

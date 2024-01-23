@@ -27,7 +27,12 @@
 #include <asm/arch/clock.h>
 #include "octeontx_bch.h"
 
-static LIST_HEAD(octeontx_bch_devices);
+#ifdef DEBUG
+# undef CONFIG_LOGLEVEL
+# define CONFIG_LOGLEVEL 8
+#endif
+
+LIST_HEAD(octeontx_bch_devices);
 static unsigned int num_vfs = BCH_NR_VF;
 static void *bch_pf;
 static void *bch_vf;

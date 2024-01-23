@@ -70,8 +70,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define UCMD_RESET		(1 << 1) /* controller reset */
 
 /* If this is not defined, assume MX6/MX7/MX8M SoC default */
-#ifndef CFG_MXC_USB_PORTSC
-#define CFG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
+#ifndef CONFIG_MXC_USB_PORTSC
+#define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #endif
 
 /* Base address for this IP block is 0x02184800 */
@@ -272,7 +272,12 @@ static void usb_oc_config(struct usbnc_regs *usbnc, int index)
 {
 	void __iomem *ctrl = (void __iomem *)(&usbnc->ctrl[index]);
 
+#if CONFIG_MACH_TYPE == MACH_TYPE_MX6Q_ARM2
+	/* mx6qarm2 seems to required a different setting*/
+	clrbits_le32(ctrl, UCTRL_OVER_CUR_POL);
+#else
 	setbits_le32(ctrl, UCTRL_OVER_CUR_POL);
+#endif
 
 	setbits_le32(ctrl, UCTRL_OVER_CUR_DIS);
 
@@ -360,7 +365,7 @@ int ehci_hcd_init(int index, enum usb_init_type init,
 	if (index > 3)
 		return -EINVAL;
 
-	if (IS_ENABLED(CONFIG_IMX_MODULE_FUSE)) {
+	if (CONFIG_IS_ENABLED(IMX_MODULE_FUSE)) {
 		if (usb_fused((ulong)ehci)) {
 			printf("SoC fuse indicates USB@0x%lx is unavailable.\n",
 			       (ulong)ehci);
@@ -411,7 +416,7 @@ int ehci_hcd_init(int index, enum usb_init_type init,
 		return 0;
 
 	setbits_le32(&ehci->usbmode, CM_HOST);
-	writel(CFG_MXC_USB_PORTSC, &ehci->portsc);
+	writel(CONFIG_MXC_USB_PORTSC, &ehci->portsc);
 	setbits_le32(&ehci->portsc, USB_EN);
 
 	mdelay(10);
@@ -454,7 +459,7 @@ static u32 mx6_portsc(enum usb_phy_interface phy_type)
 	case USBPHY_INTERFACE_MODE_HSIC:
 		return PORT_PTS_HSIC;
 	default:
-		return CFG_MXC_USB_PORTSC;
+		return CONFIG_MXC_USB_PORTSC;
 	}
 }
 
@@ -641,7 +646,7 @@ static int ehci_usb_probe(struct udevice *dev)
 	struct ehci_hcor *hcor;
 	int ret;
 
-	if (IS_ENABLED(CONFIG_IMX_MODULE_FUSE)) {
+	if (CONFIG_IS_ENABLED(IMX_MODULE_FUSE)) {
 		if (usb_fused((ulong)ehci)) {
 			printf("SoC fuse indicates USB@0x%lx is unavailable.\n",
 			       (ulong)ehci);
@@ -703,10 +708,18 @@ static int ehci_usb_probe(struct udevice *dev)
 	usb_internal_phy_clock_gate(priv->phy_addr, 1);
 	usb_phy_enable(ehci, priv->phy_addr);
 #endif
-#else
-	ret = generic_setup_phy(dev, &priv->phy, 0);
-	if (ret)
-		goto err_regulator;
+#endif
+
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	if (priv->vbus_supply) {
+		ret = regulator_set_enable(priv->vbus_supply,
+					   (type == USB_INIT_DEVICE) ?
+					   false : true);
+		if (ret && ret != -ENOSYS) {
+			printf("Error enabling VBUS supply (ret=%i)\n", ret);
+			goto err_clk;
+		}
+	}
 #endif
 
 	if (priv->init_type == USB_INIT_HOST) {
@@ -716,6 +729,12 @@ static int ehci_usb_probe(struct udevice *dev)
 	}
 
 	mdelay(10);
+
+#if defined(CONFIG_PHY)
+	ret = ehci_setup_phy(dev, &priv->phy, 0);
+	if (ret)
+		goto err_regulator;
+#endif
 
 	hccr = (struct ehci_hccr *)((uintptr_t)&ehci->caplength);
 	hcor = (struct ehci_hcor *)((uintptr_t)hccr +
@@ -729,8 +748,12 @@ static int ehci_usb_probe(struct udevice *dev)
 
 err_phy:
 #if defined(CONFIG_PHY)
-	generic_shutdown_phy(&priv->phy);
+	ehci_shutdown_phy(dev, &priv->phy);
 err_regulator:
+#endif
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	if (priv->vbus_supply)
+		regulator_set_enable(priv->vbus_supply, false);
 #endif
 err_clk:
 #if CONFIG_IS_ENABLED(CLK)
@@ -749,7 +772,7 @@ int ehci_usb_remove(struct udevice *dev)
 	ehci_deregister(dev);
 
 #if defined(CONFIG_PHY)
-	generic_shutdown_phy(&priv->phy);
+	ehci_shutdown_phy(dev, &priv->phy);
 #endif
 
 #if CONFIG_IS_ENABLED(DM_REGULATOR)

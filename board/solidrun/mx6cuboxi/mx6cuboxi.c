@@ -32,7 +32,6 @@
 #include <asm/mach-imx/iomux-v3.h>
 #include <asm/mach-imx/sata.h>
 #include <asm/mach-imx/video.h>
-#include <asm/sections.h>
 #include <mmc.h>
 #include <fsl_esdhc_imx.h>
 #include <malloc.h>
@@ -108,7 +107,7 @@ int dram_init(void)
 {
 	u32 max_size = imx_ddr_size();
 
-	gd->ram_size = get_ram_size_stride_test((u32 *) CFG_SYS_SDRAM_BASE,
+	gd->ram_size = get_ram_size_stride_test((u32 *) CONFIG_SYS_SDRAM_BASE,
 						(u32)max_size);
 
 	return 0;
@@ -276,8 +275,9 @@ int board_early_init_f(void)
 {
 	setup_iomux_uart();
 
-	if (CONFIG_IS_ENABLED(SATA))
-		setup_sata();
+#ifdef CONFIG_CMD_SATA
+	setup_sata();
+#endif
 	setup_fec();
 
 	return 0;
@@ -288,7 +288,7 @@ int board_init(void)
 	int ret = 0;
 
 	/* address of boot parameters */
-	gd->bd->bi_boot_params = CFG_SYS_SDRAM_BASE + 0x100;
+	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
 #ifdef CONFIG_VIDEO_IPUV3
 	ret = setup_display();
@@ -381,7 +381,6 @@ static bool has_emmc(void)
 	return (mmc_get_op_cond(mmc, true) < 0) ? 0 : 1;
 }
 
-/* Override the default implementation, DT model is not accurate */
 int checkboard(void)
 {
 	request_detect_gpios();
@@ -450,26 +449,15 @@ int ft_board_setup(void *fdt, struct bd_info *bd)
 	int node_phy0, node_phy1, node_phy4;
 	int ret, phy;
 	bool enable_phy0 = false, enable_phy1 = false, enable_phy4 = false;
-	enum board_type board;
-
-	// detect device
-	request_detect_gpios();
-	board = board_type();
-	free_detect_gpios();
 
 	// detect phy
 	phy = find_ethernet_phy();
 	if (phy == 0 || phy == 4) {
 		enable_phy0 = true;
-		switch (board) {
-		case HUMMINGBOARD:
-		case HUMMINGBOARD2:
-			/* atheros phy may appear only at address 0 */
-			break;
+		switch (board_type()) {
 		case CUBOXI:
 		case UNKNOWN:
 		default:
-			/* atheros phy may appear at either address 0 or 4 */
 			enable_phy4 = true;
 		}
 	} else if (phy == 1) {
@@ -496,6 +484,12 @@ int ft_board_setup(void *fdt, struct bd_info *bd)
 	return 0;
 }
 #endif
+
+/* Override the default implementation, DT model is not accurate */
+int show_board_info(void)
+{
+	return checkboard();
+}
 
 int board_late_init(void)
 {
@@ -838,9 +832,6 @@ void board_init_f(ulong dummy)
 
 	/* setup GP timer */
 	timer_init();
-
-	/* Enable device tree and early DM support*/
-	spl_early_init();
 
 	/* UART clocks enabled and gd valid - init serial console */
 	preloader_console_init();

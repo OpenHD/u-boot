@@ -4,7 +4,8 @@
  * Rick Chen, Andes Technology Corporation <rick@andestech.com>
  */
 
-#include <asm/u-boot.h>
+#include <common.h>
+#include <command.h>
 
 unsigned long do_go_exec(ulong (*entry)(int, char * const []),
 			 int argc, char *const argv[])

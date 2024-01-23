@@ -8,7 +8,7 @@
  * memset(), and memcmp().
  */
 
-#include <linux/types.h>
+#include <common.h>
 
 /**
  * memcmp() - compare memory areas
@@ -100,7 +100,7 @@ void *memset(void *s, int c, size_t n)
  * func_ptr:	Pointer to function being entered
  * caller:	Pointer to function which called this function
  */
-void notrace
+void __attribute__((no_instrument_function))
 __cyg_profile_func_enter(void *func_ptr, void *caller)
 {
 }
@@ -116,7 +116,7 @@ __cyg_profile_func_enter(void *func_ptr, void *caller)
  * func_ptr:	Pointer to function being entered
  * caller:	Pointer to function which called this function
  */
-void notrace
+void __attribute__((no_instrument_function))
 __cyg_profile_func_exit(void *func_ptr, void *caller)
 {
 }

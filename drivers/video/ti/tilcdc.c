@@ -7,6 +7,7 @@
 #include <clk.h>
 #include <dm.h>
 #include <dm/device_compat.h>
+#include <lcd.h>
 #include <log.h>
 #include <panel.h>
 #include <video.h>
@@ -387,8 +388,8 @@ static int tilcdc_of_to_plat(struct udevice *dev)
 {
 	struct tilcdc_priv *priv = dev_get_priv(dev);
 
-	priv->regs = dev_read_addr_ptr(dev);
-	if (!priv->regs) {
+	priv->regs = (struct tilcdc_regs *)dev_read_addr(dev);
+	if ((fdt_addr_t)priv->regs == FDT_ADDR_T_NONE) {
 		dev_err(dev, "failed to get base address\n");
 		return -EINVAL;
 	}

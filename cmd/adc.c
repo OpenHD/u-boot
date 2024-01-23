@@ -7,25 +7,28 @@
 #include <command.h>
 #include <dm.h>
 #include <adc.h>
-#include <linux/printk.h>
 
 static int do_adc_list(struct cmd_tbl *cmdtp, int flag, int argc,
 		       char *const argv[])
 {
 	struct udevice *dev;
-	int ret, err;
+	int ret;
 
-	ret = err = uclass_first_device_check(UCLASS_ADC, &dev);
-
-	while (dev) {
-		printf("- %s status: %i\n", dev->name, ret);
-
-		ret = uclass_next_device_check(&dev);
-		if (ret)
-			err = ret;
+	ret = uclass_first_device_err(UCLASS_ADC, &dev);
+	if (ret) {
+		printf("No available ADC device\n");
+		return CMD_RET_FAILURE;
 	}
 
-	return err ? CMD_RET_FAILURE : CMD_RET_SUCCESS;
+	do {
+		printf("- %s\n", dev->name);
+
+		ret = uclass_next_device(&dev);
+		if (ret)
+			return CMD_RET_FAILURE;
+	} while (dev);
+
+	return CMD_RET_SUCCESS;
 }
 
 static int do_adc_info(struct cmd_tbl *cmdtp, int flag, int argc,
@@ -68,16 +71,12 @@ static int do_adc_info(struct cmd_tbl *cmdtp, int flag, int argc,
 static int do_adc_single(struct cmd_tbl *cmdtp, int flag, int argc,
 			 char *const argv[])
 {
-	char *varname = NULL;
 	struct udevice *dev;
 	unsigned int data;
 	int ret, uV, val;
 
 	if (argc < 3)
 		return CMD_RET_USAGE;
-
-	if (argc >= 4)
-		varname = argv[3];
 
 	ret = adc_channel_single_shot(argv[1], simple_strtol(argv[2], NULL, 0),
 				      &data);
@@ -96,8 +95,7 @@ static int do_adc_single(struct cmd_tbl *cmdtp, int flag, int argc,
 		printf("%u\n", data);
 	}
 
-	if (varname)
-		env_set_ulong(varname, val);
+	env_set_ulong(argv[2], val);
 
 	return CMD_RET_SUCCESS;
 }
@@ -162,5 +160,5 @@ static char adc_help_text[] =
 U_BOOT_CMD_WITH_SUBCMDS(adc, "ADC sub-system", adc_help_text,
 	U_BOOT_SUBCMD_MKENT(list, 1, 1, do_adc_list),
 	U_BOOT_SUBCMD_MKENT(info, 2, 1, do_adc_info),
-	U_BOOT_SUBCMD_MKENT(single, 4, 1, do_adc_single),
+	U_BOOT_SUBCMD_MKENT(single, 3, 1, do_adc_single),
 	U_BOOT_SUBCMD_MKENT(scan, 3, 1, do_adc_scan));

@@ -15,13 +15,6 @@
 #define SDHCI_WINDOW_CTRL(win)		(0x4080 + ((win) << 4))
 #define SDHCI_WINDOW_BASE(win)		(0x4084 + ((win) << 4))
 
-DECLARE_GLOBAL_DATA_PTR;
-
-struct mv_sdhci_plat {
-	struct mmc_config cfg;
-	struct mmc mmc;
-};
-
 static void sdhci_mvebu_mbus_config(void __iomem *base)
 {
 	const struct mbus_dram_target_info *dram;
@@ -47,6 +40,47 @@ static void sdhci_mvebu_mbus_config(void __iomem *base)
 	}
 }
 
+#ifndef CONFIG_DM_MMC
+
+#ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
+static struct sdhci_ops mv_ops;
+#endif /* CONFIG_MMC_SDHCI_IO_ACCESSORS */
+
+int mv_sdh_init(unsigned long regbase, u32 max_clk, u32 min_clk, u32 quirks)
+{
+	struct sdhci_host *host = NULL;
+	host = calloc(1, sizeof(*host));
+	if (!host) {
+		printf("sdh_host malloc fail!\n");
+		return -ENOMEM;
+	}
+
+	host->name = MVSDH_NAME;
+	host->ioaddr = (void *)regbase;
+	host->quirks = quirks;
+	host->max_clk = max_clk;
+#ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
+	memset(&mv_ops, 0, sizeof(struct sdhci_ops));
+	host->ops = &mv_ops;
+#endif
+
+	if (CONFIG_IS_ENABLED(ARCH_MVEBU)) {
+		/* Configure SDHCI MBUS mbus bridge windows */
+		sdhci_mvebu_mbus_config((void __iomem *)regbase);
+	}
+
+	return add_sdhci(host, 0, min_clk);
+}
+
+#else
+
+DECLARE_GLOBAL_DATA_PTR;
+
+struct mv_sdhci_plat {
+	struct mmc_config cfg;
+	struct mmc mmc;
+};
+
 static int mv_sdhci_probe(struct udevice *dev)
 {
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(dev);
@@ -69,8 +103,10 @@ static int mv_sdhci_probe(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	/* Configure SDHCI MBUS mbus bridge windows */
-	sdhci_mvebu_mbus_config(host->ioaddr);
+	if (CONFIG_IS_ENABLED(ARCH_MVEBU)) {
+		/* Configure SDHCI MBUS mbus bridge windows */
+		sdhci_mvebu_mbus_config(host->ioaddr);
+	}
 
 	upriv->mmc = host->mmc;
 
@@ -99,3 +135,4 @@ U_BOOT_DRIVER(mv_sdhci_drv) = {
 	.priv_auto	= sizeof(struct sdhci_host),
 	.plat_auto	= sizeof(struct mv_sdhci_plat),
 };
+#endif /* CONFIG_DM_MMC */

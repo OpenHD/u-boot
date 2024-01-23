@@ -13,12 +13,10 @@
  * struct smh_serial_priv - Semihosting serial private data
  * @infd: stdin file descriptor (or error)
  * @outfd: stdout file descriptor (or error)
- * @counter: Counter used to fake pending every other call
  */
 struct smh_serial_priv {
 	int infd;
 	int outfd;
-	unsigned counter;
 };
 
 #if CONFIG_IS_ENABLED(DM_SERIAL)
@@ -70,20 +68,10 @@ static ssize_t smh_serial_puts(struct udevice *dev, const char *s, size_t len)
 	return ret;
 }
 
-static int smh_serial_pending(struct udevice *dev, bool input)
-{
-	struct smh_serial_priv *priv = dev_get_priv(dev);
-
-	if (input)
-		return priv->counter++ & 1;
-	return false;
-}
-
 static const struct dm_serial_ops smh_serial_ops = {
 	.putc = smh_serial_putc,
 	.puts = smh_serial_puts,
 	.getc = smh_serial_getc,
-	.pending = smh_serial_pending,
 };
 
 static int smh_serial_bind(struct udevice *dev)
@@ -118,7 +106,6 @@ U_BOOT_DRVINFO(smh_serial) = {
 #else /* DM_SERIAL */
 static int infd = -ENODEV;
 static int outfd = -ENODEV;
-static unsigned counter = 1;
 
 static int smh_serial_start(void)
 {
@@ -151,7 +138,7 @@ static int smh_serial_getc(void)
 
 static int smh_serial_tstc(void)
 {
-	return counter++ & 1;
+	return 1;
 }
 
 static void smh_serial_puts(const char *s)

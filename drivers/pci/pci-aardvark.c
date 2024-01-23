@@ -983,8 +983,8 @@ static int pcie_advk_of_to_plat(struct udevice *dev)
 	struct pcie_advk *pcie = dev_get_priv(dev);
 
 	/* Get the register base address */
-	pcie->base = dev_read_addr_ptr(dev);
-	if (!pcie->base)
+	pcie->base = (void *)dev_read_addr(dev);
+	if ((fdt_addr_t)pcie->base == FDT_ADDR_T_NONE)
 		return -EINVAL;
 
 	return 0;

@@ -3,6 +3,8 @@
  * Copyright (c) 2018 Microsemi Corporation
  */
 
+#include <common.h>
+
 enum mscc_regs_qs {
 	MSCC_QS_XTR_RD,
 	MSCC_QS_XTR_FLUSH,

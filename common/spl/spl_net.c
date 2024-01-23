@@ -12,7 +12,6 @@
 #include <image.h>
 #include <log.h>
 #include <spl.h>
-#include <spl_load.h>
 #include <net.h>
 #include <linux/libfdt.h>
 
@@ -22,14 +21,14 @@ static ulong spl_net_load_read(struct spl_load_info *load, ulong sector,
 {
 	debug("%s: sector %lx, count %lx, buf %lx\n",
 	      __func__, sector, count, (ulong)buf);
-	memcpy(buf, map_sysmem(image_load_addr + sector, count), count);
+	memcpy(buf, (void *)(image_load_addr + sector), count);
 	return count;
 }
 
 static int spl_net_load_image(struct spl_image_info *spl_image,
 			      struct spl_boot_device *bootdev)
 {
-	struct spl_load_info load;
+	struct image_header *header = (struct image_header *)image_load_addr;
 	int rv;
 
 	env_init();
@@ -48,9 +47,25 @@ static int spl_net_load_image(struct spl_image_info *spl_image,
 		return rv;
 	}
 
-	spl_set_bl_len(&load, 1);
-	load.read = spl_net_load_read;
-	return spl_load(spl_image, bootdev, &load, 0, 0);
+	if (IS_ENABLED(CONFIG_SPL_LOAD_FIT) &&
+	    image_get_magic(header) == FDT_MAGIC) {
+		struct spl_load_info load;
+
+		debug("Found FIT\n");
+		load.bl_len = 1;
+		load.read = spl_net_load_read;
+		rv = spl_load_simple_fit(spl_image, &load, 0, header);
+	} else {
+		debug("Legacy image\n");
+
+		rv = spl_parse_image_header(spl_image, bootdev, header);
+		if (rv)
+			return rv;
+
+		memcpy((void *)spl_image->load_addr, header, spl_image->size);
+	}
+
+	return rv;
 }
 #endif
 

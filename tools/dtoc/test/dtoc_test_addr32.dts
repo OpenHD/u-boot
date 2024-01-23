@@ -12,13 +12,13 @@
 	#size-cells = <1>;
 
 	test1 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		compatible = "test1";
 		reg = <0x1234 0x5678>;
 	};
 
 	test2 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		compatible = "test2";
 		reg = <0x12345678 0x98765432 2 3>;
 	};

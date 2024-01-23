@@ -6,6 +6,7 @@
  * Mostly taken from coreboot file of the same name
  */
 
+#include <common.h>
 #include <dm.h>
 #include <irq.h>
 #include <log.h>

@@ -17,7 +17,6 @@
 #include <linux/io.h>
 #include <spi.h>
 #include <wait_bit.h>
-#include <linux/printk.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 

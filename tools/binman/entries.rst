@@ -1,5 +1,5 @@
 Binman Entry Documentation
-==========================
+===========================
 
 This file describes the entry types supported by binman. These entry types can
 be placed in an image one by one to build up a final firmware image. It is
@@ -10,8 +10,6 @@ Note that some entries are subclasses of others, using and extending their
 features to produce new behaviours.
 
 
-
-.. _etype_atf_bl31:
 
 Entry: atf-bl31: ARM Trusted Firmware (ATF) BL31 blob
 -----------------------------------------------------
@@ -26,8 +24,6 @@ https://github.com/ARM-software/arm-trusted-firmware for more information
 about ATF.
 
 
-
-.. _etype_atf_fip:
 
 Entry: atf-fip: ARM Trusted Firmware's Firmware Image Package (FIP)
 -------------------------------------------------------------------
@@ -183,8 +179,6 @@ FIPs so that binman and other tools can access the entire image correctly.
 
 
 
-.. _etype_blob:
-
 Entry: blob: Arbitrary binary blob
 ----------------------------------
 
@@ -207,8 +201,6 @@ data.
 
 
 
-.. _etype_blob_dtb:
-
 Entry: blob-dtb: A blob that holds a device tree
 ------------------------------------------------
 
@@ -216,12 +208,7 @@ This is a blob containing a device tree. The contents of the blob are
 obtained from the list of available device-tree files, managed by the
 'state' module.
 
-Additional attributes:
-    prepend: Header used (e.g. 'length')
 
-
-
-.. _etype_blob_ext:
 
 Entry: blob-ext: Externally built binary blob
 ---------------------------------------------
@@ -236,8 +223,6 @@ See 'blob' for Properties / Entry arguments.
 
 
 
-.. _etype_blob_ext_list:
-
 Entry: blob-ext-list: List of externally built binary blobs
 -----------------------------------------------------------
 
@@ -251,8 +236,6 @@ Args:
     filenames: List of filenames to read and include
 
 
-
-.. _etype_blob_named_by_arg:
 
 Entry: blob-named-by-arg: A blob entry which gets its filename property from its subclass
 -----------------------------------------------------------------------------------------
@@ -272,8 +255,6 @@ See cros_ec_rw for an example of this.
 
 
 
-.. _etype_blob_phase:
-
 Entry: blob-phase: Section that holds a phase binary
 ----------------------------------------------------
 
@@ -282,8 +263,6 @@ when converting a 'u-boot' entry automatically into a 'u-boot-expanded'
 entry; similarly for SPL.
 
 
-
-.. _etype_cbfs:
 
 Entry: cbfs: Coreboot Filesystem (CBFS)
 ---------------------------------------
@@ -437,8 +416,6 @@ both of size 1MB.
 
 
 
-.. _etype_collection:
-
 Entry: collection: An entry which contains a collection of other entries
 ------------------------------------------------------------------------
 
@@ -450,12 +427,7 @@ listed entries are combined to form this entry. This serves as a useful
 base class for entry types which need to process data from elsewhere in
 the image, not necessarily child entries.
 
-The entries can generally be anywhere in the same image, even if they are in
-a different section from this entry.
 
-
-
-.. _etype_cros_ec_rw:
 
 Entry: cros-ec-rw: A blob entry which contains a Chromium OS read-write EC image
 --------------------------------------------------------------------------------
@@ -467,202 +439,6 @@ This entry holds a Chromium OS EC (embedded controller) image, for use in
 updating the EC on startup via software sync.
 
 
-
-.. _etype_efi_capsule:
-
-Entry: capsule: Entry for generating EFI Capsule files
-------------------------------------------------------
-
-The parameters needed for generation of the capsules can be provided
-as properties in the entry.
-
-Properties / Entry arguments:
-    - image-index: Unique number for identifying corresponding
-      payload image. Number between 1 and descriptor count, i.e.
-      the total number of firmware images that can be updated. Mandatory
-      property.
-    - image-guid: Image GUID which will be used for identifying the
-      updatable image on the board. Mandatory property.
-    - hardware-instance: Optional number for identifying unique
-      hardware instance of a device in the system. Default value of 0
-      for images where value is not to be used.
-    - fw-version: Value of image version that can be put on the capsule
-      through the Firmware Management Protocol(FMP) header.
-    - monotonic-count: Count used when signing an image.
-    - private-key: Path to PEM formatted .key private key file. Mandatory
-      property for generating signed capsules.
-    - public-key-cert: Path to PEM formatted .crt public key certificate
-      file. Mandatory property for generating signed capsules.
-    - oem-flags - OEM flags to be passed through capsule header.
-
-    Since this is a subclass of Entry_section, all properties of the parent
-    class also apply here. Except for the properties stated as mandatory, the
-    rest of the properties are optional.
-
-For more details on the description of the capsule format, and the capsule
-update functionality, refer Section 8.5 and Chapter 23 in the `UEFI
-specification`_.
-
-The capsule parameters like image index and image GUID are passed as
-properties in the entry. The payload to be used in the capsule is to be
-provided as a subnode of the capsule entry.
-
-A typical capsule entry node would then look something like this::
-
-    capsule {
-            type = "efi-capsule";
-            image-index = <0x1>;
-            /* Image GUID for testing capsule update */
-            image-guid = SANDBOX_UBOOT_IMAGE_GUID;
-            hardware-instance = <0x0>;
-            private-key = "path/to/the/private/key";
-            public-key-cert = "path/to/the/public-key-cert";
-            oem-flags = <0x8000>;
-
-            u-boot {
-            };
-    };
-
-In the above example, the capsule payload is the U-Boot image. The
-capsule entry would read the contents of the payload and put them
-into the capsule. Any external file can also be specified as the
-payload using the blob-ext subnode.
-
-.. _`UEFI specification`: https://uefi.org/sites/default/files/resources/UEFI_Spec_2_10_Aug29.pdf
-
-
-
-.. _etype_efi_empty_capsule:
-
-Entry: efi-empty-capsule: Entry for generating EFI Empty Capsule files
-----------------------------------------------------------------------
-
-The parameters needed for generation of the empty capsules can
-be provided as properties in the entry.
-
-Properties / Entry arguments:
-    - image-guid: Image GUID which will be used for identifying the
-      updatable image on the board. Mandatory for accept capsule.
-    - capsule-type - String to indicate type of capsule to generate. Valid
-      values are 'accept' and 'revert'.
-
-For more details on the description of the capsule format, and the capsule
-update functionality, refer Section 8.5 and Chapter 23 in the `UEFI
-specification`_. For more information on the empty capsule, refer the
-sections 2.3.2 and 2.3.3 in the `Dependable Boot specification`_.
-
-A typical accept empty capsule entry node would then look something
-like this::
-
-    empty-capsule {
-            type = "efi-empty-capsule";
-            /* GUID of the image being accepted */
-            image-type-id = SANDBOX_UBOOT_IMAGE_GUID;
-            capsule-type = "accept";
-    };
-
-A typical revert empty capsule entry node would then look something
-like this::
-
-    empty-capsule {
-            type = "efi-empty-capsule";
-            capsule-type = "revert";
-    };
-
-The empty capsules do not have any input payload image.
-
-.. _`UEFI specification`: https://uefi.org/sites/default/files/resources/UEFI_Spec_2_10_Aug29.pdf
-.. _`Dependable Boot specification`: https://git.codelinaro.org/linaro/dependable-boot/mbfw/uploads/6f7ddfe3be24e18d4319e108a758d02e/mbfw.pdf
-
-
-
-.. _etype_encrypted:
-
-Entry: encrypted: Externally built encrypted binary blob
---------------------------------------------------------
-
-This entry provides the functionality to include information about how to
-decrypt an encrypted binary. This information is added to the
-resulting device tree by adding a new cipher node in the entry's parent
-node (i.e. the binary).
-
-The key that must be used to decrypt the binary is either directly embedded
-in the device tree or indirectly by specifying a key source. The key source
-can be used as an id of a key that is stored in an external device.
-
-Using an embedded key
-~~~~~~~~~~~~~~~~~~~~~
-
-This is an example using an embedded key::
-
-    blob-ext {
-        filename = "encrypted-blob.bin";
-    };
-
-    encrypted {
-        algo = "aes256-gcm";
-        iv-filename = "encrypted-blob.bin.iv";
-        key-filename = "encrypted-blob.bin.key";
-    };
-
-This entry generates the following device tree structure form the example
-above::
-
-    data = [...]
-    cipher {
-        algo = "aes256-gcm";
-        key = <0x...>;
-        iv = <0x...>;
-    };
-
-The data property is generated by the blob-ext etype, the cipher node and
-its content is generated by this etype.
-
-Using an external key
-~~~~~~~~~~~~~~~~~~~~~
-
-Instead of embedding the key itself into the device tree, it is also
-possible to address an externally stored key by specifying a 'key-source'
-instead of the 'key'::
-
-    blob-ext {
-        filename = "encrypted-blob.bin";
-    };
-
-    encrypted {
-        algo = "aes256-gcm";
-        iv-filename = "encrypted-blob.bin.iv";
-        key-source = "external-key-id";
-    };
-
-This entry generates the following device tree structure form the example
-above::
-
-    data = [...]
-    cipher {
-        algo = "aes256-gcm";
-        key-source = "external-key-id";
-        iv = <0x...>;
-    };
-
-Properties
-~~~~~~~~~~
-
-Properties / Entry arguments:
-    - algo: The encryption algorithm. Currently no algorithm is supported
-            out-of-the-box. Certain algorithms will be added in future
-            patches.
-    - iv-filename: The name of the file containing the initialization
-                   vector (in short iv). See
-                   https://en.wikipedia.org/wiki/Initialization_vector
-    - key-filename: The name of the file containing the key. Either
-                    key-filename or key-source must be provided.
-    - key-source: The key that should be used. Either key-filename or
-                  key-source must be provided.
-
-
-
-.. _etype_fdtmap:
 
 Entry: fdtmap: An entry which contains an FDT map
 -------------------------------------------------
@@ -712,8 +488,6 @@ without the fdtmap header, so it can be viewed with `fdtdump`.
 
 
 
-.. _etype_files:
-
 Entry: files: A set of files arranged in a section
 --------------------------------------------------
 
@@ -730,8 +504,6 @@ at run-time so you can obtain the file positions.
 
 
 
-.. _etype_fill:
-
 Entry: fill: An entry which is filled to a particular byte value
 ----------------------------------------------------------------
 
@@ -747,8 +519,6 @@ that byte. But this entry is sometimes useful for explicitly setting the
 byte value of a region.
 
 
-
-.. _etype_fit:
 
 Entry: fit: Flat Image Tree (FIT)
 ---------------------------------
@@ -798,22 +568,11 @@ The top-level 'fit' node supports the following special properties:
         Indicates that the contents of the FIT are external and provides the
         external offset. This is passed to mkimage via the -E and -p flags.
 
-    fit,align
-        Indicates what alignment to use for the FIT and its external data,
-        and provides the alignment to use. This is passed to mkimage via
-        the -B flag.
-
     fit,fdt-list
         Indicates the entry argument which provides the list of device tree
         files for the gen-fdt-nodes operation (as below). This is often
         `of-list` meaning that `-a of-list="dtb1 dtb2..."` should be passed
         to binman.
-
-    fit,fdt-list-val
-        As an alternative to fit,fdt-list the list of device tree files
-        can be provided in this property as a string list, e.g.::
-
-            fit,fdt-list-val = "dtb1", "dtb2";
 
 Substitutions
 ~~~~~~~~~~~~~
@@ -921,12 +680,6 @@ split-elf
     fit,data
         Generates a `data = <...>` property with the contents of the segment
 
-    fit,firmware
-        Generates a `firmware = <...>` property. Provides a list of possible
-        nodes to be used as the `firmware` property value. The first valid
-        node is picked as the firmware. Any remaining valid nodes is
-        prepended to the `loadable` property generated by `fit,loadables`
-
     fit,loadables
         Generates a `loadable = <...>` property with a list of the generated
         nodes (including all nodes if this operation is used multiple times)
@@ -946,7 +699,7 @@ Here is an example showing ATF, TEE and a device tree all combined::
                 os = "U-Boot";
                 arch = "arm64";
                 compression = "none";
-                load = <CONFIG_TEXT_BASE>;
+                load = <CONFIG_SYS_TEXT_BASE>;
                 u-boot-nodtb {
                 };
             };
@@ -968,9 +721,6 @@ Here is an example showing ATF, TEE and a device tree all combined::
 
                 atf-bl31 {
                 };
-                hash {
-                    algo = "sha256";
-                };
             };
 
             @tee-SEQ {
@@ -986,9 +736,6 @@ Here is an example showing ATF, TEE and a device tree all combined::
 
                 tee-os {
                 };
-                hash {
-                    algo = "sha256";
-                };
             };
         };
 
@@ -997,7 +744,7 @@ Here is an example showing ATF, TEE and a device tree all combined::
             @config-SEQ {
                 description = "conf-NAME.dtb";
                 fdt = "fdt-SEQ";
-                fit,firmware = "atf-1", "u-boot";
+                firmware = "u-boot";
                 fit,loadables;
             };
         };
@@ -1017,10 +764,6 @@ ELF file, for example::
             arch = "arm64";
             type = "firmware";
             description = "ARM Trusted Firmware";
-            hash {
-                algo = "sha256";
-                value = <...hash of first segment...>;
-            };
         };
         atf-2 {
             data = <...contents of second segment...>;
@@ -1030,10 +773,6 @@ ELF file, for example::
             arch = "arm64";
             type = "firmware";
             description = "ARM Trusted Firmware";
-            hash {
-                algo = "sha256";
-                value = <...hash of second segment...>;
-            };
         };
     };
 
@@ -1052,19 +791,17 @@ is::
     configurations {
         default = "config-1";
         config-1 {
-            loadables = "u-boot", "atf-2", "atf-3", "tee-1", "tee-2";
+            loadables = "atf-1", "atf-2", "atf-3", "tee-1", "tee-2";
             description = "rk3399-firefly.dtb";
             fdt = "fdt-1";
-            firmware = "atf-1";
+            firmware = "u-boot";
         };
     };
 
-U-Boot SPL can then load the firmware (ATF) and all the loadables (U-Boot
-proper, ATF and TEE), then proceed with the boot.
+U-Boot SPL can then load the firmware (U-Boot proper) and all the loadables
+(ATF and TEE), then proceed with the boot.
 
 
-
-.. _etype_fmap:
 
 Entry: fmap: An entry which contains an Fmap section
 ----------------------------------------------------
@@ -1087,16 +824,9 @@ before its contents, so that it is possible to reconstruct the hierarchy
 from the FMAP by using the offset information. This convention does not
 seem to be documented, but is used in Chromium OS.
 
-To mark an area as preserved, use the normal 'preserved' flag in the entry.
-This will result in the corresponding FMAP area having the
-FMAP_AREA_PRESERVE flag. This flag does not automatically propagate down to
-child entries.
-
 CBFS entries appear as a single entry, i.e. the sub-entries are ignored.
 
 
-
-.. _etype_gbb:
 
 Entry: gbb: An entry which contains a Chromium OS Google Binary Block
 ---------------------------------------------------------------------
@@ -1117,8 +847,6 @@ README.chromium for how to obtain the required keys and tools.
 
 
 
-.. _etype_image_header:
-
 Entry: image-header: An entry which contains a pointer to the FDT map
 ---------------------------------------------------------------------
 
@@ -1138,8 +866,6 @@ first/last in the entry list.
 
 
 
-.. _etype_intel_cmc:
-
 Entry: intel-cmc: Intel Chipset Micro Code (CMC) file
 -----------------------------------------------------
 
@@ -1152,8 +878,6 @@ example filename is 'Microcode/C0_22211.BIN'.
 See README.x86 for information about x86 binary blobs.
 
 
-
-.. _etype_intel_descriptor:
 
 Entry: intel-descriptor: Intel flash descriptor block (4KB)
 -----------------------------------------------------------
@@ -1176,8 +900,6 @@ See README.x86 for information about x86 binary blobs.
 
 
 
-.. _etype_intel_fit:
-
 Entry: intel-fit: Intel Firmware Image Table (FIT)
 --------------------------------------------------
 
@@ -1189,8 +911,6 @@ At present binman only supports a basic FIT with no microcode.
 
 
 
-.. _etype_intel_fit_ptr:
-
 Entry: intel-fit-ptr: Intel Firmware Image Table (FIT) pointer
 --------------------------------------------------------------
 
@@ -1198,8 +918,6 @@ This entry contains a pointer to the FIT. It is required to be at address
 0xffffffc0 in the image.
 
 
-
-.. _etype_intel_fsp:
 
 Entry: intel-fsp: Intel Firmware Support Package (FSP) file
 -----------------------------------------------------------
@@ -1218,8 +936,6 @@ See README.x86 for information about x86 binary blobs.
 
 
 
-.. _etype_intel_fsp_m:
-
 Entry: intel-fsp-m: Intel Firmware Support Package (FSP) memory init
 --------------------------------------------------------------------
 
@@ -1236,8 +952,6 @@ An example filename is 'fsp_m.bin'
 See README.x86 for information about x86 binary blobs.
 
 
-
-.. _etype_intel_fsp_s:
 
 Entry: intel-fsp-s: Intel Firmware Support Package (FSP) silicon init
 ---------------------------------------------------------------------
@@ -1256,8 +970,6 @@ See README.x86 for information about x86 binary blobs.
 
 
 
-.. _etype_intel_fsp_t:
-
 Entry: intel-fsp-t: Intel Firmware Support Package (FSP) temp ram init
 ----------------------------------------------------------------------
 
@@ -1273,8 +985,6 @@ An example filename is 'fsp_t.bin'
 See README.x86 for information about x86 binary blobs.
 
 
-
-.. _etype_intel_ifwi:
 
 Entry: intel-ifwi: Intel Integrated Firmware Image (IFWI) file
 --------------------------------------------------------------
@@ -1310,8 +1020,6 @@ See README.x86 for information about x86 binary blobs.
 
 
 
-.. _etype_intel_me:
-
 Entry: intel-me: Intel Management Engine (ME) file
 --------------------------------------------------
 
@@ -1332,8 +1040,6 @@ See README.x86 for information about x86 binary blobs.
 
 
 
-.. _etype_intel_mrc:
-
 Entry: intel-mrc: Intel Memory Reference Code (MRC) file
 --------------------------------------------------------
 
@@ -1347,8 +1053,6 @@ is 'mrc.bin'.
 See README.x86 for information about x86 binary blobs.
 
 
-
-.. _etype_intel_refcode:
 
 Entry: intel-refcode: Intel Reference Code file
 -----------------------------------------------
@@ -1364,8 +1068,6 @@ See README.x86 for information about x86 binary blobs.
 
 
 
-.. _etype_intel_vbt:
-
 Entry: intel-vbt: Intel Video BIOS Table (VBT) file
 ---------------------------------------------------
 
@@ -1378,8 +1080,6 @@ some Intel SoCs. U-Boot executes this when the display is started up.
 See README.x86 for information about Intel binary blobs.
 
 
-
-.. _etype_intel_vga:
 
 Entry: intel-vga: Intel Video Graphics Adaptor (VGA) file
 ---------------------------------------------------------
@@ -1396,72 +1096,26 @@ See README.x86 for information about Intel binary blobs.
 
 
 
-.. _etype_mkimage:
-
 Entry: mkimage: Binary produced by mkimage
 ------------------------------------------
 
 Properties / Entry arguments:
-    - args: Arguments to pass
-    - data-to-imagename: Indicates that the -d data should be passed in as
-      the image name also (-n)
-    - multiple-data-files: boolean to tell binman to pass all files as
-      datafiles to mkimage instead of creating a temporary file the result
-      of datafiles concatenation
-    - filename: filename of output binary generated by mkimage
+    - datafile: Filename for -d argument
+    - args: Other arguments to pass
 
-The data passed to mkimage via the -d flag is collected from subnodes of the
-mkimage node, e.g.::
-
-    mkimage {
-        filename = "imximage.bin";
-        args = "-n test -T imximage";
-
-        u-boot-spl {
-        };
-    };
-
-This calls mkimage to create an imximage with `u-boot-spl.bin` as the data
-file, with mkimage being called like this::
-
-    mkimage -d <data_file> -n test -T imximage <output_file>
-
-The output from mkimage then becomes part of the image produced by
-binman but also is written into `imximage.bin` file. If you need to put
-multiple things in the data file, you can use a section, or just multiple
-subnodes like this::
+The data passed to mkimage is collected from subnodes of the mkimage node,
+e.g.::
 
     mkimage {
         args = "-n test -T imximage";
 
         u-boot-spl {
         };
-
-        u-boot-tpl {
-        };
     };
 
-Note that binman places the contents (here SPL and TPL) into a single file
-and passes that to mkimage using the -d option.
-
-To pass all datafiles untouched to mkimage::
-
-    mkimage {
-            args = "-n rk3399 -T rkspi";
-            multiple-data-files;
-
-            u-boot-tpl {
-            };
-
-            u-boot-spl {
-            };
-    };
-
-This calls mkimage to create a Rockchip RK3399-specific first stage
-bootloader, made of TPL+SPL. Since this first stage bootloader requires to
-align the TPL and SPL but also some weird hacks that is handled by mkimage
-directly, binman is told to not perform the concatenation of datafiles prior
-to passing the data to mkimage.
+This calls mkimage to create an imximage with u-boot-spl.bin as the input
+file. The output from mkimage then becomes part of the image produced by
+binman.
 
 To use CONFIG options in the arguments, use a string list instead, as in
 this example which also produces four arguments::
@@ -1473,55 +1127,8 @@ this example which also produces four arguments::
         };
     };
 
-If you need to pass the input data in with the -n argument as well, then use
-the 'data-to-imagename' property::
-
-    mkimage {
-        args = "-T imximage";
-        data-to-imagename;
-
-        u-boot-spl {
-        };
-    };
-
-That will pass the data to mkimage both as the data file (with -d) and as
-the image name (with -n). In both cases, a filename is passed as the
-argument, with the actual data being in that file.
-
-If need to pass different data in with -n, then use an `imagename` subnode::
-
-    mkimage {
-        args = "-T imximage";
-
-        imagename {
-            blob {
-                filename = "spl/u-boot-spl.cfgout"
-            };
-        };
-
-        u-boot-spl {
-        };
-    };
-
-This will pass in u-boot-spl as the input data and the .cfgout file as the
--n data.
 
 
-
-.. _etype_null:
-
-Entry: null: An entry which has no contents of its own
-------------------------------------------------------
-
-Note that the size property must be set since otherwise this entry does not
-know how large it should be.
-
-The contents are set by the containing section, e.g. the section's pad
-byte.
-
-
-
-.. _etype_opensbi:
 
 Entry: opensbi: RISC-V OpenSBI fw_dynamic blob
 ----------------------------------------------
@@ -1536,8 +1143,6 @@ https://github.com/riscv/opensbi for more information about OpenSBI.
 
 
 
-.. _etype_powerpc_mpc85xx_bootpg_resetvec:
-
 Entry: powerpc-mpc85xx-bootpg-resetvec: PowerPC mpc85xx bootpg + resetvec code for U-Boot
 -----------------------------------------------------------------------------------------
 
@@ -1550,14 +1155,11 @@ placed at offset 'RESET_VECTOR_ADDRESS - 0xffc'.
 
 
 
-.. _etype_pre_load:
-
 Entry: pre-load: Pre load image header
 --------------------------------------
 
 Properties / Entry arguments:
-    - pre-load-key-path: Path of the directory that store key (provided by
-      the environment variable PRE_LOAD_KEY_PATH)
+    - key-path: Path of the directory that store key (provided by the environment variable KEY_PATH)
     - content: List of phandles to entries to sign
     - algo-name: Hash and signature algo to use for the signature
     - padding-name: Name of the padding (pkcs-1.5 or pss)
@@ -1591,22 +1193,6 @@ For example, this creates an image with a pre-load header and a binary::
 
 
 
-.. _etype_rockchip_tpl:
-
-Entry: rockchip-tpl: Rockchip TPL binary
-----------------------------------------
-
-Properties / Entry arguments:
-    - rockchip-tpl-path: Filename of file to read into the entry,
-                         typically <soc>_ddr_<version>.bin
-
-This entry holds an external TPL binary used by some Rockchip SoCs
-instead of normal U-Boot TPL, typically to initialize DRAM.
-
-
-
-.. _etype_scp:
-
 Entry: scp: System Control Processor (SCP) firmware blob
 --------------------------------------------------------
 
@@ -1616,8 +1202,6 @@ Properties / Entry arguments:
 This entry holds firmware for an external platform-specific coprocessor.
 
 
-
-.. _etype_section:
 
 Entry: section: Entry that contains other entries
 -------------------------------------------------
@@ -1742,10 +1326,6 @@ skip-at-start
     be written at offset 4 in the image file, since the first 16 bytes are
     skipped when writing.
 
-filename
-    filename to write the unpadded section contents to within the output
-    directory (None to skip this).
-
 Since a section is also an entry, it inherits all the properies of entries
 too.
 
@@ -1758,57 +1338,18 @@ available. This is set by the `SetAllowMissing()` method, if
 
 
 
-.. _etype_tee_os:
-
 Entry: tee-os: Entry containing an OP-TEE Trusted OS (TEE) blob
 ---------------------------------------------------------------
 
 Properties / Entry arguments:
     - tee-os-path: Filename of file to read into entry. This is typically
-        called tee.bin or tee.elf
+        called tee-pager.bin
 
 This entry holds the run-time firmware, typically started by U-Boot SPL.
 See the U-Boot README for your architecture or board for how to use it. See
 https://github.com/OP-TEE/optee_os for more information about OP-TEE.
 
-Note that if the file is in ELF format, it must go in a FIT. In that case,
-this entry will mark itself as absent, providing the data only through the
-read_elf_segments() method.
 
-Marking this entry as absent means that it if is used in the wrong context
-it can be automatically dropped. Thus it is possible to add an OP-TEE entry
-like this::
-
-    binman {
-        tee-os {
-        };
-    };
-
-and pass either an ELF or plain binary in with -a tee-os-path <filename>
-and have binman do the right thing:
-
-   - include the entry if tee.bin is provided and it does NOT have the v1
-     header
-   - drop it otherwise
-
-When used within a FIT, we can do::
-
-    binman {
-        fit {
-            tee-os {
-            };
-        };
-    };
-
-which will split the ELF into separate nodes for each segment, if an ELF
-file is provided (see :ref:`etype_fit`), or produce a single node if the
-OP-TEE binary v1 format is provided (see optee_doc_) .
-
-.. _optee_doc: https://optee.readthedocs.io/en/latest/architecture/core.html#partitioning-of-the-binary
-
-
-
-.. _etype_text:
 
 Entry: text: An entry which contains text
 -----------------------------------------
@@ -1858,136 +1399,6 @@ by setting the size of the entry to something larger than the text.
 
 
 
-.. _etype_ti_board_config:
-
-Entry: ti-board-config: An entry containing a TI schema validated board config binary
--------------------------------------------------------------------------------------
-
-This etype supports generation of two kinds of board configuration
-binaries: singular board config binary as well as combined board config
-binary.
-
-Properties / Entry arguments:
-    - config-file: File containing board configuration data in YAML
-    - schema-file: File containing board configuration YAML schema against
-      which the config file is validated
-
-Output files:
-    - board config binary: File containing board configuration binary
-
-These above parameters are used only when the generated binary is
-intended to be a single board configuration binary. Example::
-
-    my-ti-board-config {
-        ti-board-config {
-            config = "board-config.yaml";
-            schema = "schema.yaml";
-        };
-    };
-
-To generate a combined board configuration binary, we pack the
-needed individual binaries into a ti-board-config binary. In this case,
-the available supported subnode names are board-cfg, pm-cfg, sec-cfg and
-rm-cfg. The final binary is prepended with a header containing details about
-the included board config binaries. Example::
-
-    my-combined-ti-board-config {
-        ti-board-config {
-            board-cfg {
-                config = "board-cfg.yaml";
-                schema = "schema.yaml";
-            };
-            sec-cfg {
-                config = "sec-cfg.yaml";
-                schema = "schema.yaml";
-            };
-        }
-    }
-
-
-
-.. _etype_ti_dm:
-
-Entry: ti-dm: TI Device Manager (DM) blob
------------------------------------------
-
-Properties / Entry arguments:
-    - ti-dm-path: Filename of file to read into the entry, typically ti-dm.bin
-
-This entry holds the device manager responsible for resource and power management
-in K3 devices. See https://software-dl.ti.com/tisci/esd/latest/ for more information
-about TI DM.
-
-
-
-.. _etype_ti_secure:
-
-Entry: ti-secure: Entry containing a TI x509 certificate binary
----------------------------------------------------------------
-
-Properties / Entry arguments:
-    - content: List of phandles to entries to sign
-    - keyfile: Filename of file containing key to sign binary with
-    - sha: Hash function to be used for signing
-
-Output files:
-    - input.<unique_name> - input file passed to openssl
-    - config.<unique_name> - input file generated for openssl (which is
-      used as the config file)
-    - cert.<unique_name> - output file generated by openssl (which is
-      used as the entry contents)
-
-openssl signs the provided data, using the TI templated config file and
-writes the signature in this entry. This allows verification that the
-data is genuine.
-
-
-
-.. _etype_ti_secure_rom:
-
-Entry: ti-secure-rom: Entry containing a TI x509 certificate binary for images booted by ROM
---------------------------------------------------------------------------------------------
-
-Properties / Entry arguments:
-    - keyfile: Filename of file containing key to sign binary with
-    - combined: boolean if device follows combined boot flow
-    - countersign: boolean if device contains countersigned system firmware
-    - load: load address of SPL
-    - sw-rev: software revision
-    - sha: Hash function to be used for signing
-    - core: core on which bootloader runs, valid cores are 'secure' and 'public'
-    - content: phandle of SPL in case of legacy bootflow or phandles of component binaries
-      in case of combined bootflow
-    - core-opts (optional): lockstep (0) or split (2) mode set to 0 by default
-
-The following properties are only for generating a combined bootflow binary:
-    - sysfw-inner-cert: boolean if binary contains sysfw inner certificate
-    - dm-data: boolean if binary contains dm-data binary
-    - content-sbl: phandle of SPL binary
-    - content-sysfw: phandle of sysfw binary
-    - content-sysfw-data: phandle of sysfw-data or tifs-data binary
-    - content-sysfw-inner-cert (optional): phandle of sysfw inner certificate binary
-    - content-dm-data (optional): phandle of dm-data binary
-    - load-sysfw: load address of sysfw binary
-    - load-sysfw-data: load address of sysfw-data or tifs-data binary
-    - load-sysfw-inner-cert (optional): load address of sysfw inner certificate binary
-    - load-dm-data (optional): load address of dm-data binary
-
-Output files:
-    - input.<unique_name> - input file passed to openssl
-    - config.<unique_name> - input file generated for openssl (which is
-      used as the config file)
-    - cert.<unique_name> - output file generated by openssl (which is
-      used as the entry contents)
-
-openssl signs the provided data, using the TI templated config file and
-writes the signature in this entry. This allows verification that the
-data is genuine.
-
-
-
-.. _etype_u_boot:
-
 Entry: u-boot: U-Boot flat binary
 ---------------------------------
 
@@ -1998,14 +1409,16 @@ This is the U-Boot binary, containing relocation information to allow it
 to relocate itself at runtime. The binary typically includes a device tree
 blob at the end of it.
 
-U-Boot can access binman symbols at runtime. See :ref:`binman_fdt`.
+U-Boot can access binman symbols at runtime. See:
+
+    'Access to binman entry offsets at run time (fdt)'
+
+in the binman README for more information.
 
 Note that this entry is automatically replaced with u-boot-expanded unless
 --no-expanded is used or the node has a 'no-expanded' property.
 
 
-
-.. _etype_u_boot_dtb:
 
 Entry: u-boot-dtb: U-Boot device tree
 -------------------------------------
@@ -2021,8 +1434,6 @@ Note: This is mostly an internal entry type, used by others. This allows
 binman to know which entries contain a device tree.
 
 
-
-.. _etype_u_boot_dtb_with_ucode:
 
 Entry: u-boot-dtb-with-ucode: A U-Boot device tree file, with the microcode removed
 -----------------------------------------------------------------------------------
@@ -2040,8 +1451,6 @@ it available to u-boot-ucode.
 
 
 
-.. _etype_u_boot_elf:
-
 Entry: u-boot-elf: U-Boot ELF image
 -----------------------------------
 
@@ -2053,8 +1462,6 @@ relocated to any address for execution.
 
 
 
-.. _etype_u_boot_env:
-
 Entry: u-boot-env: An entry which contains a U-Boot environment
 ---------------------------------------------------------------
 
@@ -2063,8 +1470,6 @@ Properties / Entry arguments:
         form var=value
 
 
-
-.. _etype_u_boot_expanded:
 
 Entry: u-boot-expanded: U-Boot flat binary broken out into its component parts
 ------------------------------------------------------------------------------
@@ -2081,8 +1486,6 @@ image, so that the entries positions are provided to the running U-Boot.
 
 
 
-.. _etype_u_boot_img:
-
 Entry: u-boot-img: U-Boot legacy image
 --------------------------------------
 
@@ -2096,8 +1499,6 @@ You should use FIT (Flat Image Tree) instead of the legacy image for new
 applications.
 
 
-
-.. _etype_u_boot_nodtb:
 
 Entry: u-boot-nodtb: U-Boot flat binary without device tree appended
 --------------------------------------------------------------------
@@ -2113,8 +1514,6 @@ section containing u-boot and u-boot-dtb
 
 
 
-.. _etype_u_boot_spl:
-
 Entry: u-boot-spl: U-Boot SPL binary
 ------------------------------------
 
@@ -2128,7 +1527,9 @@ not relocatable so must be loaded to the correct address in SRAM, or written
 to run from the correct address if direct flash execution is possible (e.g.
 on x86 devices).
 
-SPL can access binman symbols at runtime. See :ref:`binman_fdt`.
+SPL can access binman symbols at runtime. See:
+
+    'Access to binman entry offsets at run time (symbols)'
 
 in the binman README for more information.
 
@@ -2139,8 +1540,6 @@ Note that this entry is automatically replaced with u-boot-spl-expanded
 unless --no-expanded is used or the node has a 'no-expanded' property.
 
 
-
-.. _etype_u_boot_spl_bss_pad:
 
 Entry: u-boot-spl-bss-pad: U-Boot SPL binary padded with a BSS region
 ---------------------------------------------------------------------
@@ -2164,8 +1563,6 @@ binman uses that to look up the BSS address.
 
 
 
-.. _etype_u_boot_spl_dtb:
-
 Entry: u-boot-spl-dtb: U-Boot SPL device tree
 ---------------------------------------------
 
@@ -2178,8 +1575,6 @@ to activate.
 
 
 
-.. _etype_u_boot_spl_elf:
-
 Entry: u-boot-spl-elf: U-Boot SPL ELF image
 -------------------------------------------
 
@@ -2190,8 +1585,6 @@ This is the U-Boot SPL ELF image. It does not include a device tree but can
 be relocated to any address for execution.
 
 
-
-.. _etype_u_boot_spl_expanded:
 
 Entry: u-boot-spl-expanded: U-Boot SPL flat binary broken out into its component parts
 --------------------------------------------------------------------------------------
@@ -2216,8 +1609,6 @@ this is non-empty (and not 'n' or '0') then this expanded entry is selected.
 
 
 
-.. _etype_u_boot_spl_nodtb:
-
 Entry: u-boot-spl-nodtb: SPL binary without device tree appended
 ----------------------------------------------------------------
 
@@ -2231,7 +1622,9 @@ entry after this one, or use a u-boot-spl entry instead' which normally
 expands to a section containing u-boot-spl-dtb, u-boot-spl-bss-pad and
 u-boot-spl-dtb
 
-SPL can access binman symbols at runtime. See :ref:`binman_fdt`.
+SPL can access binman symbols at runtime. See:
+
+    'Access to binman entry offsets at run time (symbols)'
 
 in the binman README for more information.
 
@@ -2239,47 +1632,6 @@ The ELF file 'spl/u-boot-spl' must also be available for this to work, since
 binman uses that to look up symbols to write into the SPL binary.
 
 
-
-.. _etype_u_boot_spl_pubkey_dtb:
-
-Entry: u-boot-spl-pubkey-dtb: U-Boot SPL device tree including public key
--------------------------------------------------------------------------
-
-Properties / Entry arguments:
-    - key-name-hint: Public key name without extension (.crt).
-                Default is determined by underlying
-                bintool (fdt_add_pubkey), usually 'key'.
-    - algo: (Optional) Algorithm used for signing. Default is determined by
-            underlying bintool (fdt_add_pubkey), usually 'sha1,rsa2048'
-    - required: (Optional) If present this indicates that the key must be
-                verified for the image / configuration to be
-                considered valid
-
-The following example shows an image containing an SPL which
-is packed together with the dtb. Binman will add a signature
-node to the dtb.
-
-Example node::
-
-    image {
-    ...
-        spl {
-            filename = "spl.bin"
-
-            u-boot-spl-nodtb {
-            };
-            u-boot-spl-pubkey-dtb {
-                algo = "sha384,rsa4096";
-                required = "conf";
-                key-name-hint = "dev";
-            };
-        };
-    ...
-    }
-
-
-
-.. _etype_u_boot_spl_with_ucode_ptr:
 
 Entry: u-boot-spl-with-ucode-ptr: U-Boot SPL with embedded microcode pointer
 ----------------------------------------------------------------------------
@@ -2290,8 +1642,6 @@ See Entry_u_boot_ucode for full details of the entries involved in this
 process.
 
 
-
-.. _etype_u_boot_tpl:
 
 Entry: u-boot-tpl: U-Boot TPL binary
 ------------------------------------
@@ -2306,7 +1656,9 @@ loader. Note that SPL is not relocatable so must be loaded to the correct
 address in SRAM, or written to run from the correct address if direct
 flash execution is possible (e.g. on x86 devices).
 
-SPL can access binman symbols at runtime. See :ref:`binman_fdt`.
+SPL can access binman symbols at runtime. See:
+
+    'Access to binman entry offsets at run time (symbols)'
 
 in the binman README for more information.
 
@@ -2317,8 +1669,6 @@ Note that this entry is automatically replaced with u-boot-tpl-expanded
 unless --no-expanded is used or the node has a 'no-expanded' property.
 
 
-
-.. _etype_u_boot_tpl_bss_pad:
 
 Entry: u-boot-tpl-bss-pad: U-Boot TPL binary padded with a BSS region
 ---------------------------------------------------------------------
@@ -2342,8 +1692,6 @@ binman uses that to look up the BSS address.
 
 
 
-.. _etype_u_boot_tpl_dtb:
-
 Entry: u-boot-tpl-dtb: U-Boot TPL device tree
 ---------------------------------------------
 
@@ -2356,8 +1704,6 @@ to activate.
 
 
 
-.. _etype_u_boot_tpl_dtb_with_ucode:
-
 Entry: u-boot-tpl-dtb-with-ucode: U-Boot TPL with embedded microcode pointer
 ----------------------------------------------------------------------------
 
@@ -2367,8 +1713,6 @@ See Entry_u_boot_ucode for full details of the entries involved in this
 process.
 
 
-
-.. _etype_u_boot_tpl_elf:
 
 Entry: u-boot-tpl-elf: U-Boot TPL ELF image
 -------------------------------------------
@@ -2380,8 +1724,6 @@ This is the U-Boot TPL ELF image. It does not include a device tree but can
 be relocated to any address for execution.
 
 
-
-.. _etype_u_boot_tpl_expanded:
 
 Entry: u-boot-tpl-expanded: U-Boot TPL flat binary broken out into its component parts
 --------------------------------------------------------------------------------------
@@ -2406,8 +1748,6 @@ this is non-empty (and not 'n' or '0') then this expanded entry is selected.
 
 
 
-.. _etype_u_boot_tpl_nodtb:
-
 Entry: u-boot-tpl-nodtb: TPL binary without device tree appended
 ----------------------------------------------------------------
 
@@ -2421,7 +1761,9 @@ entry after this one, or use a u-boot-tpl entry instead, which normally
 expands to a section containing u-boot-tpl-dtb, u-boot-tpl-bss-pad and
 u-boot-tpl-dtb
 
-TPL can access binman symbols at runtime. See :ref:`binman_fdt`.
+TPL can access binman symbols at runtime. See:
+
+    'Access to binman entry offsets at run time (symbols)'
 
 in the binman README for more information.
 
@@ -2430,8 +1772,6 @@ binman uses that to look up symbols to write into the TPL binary.
 
 
 
-.. _etype_u_boot_tpl_with_ucode_ptr:
-
 Entry: u-boot-tpl-with-ucode-ptr: U-Boot TPL with embedded microcode pointer
 ----------------------------------------------------------------------------
 
@@ -2439,8 +1779,6 @@ See Entry_u_boot_ucode for full details of the entries involved in this
 process.
 
 
-
-.. _etype_u_boot_ucode:
 
 Entry: u-boot-ucode: U-Boot microcode block
 -------------------------------------------
@@ -2492,130 +1830,6 @@ Entry types that have a part to play in handling microcode:
 
 
 
-.. _etype_u_boot_vpl:
-
-Entry: u-boot-vpl: U-Boot VPL binary
-------------------------------------
-
-Properties / Entry arguments:
-    - filename: Filename of u-boot-vpl.bin (default 'vpl/u-boot-vpl.bin')
-
-This is the U-Boot VPL (Verifying Program Loader) binary. This is a small
-binary which loads before SPL, typically into on-chip SRAM. It is
-responsible for locating, loading and jumping to SPL, the next-stage
-loader. Note that VPL is not relocatable so must be loaded to the correct
-address in SRAM, or written to run from the correct address if direct
-flash execution is possible (e.g. on x86 devices).
-
-SPL can access binman symbols at runtime. See :ref:`binman_fdt`.
-
-in the binman README for more information.
-
-The ELF file 'vpl/u-boot-vpl' must also be available for this to work, since
-binman uses that to look up symbols to write into the VPL binary.
-
-
-
-.. _etype_u_boot_vpl_bss_pad:
-
-Entry: u-boot-vpl-bss-pad: U-Boot VPL binary padded with a BSS region
----------------------------------------------------------------------
-
-Properties / Entry arguments:
-    None
-
-This holds the padding added after the VPL binary to cover the BSS (Block
-Started by Symbol) region. This region holds the various variables used by
-VPL. It is set to 0 by VPL when it starts up. If you want to append data to
-the VPL image (such as a device tree file), you must pad out the BSS region
-to avoid the data overlapping with U-Boot variables. This entry is useful in
-that case. It automatically pads out the entry size to cover both the code,
-data and BSS.
-
-The contents of this entry will a certain number of zero bytes, determined
-by __bss_size
-
-The ELF file 'vpl/u-boot-vpl' must also be available for this to work, since
-binman uses that to look up the BSS address.
-
-
-
-.. _etype_u_boot_vpl_dtb:
-
-Entry: u-boot-vpl-dtb: U-Boot VPL device tree
----------------------------------------------
-
-Properties / Entry arguments:
-    - filename: Filename of u-boot.dtb (default 'vpl/u-boot-vpl.dtb')
-
-This is the VPL device tree, containing configuration information for
-VPL. VPL needs this to know what devices are present and which drivers
-to activate.
-
-
-
-.. _etype_u_boot_vpl_elf:
-
-Entry: u-boot-vpl-elf: U-Boot VPL ELF image
--------------------------------------------
-
-Properties / Entry arguments:
-    - filename: Filename of VPL u-boot (default 'vpl/u-boot-vpl')
-
-This is the U-Boot VPL ELF image. It does not include a device tree but can
-be relocated to any address for execution.
-
-
-
-.. _etype_u_boot_vpl_expanded:
-
-Entry: u-boot-vpl-expanded: U-Boot VPL flat binary broken out into its component parts
---------------------------------------------------------------------------------------
-
-Properties / Entry arguments:
-    - vpl-dtb: Controls whether this entry is selected (set to 'y' or '1' to
-        select)
-
-This is a section containing the U-Boot binary, BSS padding if needed and a
-devicetree. Using this entry type automatically creates this section, with
-the following entries in it:
-
-   u-boot-vpl-nodtb
-   u-boot-vpl-bss-pad
-   u-boot-dtb
-
-Having the devicetree separate allows binman to update it in the final
-image, so that the entries positions are provided to the running U-Boot.
-
-This entry is selected based on the value of the 'vpl-dtb' entryarg. If
-this is non-empty (and not 'n' or '0') then this expanded entry is selected.
-
-
-
-.. _etype_u_boot_vpl_nodtb:
-
-Entry: u-boot-vpl-nodtb: VPL binary without device tree appended
-----------------------------------------------------------------
-
-Properties / Entry arguments:
-    - filename: Filename to include (default 'vpl/u-boot-vpl-nodtb.bin')
-
-This is the U-Boot VPL binary, It does not include a device tree blob at
-the end of it so may not be able to work without it, assuming VPL needs
-a device tree to operate on your platform. You can add a u_boot_vpl_dtb
-entry after this one, or use a u_boot_vpl entry instead, which normally
-expands to a section containing u-boot-vpl-dtb, u-boot-vpl-bss-pad and
-u-boot-vpl-dtb
-
-VPL can access binman symbols at runtime. See :ref:`binman_fdt`.
-
-The ELF file 'vpl/u-boot-vpl' must also be available for this to work, since
-binman uses that to look up symbols to write into the VPL binary.
-
-
-
-.. _etype_u_boot_with_ucode_ptr:
-
 Entry: u-boot-with-ucode-ptr: U-Boot with embedded microcode pointer
 --------------------------------------------------------------------
 
@@ -2631,8 +1845,6 @@ microcode, to allow early x86 boot code to find it without doing anything
 complicated. Otherwise it is the same as the u-boot entry.
 
 
-
-.. _etype_vblock:
 
 Entry: vblock: An entry which contains a Chromium OS verified boot block
 ------------------------------------------------------------------------
@@ -2657,26 +1869,6 @@ and kernel are genuine.
 
 
 
-.. _etype_x509_cert:
-
-Entry: x509-cert: An entry which contains an X509 certificate
--------------------------------------------------------------
-
-Properties / Entry arguments:
-    - content: List of phandles to entries to sign
-
-Output files:
-    - input.<unique_name> - input file passed to openssl
-    - cert.<unique_name> - output file generated by openssl (which is
-        used as the entry contents)
-
-openssl signs the provided data, writing the signature in this entry. This
-allows verification that the data is genuine
-
-
-
-.. _etype_x86_reset16:
-
 Entry: x86-reset16: x86 16-bit reset code for U-Boot
 ----------------------------------------------------
 
@@ -2692,8 +1884,6 @@ for jumping to the x86-start16 code, which continues execution.
 For 64-bit U-Boot, the 'x86_reset16_spl' entry type is used instead.
 
 
-
-.. _etype_x86_reset16_spl:
 
 Entry: x86-reset16-spl: x86 16-bit reset code for U-Boot
 --------------------------------------------------------
@@ -2711,8 +1901,6 @@ For 32-bit U-Boot, the 'x86_reset_spl' entry type is used instead.
 
 
 
-.. _etype_x86_reset16_tpl:
-
 Entry: x86-reset16-tpl: x86 16-bit reset code for U-Boot
 --------------------------------------------------------
 
@@ -2728,8 +1916,6 @@ for jumping to the x86-start16 code, which continues execution.
 For 32-bit U-Boot, the 'x86_reset_tpl' entry type is used instead.
 
 
-
-.. _etype_x86_start16:
 
 Entry: x86-start16: x86 16-bit start-up code for U-Boot
 -------------------------------------------------------
@@ -2749,8 +1935,6 @@ For 64-bit U-Boot, the 'x86_start16_spl' entry type is used instead.
 
 
 
-.. _etype_x86_start16_spl:
-
 Entry: x86-start16-spl: x86 16-bit start-up code for SPL
 --------------------------------------------------------
 
@@ -2769,8 +1953,6 @@ For 32-bit U-Boot, the 'x86-start16' entry type is used instead.
 
 
 
-.. _etype_x86_start16_tpl:
-
 Entry: x86-start16-tpl: x86 16-bit start-up code for TPL
 --------------------------------------------------------
 
@@ -2787,81 +1969,6 @@ U-Boot).
 
 If TPL is not being used, the 'x86-start16-spl or 'x86-start16' entry types
 may be used instead.
-
-
-
-.. _etype_xilinx_bootgen:
-
-Entry: xilinx-bootgen: Signed SPL boot image for Xilinx ZynqMP devices
-----------------------------------------------------------------------
-
-Properties / Entry arguments:
-    - auth-params: (Optional) Authentication parameters passed to bootgen
-    - fsbl-config: (Optional) FSBL parameters passed to bootgen
-    - keysrc-enc: (Optional) Key source when using decryption engine
-    - pmufw-filename: Filename of PMU firmware. Default: pmu-firmware.elf
-    - psk-key-name-hint: Name of primary secret key to use for signing the
-                         secondardy public key. Format: .pem file
-    - ssk-key-name-hint: Name of secondardy secret key to use for signing
-                         the boot image. Format: .pem file
-
-The etype is used to create a boot image for Xilinx ZynqMP
-devices.
-
-Information for signed images:
-
-In AMD/Xilinx SoCs, two pairs of public and secret keys are used
-- primary and secondary. The function of the primary public/secret key pair
-is to authenticate the secondary public/secret key pair.
-The function of the secondary key is to sign/verify the boot image. [1]
-
-AMD/Xilinx uses the following terms for private/public keys [1]:
-
-    PSK = Primary Secret Key (Used to sign Secondary Public Key)
-    PPK = Primary Public Key (Used to verify Secondary Public Key)
-    SSK = Secondary Secret Key (Used to sign the boot image/partitions)
-    SPK = Used to verify the actual boot image
-
-The following example builds a signed boot image. The fuses of
-the primary public key (ppk) should be fused together with the RSA_EN flag.
-
-Example node::
-
-    spl {
-        filename = "boot.signed.bin";
-
-        xilinx-bootgen {
-            psk-key-name-hint = "psk0";
-            ssk-key-name-hint = "ssk0";
-            auth-params = "ppk_select=0", "spk_id=0x00000000";
-
-            u-boot-spl-nodtb {
-            };
-            u-boot-spl-pubkey-dtb {
-                algo = "sha384,rsa4096";
-                required = "conf";
-                key-name-hint = "dev";
-            };
-        };
-    };
-
-For testing purposes, e.g. if no RSA_EN should be fused, one could add
-the "bh_auth_enable" flag in the fsbl-config field. This will skip the
-verification of the ppk fuses and boot the image, even if ppk hash is
-invalid.
-
-Example node::
-
-    xilinx-bootgen {
-        psk-key-name-hint = "psk0";
-        psk-key-name-hint = "ssk0";
-        ...
-        fsbl-config = "bh_auth_enable";
-        ...
-    };
-
-[1] https://docs.xilinx.com/r/en-US/ug1283-bootgen-user-guide/Using-Authentication
-
 
 
 

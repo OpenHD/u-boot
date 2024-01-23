@@ -11,9 +11,8 @@
  *  Richard Purdie <rpurdie@openedhand.com>
  */
 
-#include <linux/kernel.h>
+#include <common.h>
 #include <linux/lzo.h>
-#include <linux/string.h>
 #include <asm/byteorder.h>
 #include <asm/unaligned.h>
 #include "lzodefs.h"

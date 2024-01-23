@@ -6,19 +6,19 @@
 #include "imx6ul-u-boot.dtsi"
 
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &iomuxc {
 	pinctrl_usdhc1: usdhc1grp {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 
 	pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 
 	pinctrl_usdhc1_200mhz: usdhc1grp200mhz {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };

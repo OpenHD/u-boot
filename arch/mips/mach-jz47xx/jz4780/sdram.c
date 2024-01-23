@@ -9,6 +9,7 @@
  * Copyright (c) 2006-2013 Ingenic Semiconductor
  */
 
+#include <common.h>
 #include <hang.h>
 #include <init.h>
 #include <asm/io.h>

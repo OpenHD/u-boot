@@ -23,7 +23,6 @@
 #include <linux/err.h>
 #include <linux/io.h>
 #include <linux/iopoll.h>
-#include <linux/printk.h>
 
 #define AVE_GRST_DELAY_MSEC	40
 #define AVE_MIN_XMITSIZE	60
@@ -392,11 +391,13 @@ static int ave_mdiobus_init(struct ave_private *priv, const char *name)
 static int ave_phy_init(struct ave_private *priv, void *dev)
 {
 	struct phy_device *phydev;
-	int ret;
+	int mask = GENMASK(31, 0), ret;
 
-	phydev = phy_connect(priv->bus, -1, dev, priv->phy_mode);
+	phydev = phy_find_by_mask(priv->bus, mask);
 	if (!phydev)
 		return -ENODEV;
+
+	phy_connect_dev(phydev, dev, priv->phy_mode);
 
 	phydev->supported &= PHY_GBIT_FEATURES;
 	if (priv->max_speed) {
@@ -482,10 +483,7 @@ static int ave_start(struct udevice *dev)
 	priv->rx_siz = (PKTSIZE_ALIGN - priv->rx_off);
 
 	val = 0;
-	if (priv->phy_mode != PHY_INTERFACE_MODE_RGMII &&
-	    priv->phy_mode != PHY_INTERFACE_MODE_RGMII_ID &&
-	    priv->phy_mode != PHY_INTERFACE_MODE_RGMII_RXID &&
-	    priv->phy_mode != PHY_INTERFACE_MODE_RGMII_TXID)
+	if (priv->phy_mode != PHY_INTERFACE_MODE_RGMII)
 		val |= AVE_CFGR_MII;
 	writel(val, priv->iobase + AVE_CFGR);
 
@@ -641,9 +639,6 @@ static int ave_pro4_get_pinmode(struct ave_private *priv)
 		break;
 	case PHY_INTERFACE_MODE_MII:
 	case PHY_INTERFACE_MODE_RGMII:
-	case PHY_INTERFACE_MODE_RGMII_ID:
-	case PHY_INTERFACE_MODE_RGMII_RXID:
-	case PHY_INTERFACE_MODE_RGMII_TXID:
 		break;
 	default:
 		return -EINVAL;
@@ -698,9 +693,6 @@ static int ave_ld20_get_pinmode(struct ave_private *priv)
 		val  = SG_ETPINMODE_RMII(0);
 		break;
 	case PHY_INTERFACE_MODE_RGMII:
-	case PHY_INTERFACE_MODE_RGMII_ID:
-	case PHY_INTERFACE_MODE_RGMII_RXID:
-	case PHY_INTERFACE_MODE_RGMII_TXID:
 		break;
 	default:
 		return -EINVAL;
@@ -728,9 +720,6 @@ static int ave_pxs3_get_pinmode(struct ave_private *priv)
 		val = SG_ETPINMODE_RMII(priv->regmap_arg);
 		break;
 	case PHY_INTERFACE_MODE_RGMII:
-	case PHY_INTERFACE_MODE_RGMII_ID:
-	case PHY_INTERFACE_MODE_RGMII_RXID:
-	case PHY_INTERFACE_MODE_RGMII_TXID:
 		break;
 	default:
 		return -EINVAL;

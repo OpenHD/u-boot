@@ -124,12 +124,11 @@ static int sandbox_submit_int(struct udevice *bus, struct usb_device *udev,
 	return ret;
 }
 
-#if CONFIG_IS_ENABLED(DM_USB_GADGET)
-int dm_usb_gadget_handle_interrupts(struct udevice *dev)
+int usb_gadget_handle_interrupts(int index)
 {
 	return 0;
 }
-#else
+
 int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 {
 	struct sandbox_udc *dev = this_controller;
@@ -145,7 +144,6 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 
 	return 0;
 }
-#endif
 
 static int sandbox_alloc_device(struct udevice *dev, struct usb_device *udev)
 {

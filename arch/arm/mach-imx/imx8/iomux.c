@@ -8,7 +8,7 @@
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <asm/arch/iomux.h>
-#include <firmware/imx/sci/sci.h>
+#include <asm/arch/sci/sci.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 

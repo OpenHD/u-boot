@@ -4,24 +4,9 @@
  */
 #include <linux/stringify.h>
 
-#ifdef CONFIG_SPL
 &ddr {
-	clocks = <&rcc AXIDCG>,
-		 <&rcc DDRC1>,
-		 <&rcc DDRC2>,
-		 <&rcc DDRPHYC>,
-		 <&rcc DDRCAPB>,
-		 <&rcc DDRPHYCAPB>;
-
-	clock-names = "axidcg",
-		      "ddrc1",
-		      "ddrc2",
-		      "ddrphyc",
-		      "ddrcapb",
-		      "ddrphycapb";
-
 	config-DDR_MEM_COMPATIBLE {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		compatible = __stringify(st,DDR_MEM_COMPATIBLE);
 
@@ -134,7 +119,6 @@
 		status = "okay";
 	};
 };
-#endif
 
 #undef DDR_MEM_COMPATIBLE
 #undef DDR_MEM_NAME

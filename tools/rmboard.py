@@ -28,7 +28,7 @@ import os
 import re
 import sys
 
-from u_boot_pylib import command
+from patman import command
 
 def rm_kconfig_include(path):
     """Remove a path from Kconfig files

@@ -21,7 +21,6 @@
 #include <common.h>
 #include <dm.h>
 #include <dm/device_compat.h>
-#include <linux/printk.h>
 #include <asm/processor.h>
 #include "linux-compat.h"
 #endif

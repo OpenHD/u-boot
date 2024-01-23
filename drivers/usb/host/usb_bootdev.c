@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Bootdev for USB
+ * Bootdevice for USB
  *
  * Copyright 2021 Google LLC
  * Written by Simon Glass <sjg@chromium.org>
@@ -11,24 +11,40 @@
 #include <dm.h>
 #include <usb.h>
 
-static int usb_bootdev_bind(struct udevice *dev)
+static int usb_get_bootflow(struct udevice *dev, struct bootflow_iter *iter,
+			    struct bootflow *bflow)
 {
-	struct bootdev_uc_plat *ucp = dev_get_uclass_plat(dev);
+	struct udevice *blk;
+	int ret;
 
-	ucp->prio = BOOTDEVP_5_SCAN_SLOW;
+	ret = bootdev_get_sibling_blk(dev, &blk);
+	/*
+	 * If there is no media, indicate that no more partitions should be
+	 * checked
+	 */
+	if (ret == -EOPNOTSUPP)
+		ret = -ESHUTDOWN;
+	if (ret)
+		return log_msg_ret("blk", ret);
+	assert(blk);
+	ret = bootdev_find_in_blk(dev, blk, iter, bflow);
+	if (ret)
+		return log_msg_ret("find", ret);
 
 	return 0;
 }
 
-static int usb_bootdev_hunt(struct bootdev_hunter *info, bool show)
+static int usb_bootdev_bind(struct udevice *dev)
 {
-	if (usb_started)
-		return 0;
+	struct bootdev_uc_plat *ucp = dev_get_uclass_plat(dev);
 
-	return usb_init();
+	ucp->prio = BOOTDEVP_3_SCAN_SLOW;
+
+	return 0;
 }
 
 struct bootdev_ops usb_bootdev_ops = {
+	.get_bootflow	= usb_get_bootflow,
 };
 
 static const struct udevice_id usb_bootdev_ids[] = {
@@ -42,11 +58,4 @@ U_BOOT_DRIVER(usb_bootdev) = {
 	.ops		= &usb_bootdev_ops,
 	.bind		= usb_bootdev_bind,
 	.of_match	= usb_bootdev_ids,
-};
-
-BOOTDEV_HUNTER(usb_bootdev_hunter) = {
-	.prio		= BOOTDEVP_5_SCAN_SLOW,
-	.uclass		= UCLASS_USB,
-	.hunt		= usb_bootdev_hunt,
-	.drv		= DM_DRIVER_REF(usb_bootdev),
 };

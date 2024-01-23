@@ -6,36 +6,36 @@
 / {
 	chosen {
 		tick-timer = &timer2;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	memory@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &clkmgr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	clocks {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &cb_intosc_hs_div2_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &cb_intosc_ls_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &f2s_free_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gmac0 {
@@ -74,47 +74,47 @@
 };
 
 &L2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &l4_mp_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &l4_sp_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &l4_sys_free_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &main_periph_ref_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &main_pll {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &main_noc_base_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &noc_free_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &osc1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &peri_noc_base_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &periph_pll {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &porta {
@@ -130,13 +130,13 @@
 };
 
 &rst {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sysmgr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &timer2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

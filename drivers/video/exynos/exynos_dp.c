@@ -7,6 +7,7 @@
 
 #include <common.h>
 #include <dm.h>
+#include <common.h>
 #include <display.h>
 #include <fdtdec.h>
 #include <log.h>

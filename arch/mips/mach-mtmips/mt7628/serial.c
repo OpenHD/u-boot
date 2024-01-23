@@ -5,6 +5,7 @@
  * Author:  Weijie Gao <weijie.gao@mediatek.com>
  */
 
+#include <common.h>
 #include <asm/io.h>
 #include "mt7628.h"
 

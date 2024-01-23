@@ -6,19 +6,11 @@
 #include "imx8mm-u-boot.dtsi"
 
 / {
-	aliases {
-		spi0 = &flexspi;
-	};
-
 	wdt-reboot {
 		compatible = "wdt-reboot";
 		wdt = <&wdog1>;
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
-};
-
-&aips4 {
-	bootph-pre-ram;
 };
 
 &reg_usdhc2_vmmc {
@@ -30,23 +22,23 @@
 };
 
 &gpio1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio4 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio5 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pca6416_0 {
@@ -58,73 +50,57 @@
 };
 
 &pinctrl_i2c1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_pmic {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_uart2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc2_gpio {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc3 {
-	bootph-pre-ram;
-};
-
-&pinctrl_wdog {
-	bootph-pre-ram;
-};
-
-&reg_usbotg1 {
-
+	u-boot,dm-spl;
 };
 
 &uart2 {
-	bootph-pre-ram;
-};
-
-&usbmisc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usbotg1 {
-	bootph-pre-ram;
-};
-
-&usbphynop1 {
-	bootph-pre-ram;
+	dr_mode="host";
 };
 
 &usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &i2c1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &{/soc@0/bus@30800000/i2c@30a20000/pmic@4b} {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &{/soc@0/bus@30800000/i2c@30a20000/pmic@4b/regulators} {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &wdog1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

@@ -10,6 +10,7 @@
 #include <common.h>
 #include <dfu.h>
 #include <mtd.h>
+#include <jffs2/load_kernel.h>
 #include <linux/err.h>
 #include <linux/ctype.h>
 
@@ -85,41 +86,27 @@ static int mtd_block_op(enum dfu_op op, struct dfu_entity *dfu,
 
 		while (remaining) {
 			if (erase_op.addr + remaining > lim) {
-				printf("Limit reached 0x%llx while erasing at offset 0x%llx, remaining 0x%llx\n",
-				       lim, erase_op.addr, remaining);
+				printf("Limit reached 0x%llx while erasing at offset 0x%llx\n",
+				       lim, off);
 				return -EIO;
-			}
-
-			/* Skip the block if it is bad, don't erase it again */
-			ret = mtd_block_isbad(mtd, erase_op.addr);
-			if (ret) {
-				printf("Skipping %s at 0x%08llx\n",
-				       ret == 1 ? "bad block" : "bbt reserved",
-				       erase_op.addr);
-				erase_op.addr += mtd->erasesize;
-				continue;
 			}
 
 			ret = mtd_erase(mtd, &erase_op);
 
 			if (ret) {
-				/* If this is not -EIO, we have no idea what to do. */
-				if (ret == -EIO) {
-					printf("Marking bad block at 0x%08llx (%d)\n",
-					       erase_op.fail_addr, ret);
-					ret = mtd_block_markbad(mtd, erase_op.addr);
+				/* Abort if its not a bad block error */
+				if (ret != -EIO) {
+					printf("Failure while erasing at offset 0x%llx\n",
+					       erase_op.fail_addr);
+					return 0;
 				}
-				/* Abort if it is not -EIO or can't mark bad */
-				if (ret) {
-					printf("Failure while erasing at offset 0x%llx (%d)\n",
-					       erase_op.fail_addr, ret);
-					return ret;
-				}
+				printf("Skipping bad block at 0x%08llx\n",
+				       erase_op.addr);
 			} else {
 				remaining -= mtd->erasesize;
 			}
 
-			/* Continue erase behind the current block */
+			/* Continue erase behind bad block */
 			erase_op.addr += mtd->erasesize;
 		}
 	}
@@ -288,7 +275,7 @@ int dfu_fill_entity_mtd(struct dfu_entity *dfu, char *devstr, char **argv, int a
 {
 	char *s;
 	struct mtd_info *mtd;
-	int part;
+	int ret, part;
 
 	mtd = get_mtd_device_nm(devstr);
 	if (IS_ERR_OR_NULL(mtd))
@@ -312,9 +299,10 @@ int dfu_fill_entity_mtd(struct dfu_entity *dfu, char *devstr, char **argv, int a
 		if (*s)
 			return -EINVAL;
 	} else if ((!strcmp(argv[0], "part")) || (!strcmp(argv[0], "partubi"))) {
-		struct mtd_info *partition;
-		int partnum = 0;
-		bool part_found = false;
+		char mtd_id[32];
+		struct mtd_device *mtd_dev;
+		u8 part_num;
+		struct part_info *pi;
 
 		if (argc != 2)
 			return -EINVAL;
@@ -325,25 +313,19 @@ int dfu_fill_entity_mtd(struct dfu_entity *dfu, char *devstr, char **argv, int a
 		if (*s)
 			return -EINVAL;
 
-		/* register partitions with MTDIDS/MTDPARTS or OF fallback */
-		mtd_probe_devices();
+		sprintf(mtd_id, "%s,%d", devstr, part - 1);
+		printf("using id '%s'\n", mtd_id);
 
-		partnum = 0;
-		list_for_each_entry(partition, &mtd->partitions, node) {
-			partnum++;
-			if (partnum == part) {
-				part_found = true;
-				break;
-			}
-		}
-		if (!part_found) {
-			printf("No partition %d in %s\n", part, mtd->name);
+		mtdparts_init();
+
+		ret = find_dev_and_part(mtd_id, &mtd_dev, &part_num, &pi);
+		if (ret != 0) {
+			printf("Could not locate '%s'\n", mtd_id);
 			return -1;
 		}
-		log_debug("partition %d:%s in %s\n", partnum, partition->name, mtd->name);
 
-		dfu->data.mtd.start = partition->offset;
-		dfu->data.mtd.size = partition->size;
+		dfu->data.mtd.start = pi->offset;
+		dfu->data.mtd.size = pi->size;
 		if (!strcmp(argv[0], "partubi"))
 			dfu->data.mtd.ubi = 1;
 	} else {

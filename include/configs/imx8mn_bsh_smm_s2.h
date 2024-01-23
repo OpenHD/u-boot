@@ -14,13 +14,15 @@
 #include <config_distro_bootcmd.h>
 
 #define NANDARGS \
+	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
+	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"nandargs=setenv bootargs " \
 		"${optargs} " \
 		"mtdparts=${mtdparts} " \
 		"root=${nandroot} " \
 		"rootfstype=${nandrootfstype}\0" \
 	"nandroot=ubi0:root rw ubi.mtd=nandrootfs\0" \
-	"nandrootfstype=ubifs rootwait\0" \
+	"nandrootfstype=ubifs rootwait=1\0" \
 	"nandboot=echo Booting from nand ...; " \
 		"run nandargs; " \
 		"nand read ${fdt_addr_r} nanddtb; " \
@@ -35,7 +37,7 @@
 	#devtypel #instance " "
 
 /* Initial environment variables */
-#define CFG_EXTRA_ENV_SETTINGS \
+#define CONFIG_EXTRA_ENV_SETTINGS \
 	MEM_LAYOUT_ENV_SETTINGS \
 	NANDARGS \
 	BOOTENV
@@ -43,7 +45,8 @@
 #define PHYS_SDRAM_SIZE			SZ_256M
 
 /* NAND */
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
 
-#define CFG_SYS_NAND_BASE		0x20000000
+#define CONFIG_SYS_NAND_BASE		0x20000000
 
 #endif /* __IMX8MN_BSH_SMM_S2_H */

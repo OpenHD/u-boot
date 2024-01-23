@@ -6,33 +6,33 @@
  */
 
 &palmbus {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &reboot {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clkctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rstctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

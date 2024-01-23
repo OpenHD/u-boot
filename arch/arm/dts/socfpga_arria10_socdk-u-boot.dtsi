@@ -13,9 +13,9 @@
 };
 
 &uart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &watchdog1 {
-	bootph-all;
+        u-boot,dm-pre-reloc;
 };

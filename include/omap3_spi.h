@@ -46,8 +46,6 @@
 
 #define OMAP4_MCSPI_REG_OFFSET	0x100
 
-#define OMAP4_MCSPI_CHAN_NB	4
-
 /* OMAP3 McSPI registers */
 struct mcspi_channel {
 	unsigned int chconf;		/* 0x2C, 0x40, 0x54, 0x68 */
@@ -66,7 +64,7 @@ struct mcspi {
 	unsigned int wakeupenable;	/* 0x20 */
 	unsigned int syst;		/* 0x24 */
 	unsigned int modulctrl;		/* 0x28 */
-	struct mcspi_channel channel[OMAP4_MCSPI_CHAN_NB];
+	struct mcspi_channel channel[4];
 	/* channel0: 0x2C - 0x3C, bus 0 & 1 & 2 & 3 */
 	/* channel1: 0x40 - 0x50, bus 0 & 1 */
 	/* channel2: 0x54 - 0x64, bus 0 & 1 */

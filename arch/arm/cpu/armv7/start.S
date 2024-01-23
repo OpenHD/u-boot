@@ -17,7 +17,6 @@
 #include <asm/system.h>
 #include <linux/linkage.h>
 #include <asm/armv7.h>
-#include <system-constants.h>
 
 /*************************************************************************
  *
@@ -134,8 +133,8 @@ ENTRY(c_runtime_cpu_setup)
  */
 #if !CONFIG_IS_ENABLED(SYS_ICACHE_OFF)
 	mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
-	dsb
-	isb
+	mcr     p15, 0, r0, c7, c10, 4	@ DSB
+	mcr     p15, 0, r0, c7, c5, 4	@ ISB
 #endif
 
 	bx	lr
@@ -151,14 +150,16 @@ ENDPROC(c_runtime_cpu_setup)
  * Don't save anything to stack even if compiled with -O0
  *
  *************************************************************************/
-WEAK(save_boot_params)
+ENTRY(save_boot_params)
 	b	save_boot_params_ret		@ back to my caller
 ENDPROC(save_boot_params)
+	.weak	save_boot_params
 
 #ifdef CONFIG_ARMV7_LPAE
-WEAK(switch_to_hypervisor)
+ENTRY(switch_to_hypervisor)
 	b	switch_to_hypervisor_ret
 ENDPROC(switch_to_hypervisor)
+	.weak	switch_to_hypervisor
 #endif
 
 /*************************************************************************
@@ -188,8 +189,8 @@ ENTRY(cpu_init_cp15)
 	mcr	p15, 0, r0, c8, c7, 0	@ invalidate TLBs
 	mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
 	mcr	p15, 0, r0, c7, c5, 6	@ invalidate BP array
-	dsb
-	isb
+	mcr     p15, 0, r0, c7, c10, 4	@ DSB
+	mcr     p15, 0, r0, c7, c5, 4	@ ISB
 
 	/*
 	 * disable MMU stuff and caches
@@ -253,7 +254,7 @@ ENTRY(cpu_init_cp15)
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_STACK)
 	ldr	r0, =(CONFIG_SPL_STACK)
 #else
-	ldr	r0, =(SYS_INIT_SP_ADDR)
+	ldr	r0, =(CONFIG_SYS_INIT_SP_ADDR)
 #endif
 	bic	r0, r0, #7	/* 8-byte alignment for ABI compliance */
 	mov	sp, r0

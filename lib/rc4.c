@@ -7,9 +7,12 @@
  * Rivest Cipher 4 (RC4) implementation
  */
 
+#ifndef USE_HOSTCC
+#include <common.h>
+#endif
 #include <rc4.h>
 
-void rc4_encode(unsigned char *buf, unsigned int len, const unsigned char key[16])
+void rc4_encode(unsigned char *buf, unsigned int len, unsigned char key[16])
 {
 	unsigned char s[256], k[256], temp;
 	unsigned short i, j, t;

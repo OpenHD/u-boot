@@ -8,9 +8,9 @@
 
 / {
 	cpus {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		PowerPC,8360@0 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
@@ -24,38 +24,38 @@
 };
 
 &soc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	par_io@1400 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		serial_pin@0 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@0 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@1 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@3 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@4 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@5 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@6 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		ucc_pin@7 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 };
 
 &serial0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

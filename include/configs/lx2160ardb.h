@@ -9,12 +9,7 @@
 #include "lx2160a_common.h"
 
 /* RTC */
-#define CFG_SYS_RTC_BUS_NUM		4
-
-#if defined(CONFIG_FSL_MC_ENET)
-#define AQR113C_PHY_ADDR1		0x0
-#define AQR113C_PHY_ADDR2		0x08
-#endif
+#define CONFIG_SYS_RTC_BUS_NUM		4
 
 /* EMC2305 */
 #define I2C_MUX_CH_EMC2305		0x09
@@ -22,8 +17,12 @@
 #define I2C_EMC2305_CMD		0x40
 #define I2C_EMC2305_PWM		0x80
 
+/* EEPROM */
+#define CONFIG_SYS_I2C_EEPROM_NXID
+#define CONFIG_SYS_EEPROM_BUS_NUM	           0
+
 /* Initial environment variables */
-#define CFG_EXTRA_ENV_SETTINGS		\
+#define CONFIG_EXTRA_ENV_SETTINGS		\
 	EXTRA_ENV_SETTINGS			\
 	"boot_scripts=lx2160ardb_boot.scr\0"	\
 	"boot_script_hdr=hdr_lx2160ardb_bs.out\0"	\

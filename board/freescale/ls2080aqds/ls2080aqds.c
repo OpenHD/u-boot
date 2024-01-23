@@ -5,7 +5,6 @@
  */
 #include <common.h>
 #include <clock_legacy.h>
-#include <display_options.h>
 #include <env.h>
 #include <init.h>
 #include <malloc.h>
@@ -23,6 +22,7 @@
 #include <rtc.h>
 #include <asm/arch/soc.h>
 #include <hwconfig.h>
+#include <asm/arch/ppa.h>
 #include <asm/arch-fsl-layerscape/fsl_icid.h>
 #include "../common/i2c_mux.h"
 
@@ -216,13 +216,17 @@ int board_init(void)
 
 #ifdef CONFIG_RTC_ENABLE_32KHZ_OUTPUT
 #if CONFIG_IS_ENABLED(DM_I2C)
-	rtc_enable_32khz_output(0, CFG_SYS_I2C_RTC_ADDR);
+	rtc_enable_32khz_output(0, CONFIG_SYS_I2C_RTC_ADDR);
 #else
 	rtc_enable_32khz_output();
 #endif
 #endif
 
-#if !defined(CONFIG_SYS_EARLY_PCI_INIT)
+#ifdef CONFIG_FSL_LS_PPA
+	ppa_init();
+#endif
+
+#if !defined(CONFIG_SYS_EARLY_PCI_INIT) && defined(CONFIG_DM_ETH)
 	pci_init();
 #endif
 
@@ -325,7 +329,6 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 
 #if defined(CONFIG_FSL_MC_ENET) && !defined(CONFIG_SPL_BUILD)
 	fdt_fixup_board_enet(blob);
-	fdt_reserve_mc_mem(blob, 0x300);
 #endif
 
 	fdt_fixup_icid(blob);

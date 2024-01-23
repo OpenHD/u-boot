@@ -41,7 +41,9 @@ static int do_conitrace(struct cmd_tbl *cmdtp, int flag, int argc,
 	return CMD_RET_SUCCESS;
 }
 
-U_BOOT_LONGHELP(conitrace, "");
+#ifdef CONFIG_SYS_LONGHELP
+static char conitrace_help_text[] = "";
+#endif
 
 U_BOOT_CMD_COMPLETE(
 	conitrace, 2, 0, do_conitrace,

@@ -8,9 +8,9 @@
 #include "r8a779x-u-boot.dtsi"
 
 &pfc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rst {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

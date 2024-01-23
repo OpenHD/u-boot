@@ -33,7 +33,7 @@ struct cros_gpio_info {
 	int flags;
 };
 
-static int coral_check_ll_boot(void)
+static int coral_check_ll_boot(void *ctx, struct event *event)
 {
 	if (!ll_boot_init()) {
 		printf("Running as secondary loader");
@@ -57,7 +57,7 @@ static int coral_check_ll_boot(void)
 
 	return 0;
 }
-EVENT_SPY_SIMPLE(EVT_MISC_INIT_F, coral_check_ll_boot);
+EVENT_SPY(EVT_MISC_INIT_F, coral_check_ll_boot);
 
 int arch_misc_init(void)
 {

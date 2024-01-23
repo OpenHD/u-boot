@@ -5,6 +5,7 @@
  * Copyright (C) 2019, IBM Corporation.
  */
 
+#include <common.h>
 #include <phy.h>
 
 bool ncsi_active(void);

@@ -7,6 +7,7 @@
 #ifndef __JOBDESC_H
 #define __JOBDESC_H
 
+#include <common.h>
 #include <asm/io.h>
 #include "rsa_caam.h"
 

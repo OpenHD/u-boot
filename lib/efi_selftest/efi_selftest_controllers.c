@@ -28,7 +28,6 @@ static efi_guid_t guid_child_controller =
 static efi_handle_t handle_controller;
 static efi_handle_t handle_child_controller[NUMBER_OF_CHILD_CONTROLLERS];
 static efi_handle_t handle_driver;
-static bool allow_removal;
 
 /*
  * Count child controllers
@@ -86,8 +85,8 @@ static efi_status_t EFIAPI supported(
 			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER);
 	switch (ret) {
 	case EFI_ACCESS_DENIED:
-		return ret;
 	case EFI_ALREADY_STARTED:
+		return ret;
 	case EFI_SUCCESS:
 		break;
 	default:
@@ -125,8 +124,8 @@ static efi_status_t EFIAPI start(
 			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER);
 	switch (ret) {
 	case EFI_ACCESS_DENIED:
-		return ret;
 	case EFI_ALREADY_STARTED:
+		return ret;
 	case EFI_SUCCESS:
 		break;
 	default:
@@ -239,9 +238,6 @@ static efi_status_t EFIAPI stop(
 	if (ret != EFI_SUCCESS)
 		efi_st_error("Cannot free buffer\n");
 
-	if (!allow_removal)
-		return EFI_DEVICE_ERROR;
-
 	/* Detach driver from controller */
 	ret = boottime->close_protocol(
 			controller_handle, &guid_controller,
@@ -275,8 +271,6 @@ static int setup(const efi_handle_t img_handle,
 	efi_status_t ret;
 
 	boottime = systable->boottime;
-	handle_controller =  NULL;
-	handle_driver = NULL;
 
 	/* Create controller handle */
 	ret = boottime->install_protocol_interface(
@@ -346,7 +340,6 @@ static int execute(void)
 		return EFI_ST_FAILURE;
 	}
 	/* Destroy remaining child controllers and disconnect controller */
-	allow_removal = true;
 	ret = boottime->disconnect_controller(handle_controller, NULL, NULL);
 	if (ret != EFI_SUCCESS) {
 		efi_st_error("Failed to disconnect controller\n");
@@ -398,40 +391,7 @@ static int execute(void)
 		efi_st_error("Number of children %u != %u\n",
 			     (unsigned int)count, NUMBER_OF_CHILD_CONTROLLERS);
 	}
-
-	allow_removal = false;
-	/* Try to uninstall controller protocol using the wrong interface */
-	ret = boottime->uninstall_protocol_interface(handle_controller,
-						     &guid_controller,
-						     &interface1);
-	if (ret != EFI_NOT_FOUND) {
-		efi_st_error("Interface not checked when uninstalling protocol\n");
-		return EFI_ST_FAILURE;
-	}
-
-	/*
-	 * Uninstall a protocol while Disconnect controller won't
-	 * allow it.
-	 */
-	ret = boottime->uninstall_protocol_interface(handle_controller,
-						     &guid_controller,
-						     &interface2);
-	if (ret != EFI_ACCESS_DENIED) {
-		efi_st_error("Uninstall protocol interface failed\n");
-		return EFI_ST_FAILURE;
-	}
-	/*
-	 * Check number of child controllers and make sure children have
-	 * been reconnected
-	 */
-	ret = count_child_controllers(handle_controller, &guid_controller,
-				      &count);
-	if (ret != EFI_SUCCESS || count != NUMBER_OF_CHILD_CONTROLLERS) {
-		efi_st_error("Number of children %u != %u\n",
-			     (unsigned int)count, NUMBER_OF_CHILD_CONTROLLERS);
-	}
-
-	allow_removal = true;
+	/* Uninstall controller protocol */
 	ret = boottime->uninstall_protocol_interface(handle_controller,
 						     &guid_controller,
 						     &interface2);
@@ -442,30 +402,9 @@ static int execute(void)
 	/* Check number of child controllers */
 	ret = count_child_controllers(handle_controller, &guid_controller,
 				      &count);
-	if (ret == EFI_SUCCESS || count) {
+	if (ret == EFI_SUCCESS)
 		efi_st_error("Uninstall failed\n");
-		return EFI_ST_FAILURE;
-	}
-
-
 	return EFI_ST_SUCCESS;
-}
-
-  /*
-   * Tear down unit test.
-   *
-   */
-static int teardown(void)
-{
-	efi_status_t ret;
-	/* Uninstall binding protocol */
-	ret = boottime->uninstall_protocol_interface(handle_driver,
-						     &guid_driver_binding_protocol,
-						     &binding_interface);
-	if (ret != EFI_SUCCESS)
-		efi_st_error("Failed to uninstall protocols\n");
-
-	return ret;
 }
 
 EFI_UNIT_TEST(controllers) = {
@@ -473,5 +412,4 @@ EFI_UNIT_TEST(controllers) = {
 	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
 	.setup = setup,
 	.execute = execute,
-	.teardown = teardown,
 };

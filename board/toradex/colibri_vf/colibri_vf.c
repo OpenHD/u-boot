@@ -373,7 +373,7 @@ int checkboard(void)
 	else
 		puts("Model: Toradex Colibri VF50\n");
 
-	return tdx_checkboard();
+	return 0;
 }
 
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)

@@ -51,7 +51,7 @@ struct f_acm {
 #define ACM_CTRL_RTS	BIT(1)	/* unused with full duplex */
 #define ACM_CTRL_DTR	BIT(0)	/* host is ready for data r/w */
 
-	struct udevice *udc;
+	int controller_index;
 };
 
 static struct f_acm *default_acm_function;
@@ -489,7 +489,7 @@ static void __acm_tx(struct f_acm *f_acm)
 	int len, ret;
 
 	do {
-		dm_usb_gadget_handle_interrupts(f_acm->udc);
+		usb_gadget_handle_interrupts(f_acm->controller_index);
 
 		if (!(f_acm->handshake_bits & ACM_CTRL_DTR))
 			break;
@@ -520,7 +520,7 @@ static bool acm_connected(struct stdio_dev *dev)
 	struct f_acm *f_acm = stdio_to_acm(dev);
 
 	/* give a chance to process udc irq */
-	dm_usb_gadget_handle_interrupts(f_acm->udc);
+	usb_gadget_handle_interrupts(f_acm->controller_index);
 
 	return f_acm->connected;
 }
@@ -543,10 +543,7 @@ static int acm_add(struct usb_configuration *c)
 	f_acm->usb_function.descriptors = acm_fs_function;
 	f_acm->usb_function.hs_descriptors = acm_hs_function;
 	f_acm->usb_function.setup = acm_setup;
-
-	status = udc_device_get_by_index(0, &f_acm->udc);
-	if (status)
-		return status;
+	f_acm->controller_index = 0;
 
 	status = usb_add_function(c, &f_acm->usb_function);
 	if (status) {
@@ -570,7 +567,7 @@ static int acm_stdio_tstc(struct stdio_dev *dev)
 {
 	struct f_acm *f_acm = stdio_to_acm(dev);
 
-	dm_usb_gadget_handle_interrupts(f_acm->udc);
+	usb_gadget_handle_interrupts(f_acm->controller_index);
 
 	return (f_acm->rx_buf.size > 0);
 }
@@ -582,7 +579,7 @@ static int acm_stdio_getc(struct stdio_dev *dev)
 
 	/* Wait for a character to arrive. */
 	while (!acm_stdio_tstc(dev))
-		schedule();
+		WATCHDOG_RESET();
 
 	buf_pop(&f_acm->rx_buf, &c, 1);
 
@@ -642,7 +639,7 @@ static int acm_stdio_start(struct stdio_dev *dev)
 		if (ctrlc())
 			return -ECANCELED;
 
-		schedule();
+		WATCHDOG_RESET();
 	}
 
 	return 0;

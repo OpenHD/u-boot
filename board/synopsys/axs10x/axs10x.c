@@ -3,6 +3,7 @@
  * Copyright (C) 2013-2014 Synopsys, Inc. All rights reserved.
  */
 
+#include <common.h>
 #include <cpu_func.h>
 #include <dwmmc.h>
 #include <init.h>

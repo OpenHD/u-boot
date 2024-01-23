@@ -4,7 +4,7 @@
 	noc: syscon@10128000 {
 		compatible = "rockchip,rk3188-noc", "syscon";
 		reg = <0x10128000 0x2000>;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	dmc: dmc@20020000 {
@@ -18,22 +18,18 @@
 		rockchip,grf = <&grf>;
 		rockchip,pmu = <&pmu>;
 		rockchip,noc = <&noc>;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &grf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pmu {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
 	clock-frequency = <24000000>;
-};
-
-&xin24m {
-	bootph-all;
 };

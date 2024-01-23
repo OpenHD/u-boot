@@ -15,36 +15,20 @@
 	};
 };
 
-&soc {
-	bootph-all;
-};
-
-&aips1 {
-	bootph-all;
-};
-
-&pinctrl_microsom_uart1 {
-	bootph-all;
-};
-
-&uart1 {
-	bootph-all;
-};
-
 &gpio2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio4 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio6 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usdhc1 {
@@ -52,9 +36,9 @@
 };
 
 &usdhc2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usdhc3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

@@ -1,6 +1,7 @@
 #ifndef __ASM_SECURE_H
 #define __ASM_SECURE_H
 
+#include <config.h>
 #include <asm/global_data.h>
 
 #define __secure __section("._secure.text")

@@ -262,7 +262,7 @@ static int append_value(char **bufp, size_t *sizep, char *data)
 	char *tmp_buf = NULL, *new_buf = NULL, *value;
 	unsigned long len = 0;
 
-	if (!strncmp(data, "=0x", 3)) { /* hexadecimal number */
+	if (!strncmp(data, "=0x", 2)) { /* hexadecimal number */
 		union {
 			u8 u8;
 			u16 u16;
@@ -382,7 +382,8 @@ int do_env_set_efi(struct cmd_tbl *cmdtp, int flag, int argc,
 	efi_guid_t guid;
 	u32 attributes;
 	bool default_guid, verbose, value_on_memory;
-	u16 *var_name16;
+	u16 *var_name16 = NULL, *p;
+	size_t len;
 	efi_status_t ret;
 
 	if (argc == 1)
@@ -486,15 +487,18 @@ int do_env_set_efi(struct cmd_tbl *cmdtp, int flag, int argc,
 			       16, 1, value, size, true);
 	}
 
-	var_name16 = efi_convert_string(var_name);
+	len = utf8_utf16_strnlen(var_name, strlen(var_name));
+	var_name16 = malloc((len + 1) * 2);
 	if (!var_name16) {
 		printf("## Out of memory\n");
 		ret = CMD_RET_FAILURE;
 		goto out;
 	}
+	p = var_name16;
+	utf8_utf16_strncpy(&p, var_name, len + 1);
+
 	ret = efi_set_variable_int(var_name16, &guid, attributes, size, value,
 				   true);
-	free(var_name16);
 	unmap_sysmem(value);
 	if (ret == EFI_SUCCESS) {
 		ret = CMD_RET_SUCCESS;
@@ -529,6 +533,7 @@ out:
 		unmap_sysmem(value);
 	else
 		free(value);
+	free(var_name16);
 
 	return ret;
 }

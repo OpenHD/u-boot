@@ -18,7 +18,6 @@
 #include <reset.h>
 #include <wait_bit.h>
 #include <asm/io.h>
-#include <linux/printk.h>
 
 #define ETH_RX_DESC			PKTBUFSRX
 #define ETH_MAX_MTU_SIZE		1518

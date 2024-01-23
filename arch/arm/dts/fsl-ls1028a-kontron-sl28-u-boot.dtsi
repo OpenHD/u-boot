@@ -36,7 +36,7 @@
 					os = "u-boot";
 					arch = "arm";
 					compression = "none";
-					load = <CONFIG_TEXT_BASE>;
+					load = <CONFIG_SYS_TEXT_BASE>;
 
 					u-boot-nodtb {
 					};
@@ -64,7 +64,7 @@
 
 &binman {
 	u-boot-update {
-		filename = "u-boot-update.bin";
+		filename = "u-boot.update";
 
 		fit {
 			description = "FIT update image";
@@ -153,30 +153,30 @@
 #endif
 
 &fspi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	flash@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &dspi2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &esdhc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &esdhc1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &lpuart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &duart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 /*
@@ -197,9 +197,9 @@
 };
 
 &soc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sysclk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

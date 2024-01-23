@@ -14,22 +14,18 @@
 #include <linux/compiler.h>
 #include <cpu_func.h>
 
-#ifndef CONFIG_IMX8
 /* Just to avoid build error */
-#if IS_ENABLED(CONFIG_IMX8M)
+#if CONFIG_IS_ENABLED(IMX8M)
 #define SRC_M4C_NON_SCLR_RST_MASK	BIT(0)
 #define SRC_M4_ENABLE_MASK		BIT(0)
 #define SRC_M4_REG_OFFSET		0
 #endif
 
-__weak const struct rproc_att *imx_bootaux_get_hostmap(void)
-{
-	return NULL;
-}
+const __weak struct rproc_att hostmap[] = { };
 
 static const struct rproc_att *get_host_mapping(unsigned long auxcore)
 {
-	const struct rproc_att *mmap = imx_bootaux_get_hostmap();
+	const struct rproc_att *mmap = hostmap;
 
 	while (mmap && mmap->size) {
 		if (mmap->da <= auxcore &&
@@ -46,7 +42,7 @@ static const struct rproc_att *get_host_mapping(unsigned long auxcore)
  * is valid, returns the entry point address.
  * Translates load addresses in the elf file to the U-Boot address space.
  */
-static u32 load_elf_image_m_core_phdr(unsigned long addr, u32 *stack)
+static unsigned long load_elf_image_m_core_phdr(unsigned long addr, ulong *stack)
 {
 	Elf32_Ehdr *ehdr; /* ELF header structure pointer */
 	Elf32_Phdr *phdr; /* Program header structure pointer */
@@ -96,7 +92,7 @@ static u32 load_elf_image_m_core_phdr(unsigned long addr, u32 *stack)
 
 int arch_auxiliary_core_up(u32 core_id, ulong addr)
 {
-	u32 stack, pc;
+	ulong stack, pc;
 
 	if (!addr)
 		return -EINVAL;
@@ -110,7 +106,7 @@ int arch_auxiliary_core_up(u32 core_id, ulong addr)
 		if (!pc)
 			return CMD_RET_FAILURE;
 
-		if (!IS_ENABLED(CONFIG_ARM64))
+		if (!CONFIG_IS_ENABLED(ARM64))
 			stack = 0x0;
 	} else {
 		/*
@@ -122,18 +118,18 @@ int arch_auxiliary_core_up(u32 core_id, ulong addr)
 		pc = *(u32 *)(addr + 4);
 	}
 
-	printf("## Starting auxiliary core stack = 0x%08X, pc = 0x%08X...\n",
+	printf("## Starting auxiliary core stack = 0x%08lX, pc = 0x%08lX...\n",
 	       stack, pc);
 
-	/* Set the stack and pc to MCU bootROM */
-	writel(stack, MCU_BOOTROM_BASE_ADDR);
-	writel(pc, MCU_BOOTROM_BASE_ADDR + 4);
+	/* Set the stack and pc to M4 bootROM */
+	writel(stack, M4_BOOTROM_BASE_ADDR);
+	writel(pc, M4_BOOTROM_BASE_ADDR + 4);
 
 	flush_dcache_all();
 
-	/* Enable MCU */
-	if (IS_ENABLED(CONFIG_IMX8M)) {
-		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_MCU_START, 0, 0, 0, 0, 0, 0, NULL);
+	/* Enable M4 */
+	if (CONFIG_IS_ENABLED(IMX8M)) {
+		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_M4_START, 0, 0, 0, 0, 0, 0, NULL);
 	} else {
 		clrsetbits_le32(SRC_BASE_ADDR + SRC_M4_REG_OFFSET,
 				SRC_M4C_NON_SCLR_RST_MASK, SRC_M4_ENABLE_MASK);
@@ -147,8 +143,8 @@ int arch_auxiliary_core_check_up(u32 core_id)
 	struct arm_smccc_res res;
 	unsigned int val;
 
-	if (IS_ENABLED(CONFIG_IMX8M)) {
-		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_MCU_STARTED, 0, 0, 0, 0, 0, 0, &res);
+	if (CONFIG_IS_ENABLED(IMX8M)) {
+		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_M4_STARTED, 0, 0, 0, 0, 0, 0, &res);
 		return res.a0;
 	}
 
@@ -159,34 +155,30 @@ int arch_auxiliary_core_check_up(u32 core_id)
 
 	return 1;
 }
-#endif
+
 /*
  * To i.MX6SX and i.MX7D, the image supported by bootaux needs
  * the reset vector at the head for the image, with SP and PC
  * as the first two words.
  *
- * Per the cortex-M reference manual, the reset vector of M4/M7 needs
- * to exist at 0x0 (TCMUL/IDTCM). The PC and SP are the first two addresses
- * of that vector.  So to boot M4/M7, the A core must build the M4/M7's reset
+ * Per the cortex-M reference manual, the reset vector of M4 needs
+ * to exist at 0x0 (TCMUL). The PC and SP are the first two addresses
+ * of that vector.  So to boot M4, the A core must build the M4's reset
  * vector with getting the PC and SP from image and filling them to
- * TCMUL/IDTCM. When M4/M7 is kicked, it will load the PC and SP by itself.
- * The TCMUL/IDTCM is mapped to (MCU_BOOTROM_BASE_ADDR) at A core side for
- * accessing the M4/M7 TCMUL/IDTCM.
+ * TCMUL. When M4 is kicked, it will load the PC and SP by itself.
+ * The TCMUL is mapped to (M4_BOOTROM_BASE_ADDR) at A core side for
+ * accessing the M4 TCMUL.
  */
 static int do_bootaux(struct cmd_tbl *cmdtp, int flag, int argc,
 		      char *const argv[])
 {
 	ulong addr;
 	int ret, up;
-	u32 core = 0;
 
 	if (argc < 2)
 		return CMD_RET_USAGE;
 
-	if (argc > 2)
-		core = simple_strtoul(argv[2], NULL, 10);
-
-	up = arch_auxiliary_core_check_up(core);
+	up = arch_auxiliary_core_check_up(0);
 	if (up) {
 		printf("## Auxiliary core is already up\n");
 		return CMD_RET_SUCCESS;
@@ -197,7 +189,7 @@ static int do_bootaux(struct cmd_tbl *cmdtp, int flag, int argc,
 	if (!addr)
 		return CMD_RET_FAILURE;
 
-	ret = arch_auxiliary_core_up(core, addr);
+	ret = arch_auxiliary_core_up(0, addr);
 	if (ret)
 		return CMD_RET_FAILURE;
 
@@ -207,7 +199,5 @@ static int do_bootaux(struct cmd_tbl *cmdtp, int flag, int argc,
 U_BOOT_CMD(
 	bootaux, CONFIG_SYS_MAXARGS, 1,	do_bootaux,
 	"Start auxiliary core",
-	"<address> [<core>]\n"
-	"   - start auxiliary core [<core>] (default 0),\n"
-	"     at address <address>\n"
+	""
 );

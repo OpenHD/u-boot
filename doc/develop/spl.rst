@@ -77,11 +77,10 @@ To check whether a feature is enabled, use CONFIG_IS_ENABLED()::
 This checks CONFIG_CLK for the main build, CONFIG_SPL_CLK for the SPL build,
 CONFIG_TPL_CLK for the TPL build, etc.
 
-U-Boot Boot Phases
-------------------
+U-Boot Phases
+-------------
 
-U-Boot goes through the following boot phases where TPL, VPL, SPL are optional.
-While many boards use SPL, less use TPL.
+U-Boot boots through the following phases:
 
 TPL
    Very early init, as tiny as possible. This loads SPL (or VPL if enabled).
@@ -98,12 +97,6 @@ SPL
 U-Boot
    U-Boot proper, containing the command line and boot logic.
 
-Further usages of U-Boot SPL comprise:
-
-* Launching BL31 of ARM Trusted Firmware which invokes main U-Boot as BL33
-* launching EDK II
-* launching Linux kernel
-* launching RISC-V OpenSBI which invokes main U-Boot
 
 Checking the boot phase
 -----------------------
@@ -120,21 +113,16 @@ with:
 
 - the mandatory nodes (/alias, /chosen, /config)
 - the nodes with one pre-relocation property:
-  'bootph-all' or 'bootph-pre-ram'
+  'u-boot,dm-pre-reloc' or 'u-boot,dm-spl'
 
 fdtgrep is also used to remove:
 
 - the properties defined in CONFIG_OF_SPL_REMOVE_PROPS
 - all the pre-relocation properties
-  ('bootph-all', 'bootph-pre-ram' (SPL), 'bootph-pre-sram' (TPL) and
-  'bootph-verify' (TPL))
+  ('u-boot,dm-pre-reloc', 'u-boot,dm-spl' and 'u-boot,dm-tpl')
 
 All the nodes remaining in the SPL devicetree are bound
 (see doc/driver-model/design.rst).
-
-NOTE: U-Boot migrated to a new schema for the u-boot,dm-* tags in 2023. Please
-update to use the new bootph-* tags as described in the
-doc/device-tree-bindings/bootph.yaml binding file.
 
 Debugging
 ---------

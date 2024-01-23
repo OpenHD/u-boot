@@ -49,30 +49,17 @@ static int syscon_pre_probe(struct udevice *dev)
 	if (device_get_uclass_id(dev->parent) == UCLASS_PCI)
 		return 0;
 
-#if CONFIG_IS_ENABLED(OF_PLATDATA)
 	/*
 	 * With OF_PLATDATA we really have no way of knowing the format of
 	 * the device-specific platform data. So we assume that it starts with
-	 * a 'reg' member that holds a single address and size. Drivers
-	 * using OF_PLATDATA will need to ensure that this is true. In case of
-	 * odd reg structures other then the syscon_base_plat structure
-	 * below the regmap must be defined in the individual syscon driver.
+	 * a 'reg' member, and this holds a single address and size. Drivers
+	 * using OF_PLATDATA will need to ensure that this is true.
 	 */
-	struct syscon_base_plat {
-		phys_addr_t reg[2];
-	};
-
+#if CONFIG_IS_ENABLED(OF_PLATDATA)
 	struct syscon_base_plat *plat = dev_get_plat(dev);
 
-	/*
-	 * Return if the regmap is already defined in the individual
-	 * syscon driver.
-	 */
-	if (priv->regmap)
-		return 0;
-
-	return regmap_init_mem_plat(dev, plat->reg, sizeof(plat->reg[0]),
-				    ARRAY_SIZE(plat->reg) / 2, &priv->regmap);
+	return regmap_init_mem_plat(dev, plat->reg, ARRAY_SIZE(plat->reg),
+					&priv->regmap);
 #else
 	return regmap_init_mem(dev_ofnode(dev), &priv->regmap);
 #endif

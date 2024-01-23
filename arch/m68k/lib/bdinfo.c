@@ -6,9 +6,8 @@
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  */
 
-#include <config.h>
+#include <common.h>
 #include <init.h>
-#include <asm/u-boot.h>
 #include <asm/global_data.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -17,7 +16,7 @@ int arch_setup_bdinfo(void)
 {
 	struct bd_info *bd = gd->bd;
 
-	bd->bi_mbar_base = CFG_SYS_MBAR; /* base of internal registers */
+	bd->bi_mbar_base = CONFIG_SYS_MBAR; /* base of internal registers */
 
 	bd->bi_intfreq = gd->cpu_clk;	/* Internal Freq, in Hz */
 	bd->bi_busfreq = gd->bus_clk;	/* Bus Freq,      in Hz */
@@ -39,7 +38,7 @@ void arch_print_bdinfo(void)
 	struct bd_info *bd = gd->bd;
 
 	bdinfo_print_mhz("busfreq", bd->bi_busfreq);
-#if defined(CFG_SYS_MBAR)
+#if defined(CONFIG_SYS_MBAR)
 	bdinfo_print_num_l("mbar", bd->bi_mbar_base);
 #endif
 	bdinfo_print_mhz("cpufreq", bd->bi_intfreq);

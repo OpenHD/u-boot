@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0+
 
 #include <config.h>
+#include <common.h>
 #include <asm/io.h>
 #include <linux/bitops.h>
 #include <mach/jz4780.h>

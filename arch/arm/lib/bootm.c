@@ -12,7 +12,6 @@
  */
 
 #include <common.h>
-#include <bootm.h>
 #include <bootstage.h>
 #include <command.h>
 #include <cpu_func.h>
@@ -193,18 +192,20 @@ static void do_nonsec_virt_switch(void)
 }
 #endif
 
-__weak void board_prep_linux(struct bootm_headers *images) { }
+__weak void board_prep_linux(bootm_headers_t *images) { }
 
 /* Subcommand: PREP */
-static void boot_prep_linux(struct bootm_headers *images)
+static void boot_prep_linux(bootm_headers_t *images)
 {
 	char *commandline = env_get("bootargs");
 
-	if (CONFIG_IS_ENABLED(OF_LIBFDT) && IS_ENABLED(CONFIG_LMB) && images->ft_len) {
+	if (CONFIG_IS_ENABLED(OF_LIBFDT) && images->ft_len) {
+#ifdef CONFIG_OF_LIBFDT
 		debug("using: FDT\n");
 		if (image_setup_linux(images)) {
 			panic("FDT creation failed!");
 		}
+#endif
 	} else if (BOOTM_ENABLE_TAGS) {
 		debug("using: ATAGS\n");
 		setup_start_tag(gd->bd);
@@ -289,7 +290,7 @@ static void switch_to_el1(void)
 #endif
 
 /* Subcommand: GO */
-static void boot_jump_linux(struct bootm_headers *images, int flag)
+static void boot_jump_linux(bootm_headers_t *images, int flag)
 {
 #ifdef CONFIG_ARM64
 	void (*kernel_entry)(void *fdt_addr, void *res0, void *res1,
@@ -379,10 +380,9 @@ static void boot_jump_linux(struct bootm_headers *images, int flag)
  * DIFFERENCE: Instead of calling prep and go at the end
  * they are called if subcommand is equal 0.
  */
-int do_bootm_linux(int flag, struct bootm_info *bmi)
+int do_bootm_linux(int flag, int argc, char *const argv[],
+		   bootm_headers_t *images)
 {
-	struct bootm_headers *images = bmi->images;
-
 	/* No need for those on ARM */
 	if (flag & BOOTM_STATE_OS_BD_T || flag & BOOTM_STATE_OS_CMDLINE)
 		return -1;
@@ -403,7 +403,7 @@ int do_bootm_linux(int flag, struct bootm_info *bmi)
 }
 
 #if defined(CONFIG_BOOTM_VXWORKS)
-void boot_prep_vxworks(struct bootm_headers *images)
+void boot_prep_vxworks(bootm_headers_t *images)
 {
 #if defined(CONFIG_OF_LIBFDT)
 	int off;
@@ -418,8 +418,7 @@ void boot_prep_vxworks(struct bootm_headers *images)
 #endif
 	cleanup_before_linux();
 }
-
-void boot_jump_vxworks(struct bootm_headers *images)
+void boot_jump_vxworks(bootm_headers_t *images)
 {
 #if defined(CONFIG_ARM64) && defined(CONFIG_ARMV8_PSCI)
 	armv8_setup_psci();

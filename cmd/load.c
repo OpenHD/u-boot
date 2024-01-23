@@ -14,9 +14,7 @@
 #include <efi_loader.h>
 #include <env.h>
 #include <exports.h>
-#ifdef CONFIG_MTD_NOR_FLASH
 #include <flash.h>
-#endif
 #include <image.h>
 #include <lmb.h>
 #include <mapmem.h>
@@ -83,7 +81,6 @@ static int do_load_serial(struct cmd_tbl *cmdtp, int flag, int argc,
 		printf("## Switch baudrate to %d bps and press ENTER ...\n",
 			load_baudrate);
 		udelay(50000);
-		flush();
 		gd->baudrate = load_baudrate;
 		serial_setbrg();
 		udelay(50000);
@@ -127,7 +124,6 @@ static int do_load_serial(struct cmd_tbl *cmdtp, int flag, int argc,
 		printf("## Switch baudrate to %d bps and press ESC ...\n",
 			current_baudrate);
 		udelay(50000);
-		flush();
 		gd->baudrate = current_baudrate;
 		serial_setbrg();
 		udelay(50000);
@@ -181,17 +177,13 @@ static ulong load_serial(long offset)
 		    } else
 #endif
 		    {
-			void *dst;
-
 			ret = lmb_reserve(&lmb, store_addr, binlen);
 			if (ret) {
 				printf("\nCannot overwrite reserved area (%08lx..%08lx)\n",
 					store_addr, store_addr + binlen);
 				return ret;
 			}
-			dst = map_sysmem(store_addr, binlen);
-			memcpy(dst, binbuf, binlen);
-			unmap_sysmem(dst);
+			memcpy((char *)(store_addr), binbuf, binlen);
 			lmb_free(&lmb, store_addr, binlen);
 		    }
 		    if ((store_addr) < start_addr)
@@ -323,7 +315,6 @@ int do_save_serial(struct cmd_tbl *cmdtp, int flag, int argc,
 		printf("## Switch baudrate to %d bps and press ESC ...\n",
 			(int)current_baudrate);
 		udelay(50000);
-		flush();
 		gd->baudrate = current_baudrate;
 		serial_setbrg();
 		udelay(50000);
@@ -354,19 +345,15 @@ static int save_serial(ulong address, ulong count)
 	if(write_record(SREC3_START))			/* write the header */
 		return (-1);
 	do {
-		volatile uchar *src;
-
-		src = map_sysmem(address, count);
-		if (count) {				/* collect hex data in the buffer */
-			c = src[reclen];		/* get one byte */
-			checksum += c;			/* accumulate checksum */
+		if(count) {						/* collect hex data in the buffer  */
+			c = *(volatile uchar*)(address + reclen);	/* get one byte    */
+			checksum += c;							/* accumulate checksum */
 			data[2*reclen]   = hex[(c>>4)&0x0f];
 			data[2*reclen+1] = hex[c & 0x0f];
 			data[2*reclen+2] = '\0';
 			++reclen;
 			--count;
 		}
-		unmap_sysmem((void *)src);
 		if(reclen == SREC_BYTES_PER_RECORD || count == 0) {
 			/* enough data collected for one record: dump it */
 			if(reclen) {	/* build & write a data record: */
@@ -482,7 +469,6 @@ static int do_load_serial_bin(struct cmd_tbl *cmdtp, int flag, int argc,
 		printf("## Switch baudrate to %d bps and press ENTER ...\n",
 			load_baudrate);
 		udelay(50000);
-		flush();
 		gd->baudrate = load_baudrate;
 		serial_setbrg();
 		udelay(50000);
@@ -545,7 +531,6 @@ static int do_load_serial_bin(struct cmd_tbl *cmdtp, int flag, int argc,
 		printf("## Switch baudrate to %d bps and press ESC ...\n",
 			current_baudrate);
 		udelay(50000);
-		flush();
 		gd->baudrate = current_baudrate;
 		serial_setbrg();
 		udelay(50000);
@@ -1078,44 +1063,6 @@ static ulong load_serial_ymodem(ulong offset, int mode)
 
 #endif
 
-#if defined(CONFIG_CMD_LOADM)
-static int do_load_memory_bin(struct cmd_tbl *cmdtp, int flag, int argc,
-			      char *const argv[])
-{
-	ulong	addr, dest, size;
-	void	*src, *dst;
-
-	if (argc != 4)
-		return CMD_RET_USAGE;
-
-	addr = simple_strtoul(argv[1], NULL, 16);
-
-	dest = simple_strtoul(argv[2], NULL, 16);
-
-	size = simple_strtoul(argv[3], NULL, 16);
-
-	if (!size) {
-		printf("loadm: can not load zero bytes\n");
-		return 1;
-	}
-
-	src = map_sysmem(addr, size);
-	dst = map_sysmem(dest, size);
-
-	memcpy(dst, src, size);
-
-	unmap_sysmem(src);
-	unmap_sysmem(dst);
-
-	if (IS_ENABLED(CONFIG_CMD_BOOTEFI))
-		efi_set_bootdev("Mem", "", "", map_sysmem(dest, 0), size);
-
-	printf("loaded bin to memory: size: %lu\n", size);
-
-	return 0;
-}
-#endif
-
 /* -------------------------------------------------------------------- */
 
 #if defined(CONFIG_CMD_LOADS)
@@ -1190,13 +1137,3 @@ U_BOOT_CMD(
 );
 
 #endif	/* CONFIG_CMD_LOADB */
-
-#if defined(CONFIG_CMD_LOADM)
-U_BOOT_CMD(
-	loadm, 4, 0,	do_load_memory_bin,
-	"load binary blob from source address to destination address",
-	"[src_addr] [dst_addr] [size]\n"
-	"     - load a binary blob from one memory location to other"
-	" from src_addr to dst_addr by size bytes"
-);
-#endif /* CONFIG_CMD_LOADM */

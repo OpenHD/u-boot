@@ -9,8 +9,6 @@
 #ifndef _ATMEL_LCD_H_
 #define _ATMEL_LCD_H_
 
-#include <linux/types.h>
-
 /**
  * struct atmel_lcd_plat - platform data for Atmel LCDs with driver model
  *

@@ -3,6 +3,7 @@
  * Copyright (c) 2018 Microsemi Corporation
  */
 
+#include <common.h>
 #include <log.h>
 #include <asm/io.h>
 

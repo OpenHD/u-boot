@@ -11,7 +11,6 @@
 #include <dm.h>
 #include <pci.h>
 #include <asm/global_data.h>
-#include <linux/printk.h>
 
 #include <asm/io.h>
 

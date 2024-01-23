@@ -7,6 +7,4 @@ Broadcom
 .. toctree::
    :maxdepth: 2
 
-   bcm7xxx
    raspberrypi
-   northstar

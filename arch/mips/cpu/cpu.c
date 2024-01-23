@@ -4,7 +4,7 @@
  * Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
  */
 
-#include <cpu_func.h>
+#include <common.h>
 #include <command.h>
 #include <init.h>
 #include <linux/compiler.h>
@@ -15,20 +15,15 @@
 #if !CONFIG_IS_ENABLED(SYSRESET)
 void __weak _machine_restart(void)
 {
-	puts("*** reset failed ***\n");
+	fprintf(stderr, "*** reset failed ***\n");
 
 	while (1)
 		/* NOP */;
 }
 
-void reset_cpu(void)
-{
-	_machine_restart();
-}
-
 int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
-	reset_cpu();
+	_machine_restart();
 
 	return 0;
 }

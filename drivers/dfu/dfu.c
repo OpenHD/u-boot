@@ -17,7 +17,6 @@
 #include <hash.h>
 #include <linux/list.h>
 #include <linux/compiler.h>
-#include <linux/printk.h>
 
 LIST_HEAD(dfu_list);
 static int dfu_alt_num;
@@ -136,7 +135,6 @@ int dfu_config_interfaces(char *env)
 			a = s;
 		do {
 			part = strsep(&a, ";");
-			part = skip_spaces(part);
 			ret = dfu_alt_add(dfu, i, d, part);
 			if (ret)
 				return ret;
@@ -631,7 +629,6 @@ int dfu_config_entities(char *env, char *interface, char *devstr)
 
 	for (i = 0; i < dfu_alt_num; i++) {
 		s = strsep(&env, ";");
-		s = skip_spaces(s);
 		ret = dfu_alt_add(dfu, interface, devstr, s);
 		if (ret) {
 			/* We will free "dfu" in dfu_free_entities() */

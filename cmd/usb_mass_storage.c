@@ -18,7 +18,6 @@
 #include <usb_mass_storage.h>
 #include <watchdog.h>
 #include <linux/delay.h>
-#include <linux/printk.h>
 
 static int ums_read_sector(struct ums *ums_dev,
 			   ulong start, lbaint_t blkcnt, void *buf)
@@ -144,7 +143,6 @@ static int do_usb_mass_storage(struct cmd_tbl *cmdtp, int flag,
 	const char *devtype;
 	const char *devnum;
 	unsigned int controller_index;
-	struct udevice *udc;
 	int rc;
 	int cable_ready_timeout __maybe_unused;
 
@@ -166,14 +164,13 @@ static int do_usb_mass_storage(struct cmd_tbl *cmdtp, int flag,
 
 	controller_index = (unsigned int)(simple_strtoul(
 				usb_controller,	NULL, 0));
-	rc = udc_device_get_by_index(controller_index, &udc);
-	if (rc) {
+	if (usb_gadget_initialize(controller_index)) {
 		pr_err("Couldn't init USB controller.\n");
 		rc = CMD_RET_FAILURE;
 		goto cleanup_ums_init;
 	}
 
-	rc = fsg_init(ums, ums_count, udc);
+	rc = fsg_init(ums, ums_count, controller_index);
 	if (rc) {
 		pr_err("fsg_init failed\n");
 		rc = CMD_RET_FAILURE;
@@ -218,7 +215,7 @@ static int do_usb_mass_storage(struct cmd_tbl *cmdtp, int flag,
 	}
 
 	while (1) {
-		dm_usb_gadget_handle_interrupts(udc);
+		usb_gadget_handle_interrupts(controller_index);
 
 		rc = fsg_main_thread(NULL);
 		if (rc) {
@@ -234,23 +231,13 @@ static int do_usb_mass_storage(struct cmd_tbl *cmdtp, int flag,
 			goto cleanup_register;
 		}
 
-		if (IS_ENABLED(CONFIG_CMD_UMS_ABORT_KEYED)) {
-			/* Abort by pressing any key */
-			if (tstc()) {
-				getchar();
-				printf("\rOperation aborted.\n");
-				rc = CMD_RET_SUCCESS;
-				goto cleanup_register;
-			}
-		}
-
-		schedule();
+		WATCHDOG_RESET();
 	}
 
 cleanup_register:
 	g_dnl_unregister();
 cleanup_board:
-	udc_device_put(udc);
+	usb_gadget_release(controller_index);
 cleanup_ums_init:
 	ums_fini();
 

@@ -8,6 +8,7 @@
  * It returns directly without calling the Exit boot service.
  */
 
+#include <common.h>
 #include <efi_api.h>
 
 /*

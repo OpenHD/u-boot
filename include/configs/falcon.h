@@ -9,7 +9,17 @@
 #ifndef __FALCON_H
 #define __FALCON_H
 
-#include "rcar-gen4-common.h"
+#include "rcar-gen3-common.h"
+
+/*
+ * Generic Interrupt Controller Definitions.  Undefine v2 locations and define
+ * v3 locations.
+ */
+#undef GICD_BASE
+#undef GICC_BASE
+#undef GICR_BASE
+#define GICD_BASE	0xF1000000
+#define GICR_BASE	0xF1060000
 
 /* Board Clock */
 /* XTAL_CLK : 16.66MHz */

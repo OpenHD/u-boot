@@ -3,6 +3,7 @@
  * Copyright (C) 2020 Synopsys, Inc. All rights reserved.
  */
 
+#include <common.h>
 #include <init.h>
 #include <dm/device.h>
 #include <virtio_types.h>

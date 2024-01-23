@@ -6,6 +6,7 @@
  * Based on arm/lib/image.c
  */
 
+#include <common.h>
 #include <image.h>
 #include <mapmem.h>
 #include <errno.h>

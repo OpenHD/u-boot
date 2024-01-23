@@ -18,6 +18,7 @@
  */
 
 #include <config.h>
+#include <common.h>
 #include <log.h>
 #include <watchdog.h>
 
@@ -103,7 +104,7 @@ int lzmaBuffToBuffDecompress(unsigned char *outStream, SizeT *uncompressedSize,
     /* Decompress */
     outProcessed = min(outSizeFull, *uncompressedSize);
 
-    schedule();
+    WATCHDOG_RESET();
 
     res = LzmaDecode(
         outStream, &outProcessed,

@@ -11,9 +11,9 @@ import tempfile
 import urllib.request, urllib.error, urllib.parse
 
 from buildman import bsettings
-from u_boot_pylib import command
-from u_boot_pylib import terminal
-from u_boot_pylib import tools
+from patman import command
+from patman import terminal
+from patman import tools
 
 (PRIORITY_FULL_PREFIX, PRIORITY_PREFIX_GCC, PRIORITY_PREFIX_GCC_PATH,
     PRIORITY_CALC) = list(range(4))
@@ -139,7 +139,7 @@ class Toolchain:
         """Get toolchain wrapper from the setting file.
         """
         value = ''
-        for name, value in bsettings.get_items('toolchain-wrapper'):
+        for name, value in bsettings.GetItems('toolchain-wrapper'):
             if not value:
                 print("Warning: Wrapper not found")
         if value:
@@ -156,10 +156,9 @@ class Toolchain:
         Returns:
             Value of that environment variable or arguments
         """
+        wrapper = self.GetWrapper()
         if which == VAR_CROSS_COMPILE:
-            wrapper = self.GetWrapper()
-            base = '' if self.arch == 'sandbox' else self.path
-            return wrapper + os.path.join(base, self.cross)
+            return wrapper + os.path.join(self.path, self.cross)
         elif which == VAR_PATH:
             return self.path
         elif which == VAR_ARCH:
@@ -249,7 +248,7 @@ class Toolchains:
         self.prefixes = {}
         self.paths = []
         self.override_toolchain = override_toolchain
-        self._make_flags = dict(bsettings.get_items('make-flags'))
+        self._make_flags = dict(bsettings.GetItems('make-flags'))
 
     def GetPathList(self, show_warning=True):
         """Get a list of available toolchain paths
@@ -261,12 +260,12 @@ class Toolchains:
             List of strings, each a path to a toolchain mentioned in the
             [toolchain] section of the settings file.
         """
-        toolchains = bsettings.get_items('toolchain')
+        toolchains = bsettings.GetItems('toolchain')
         if show_warning and not toolchains:
             print(("Warning: No tool chains. Please run 'buildman "
                    "--fetch-arch all' to download all available toolchains, or "
                    "add a [toolchain] section to your buildman config file "
-                   "%s. See buildman.rst for details" %
+                   "%s. See README for details" %
                    bsettings.config_fname))
 
         paths = []
@@ -283,7 +282,7 @@ class Toolchains:
         Args:
             show_warning: True to show a warning if there are no tool chains.
         """
-        self.prefixes = bsettings.get_items('toolchain-prefix')
+        self.prefixes = bsettings.GetItems('toolchain-prefix')
         self.paths += self.GetPathList(show_warning)
 
     def Add(self, fname, test=True, verbose=False, priority=PRIORITY_CALC,
@@ -399,7 +398,7 @@ class Toolchains:
         returns:
             toolchain object, or None if none found
         """
-        for tag, value in bsettings.get_items('toolchain-alias'):
+        for tag, value in bsettings.GetItems('toolchain-alias'):
             if arch == tag:
                 for alias in value.split():
                     if alias in self.toolchains:
@@ -421,7 +420,7 @@ class Toolchains:
         Returns:
             Resolved string
 
-        >>> bsettings.setup(None)
+        >>> bsettings.Setup()
         >>> tcs = Toolchains()
         >>> tcs.Add('fred', False)
         >>> var_dict = {'oblique' : 'OBLIQUE', 'first' : 'fi${second}rst', \
@@ -442,7 +441,7 @@ class Toolchains:
             args = args[:m.start(0)] + value + args[m.end(0):]
         return args
 
-    def GetMakeArguments(self, brd):
+    def GetMakeArguments(self, board):
         """Returns 'make' arguments for a given board
 
         The flags are in a section called 'make-flags'. Flags are named
@@ -463,13 +462,13 @@ class Toolchains:
         A special 'target' variable is set to the board target.
 
         Args:
-            brd: Board object for the board to check.
+            board: Board object for the board to check.
         Returns:
             'make' flags for that board, or '' if none
         """
-        self._make_flags['target'] = brd.target
+        self._make_flags['target'] = board.target
         arg_str = self.ResolveReferences(self._make_flags,
-                           self._make_flags.get(brd.target, ''))
+                           self._make_flags.get(board.target, ''))
         args = re.findall("(?:\".*?\"|\S)+", arg_str)
         i = 0
         while i < len(args):
@@ -499,7 +498,7 @@ class Toolchains:
         if arch == 'aarch64':
             arch = 'arm64'
         base = 'https://www.kernel.org/pub/tools/crosstool/files/bin'
-        versions = ['13.2.0', '12.2.0']
+        versions = ['11.1.0', '9.2.0', '7.3.0', '6.4.0', '4.9.4']
         links = []
         for version in versions:
             url = '%s/%s/%s/' % (base, arch, version)
@@ -598,5 +597,5 @@ class Toolchains:
         if not self.TestSettingsHasPath(dirpath):
             print(("Adding 'download' to config file '%s'" %
                    bsettings.config_fname))
-            bsettings.set_item('toolchain', 'download', '%s/*/*' % dest)
+            bsettings.SetItem('toolchain', 'download', '%s/*/*' % dest)
         return 0

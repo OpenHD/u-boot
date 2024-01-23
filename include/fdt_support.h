@@ -7,11 +7,10 @@
 #ifndef __FDT_SUPPORT_H
 #define __FDT_SUPPORT_H
 
-#if !defined(USE_HOSTCC)
+#if defined(CONFIG_OF_LIBFDT) && !defined(USE_HOSTCC)
 
 #include <asm/u-boot.h>
 #include <linux/libfdt.h>
-#include <abuf.h>
 
 /**
  * arch_fixup_fdt() - Write arch-specific information to fdt
@@ -55,17 +54,7 @@ int fdt_chosen(void *fdt);
 /**
  * Add initrd information to the FDT before booting the OS.
  *
- * Adds linux,initrd-start and linux,initrd-end properties to the /chosen node,
- * creating it if necessary.
- *
- * A memory reservation for the ramdisk is added to the FDT, or an existing one
- * (with matching @initrd_start) updated.
- *
- * If @initrd_start == @initrd_end this function does nothing and returns 0.
- *
- * @fdt: Pointer to FDT in memory
- * @initrd_start: Start of ramdisk
- * @initrd_end: End of ramdisk
+ * @param fdt		FDT address in memory
  * Return: 0 if ok, or -FDT_ERR_... on error
  */
 int fdt_initrd(void *fdt, ulong initrd_start, ulong initrd_end);
@@ -198,18 +187,6 @@ int fdt_find_or_add_subnode(void *fdt, int parentoffset, const char *name);
 int ft_board_setup(void *blob, struct bd_info *bd);
 
 /**
- * board_rng_seed() - Provide a seed to be passed via /chosen/rng-seed
- *
- * This function is called if CONFIG_BOARD_RNG_SEED is set, and must
- * be provided by the board. It should return, via @buf, some suitable
- * seed value to pass to the kernel.
- *
- * @param buf         A struct abuf for returning the seed and its size.
- * @return            0 if ok, negative on error.
- */
-int board_rng_seed(struct abuf *buf);
-
-/**
  * board_fdt_chosen_bootargs() - Arbitrarily amend fdt kernel command line
  *
  * This is used for late modification of kernel command line arguments just
@@ -242,26 +219,18 @@ int ft_system_setup(void *blob, struct bd_info *bd);
 void set_working_fdt_addr(ulong addr);
 
 /**
- * fdt_shrink_to_minimum() - shrink FDT while allowing for some margin
- *
- * Shrink down the given blob to 'minimum' size + some extrasize.
- *
- * The new size is enough to hold the existing contents plus @extrasize bytes,
- * plus 5 memory reservations. Also, the end of the FDT is aligned to a 4KB
- * boundary, so it might end up up to 4KB larger than needed.
- *
- * If there is an existing memory reservation for @blob in the FDT, it is
- * updated for the new size.
+ * shrink down the given blob to minimum size + some extrasize if required
  *
  * @param blob		FDT blob to update
  * @param extrasize	additional bytes needed
  * Return: 0 if ok, or -FDT_ERR_... on error
  */
 int fdt_shrink_to_minimum(void *blob, uint extrasize);
-
 int fdt_increase_size(void *fdt, int add_len);
 
 int fdt_delete_disabled_nodes(void *blob);
+
+int fdt_fixup_nor_flash_size(void *blob);
 
 struct node_info;
 #if defined(CONFIG_FDT_FIXUP_PARTITIONS)
@@ -274,14 +243,6 @@ static inline void fdt_fixup_mtdparts(void *fdt,
 {
 }
 #endif
-
-/**
- * copy the fixed-partition nodes from U-Boot device tree to external blob
- *
- * @param blob		FDT blob to update
- * Return: 0 if ok, or non-zero on error
- */
-int fdt_copy_fixed_partitions(void *blob);
 
 void fdt_del_node_and_alias(void *blob, const char *alias);
 
@@ -437,7 +398,7 @@ int fdt_valid(struct fdt_header **blobp);
  */
 int fdt_get_cells_len(const void *blob, char *nr_cells_name);
 
-#endif /* !USE_HOSTCC */
+#endif /* ifdef CONFIG_OF_LIBFDT */
 
 #ifdef USE_HOSTCC
 int fdtdec_get_int(const void *blob, int node, const char *prop_name,

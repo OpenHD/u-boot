@@ -3,7 +3,7 @@
 #include <dt-bindings/memory/stm32-sdram.h>
 /{
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		fmc: fmc@A0000000 {
 			compatible = "st,stm32-fmc";
@@ -12,7 +12,7 @@
 			pinctrl-0 = <&fmc_pins>;
 			pinctrl-names = "default";
 			status = "okay";
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		mac: ethernet@40028000 {
@@ -60,70 +60,70 @@
 };
 
 &clk_hse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioa {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiob {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiod {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioe {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiof {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiog {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioh {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	fmc_pins: fmc@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pins
 		{
-		 bootph-all;
+		 u-boot,dm-pre-reloc;
 		};
 	};
 };
 
 &pwrcfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rcc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
-&timers5 {
-	bootph-all;
+&timer5 {
+	u-boot,dm-pre-reloc;
 };
 
 &usart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	clocks = <&rcc 0 STM32F7_APB2_CLOCK(USART1)>;
 };

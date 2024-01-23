@@ -8,6 +8,7 @@
  * IO space access commands.
  */
 
+#include <common.h>
 #include <command.h>
 #include <dm.h>
 #include <log.h>

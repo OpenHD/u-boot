@@ -13,7 +13,6 @@ import collections
 import copy
 import glob
 import os
-import pathlib
 import struct
 import unittest
 
@@ -26,11 +25,10 @@ from dtoc.dtb_platdata import get_value
 from dtoc.dtb_platdata import tab_to
 from dtoc.src_scan import conv_name_to_c
 from dtoc.src_scan import get_compat_name
-from u_boot_pylib import test_util
-from u_boot_pylib import tools
+from patman import test_util
+from patman import tools
 
-DTOC_DIR = pathlib.Path(__file__).parent
-TEST_DATA_DIR = DTOC_DIR / 'test/'
+OUR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 HEADER = '''/*
@@ -93,7 +91,7 @@ def get_dtb_file(dts_fname, capture_stderr=False):
     Returns:
         str: Filename of compiled file in output directory
     """
-    return fdt_util.EnsureCompiled(str(TEST_DATA_DIR / dts_fname),
+    return fdt_util.EnsureCompiled(os.path.join(OUR_PATH, 'test', dts_fname),
                                    capture_stderr=capture_stderr)
 
 
@@ -618,11 +616,8 @@ struct dm_test_pdata __attribute__ ((section (".priv_data")))
 u8 _denx_u_boot_test_bus_priv_some_bus[sizeof(struct dm_test_priv)]
 \t__attribute__ ((section (".priv_data")));
 #include <dm/test.h>
-u8 _denx_u_boot_test_bus_ucplat_some_bus[sizeof(struct dm_test_uclass_plat)]
+u8 _denx_u_boot_test_bus_ucplat_some_bus[sizeof(struct dm_test_uclass_priv)]
 \t__attribute__ ((section (".priv_data")));
-#include <dm/test.h>
-u8 _denx_u_boot_test_bus_uc_priv_some_bus[sizeof(struct dm_test_uclass_priv)]
-	__attribute__ ((section (".priv_data")));
 #include <test.h>
 
 DM_DEVICE_INST(some_bus) = {
@@ -633,7 +628,6 @@ DM_DEVICE_INST(some_bus) = {
 \t.driver_data\t= DM_TEST_TYPE_FIRST,
 \t.priv_\t\t= _denx_u_boot_test_bus_priv_some_bus,
 \t.uclass\t\t= DM_UCLASS_REF(testbus),
-\t.uclass_priv_ = _denx_u_boot_test_bus_uc_priv_some_bus,
 \t.uclass_node\t= {
 \t\t.prev = &DM_UCLASS_REF(testbus)->dev_head,
 \t\t.next = &DM_UCLASS_REF(testbus)->dev_head,
@@ -931,7 +925,6 @@ U_BOOT_DRVINFO(spl_test) = {
         self._check_strings(HEADER + '''
 struct dtd_source {
 \tstruct phandle_2_arg clocks[4];
-\tunsigned char	phandle_name_offset[13];
 };
 struct dtd_target {
 \tfdt32_t\t\tintval;
@@ -984,8 +977,6 @@ static struct dtd_source dtv_phandle_source = {
 \t\t\t{0, {11}},
 \t\t\t{1, {12, 13}},
 \t\t\t{4, {}},},
-\t.phandle_name_offset	= {0x0, 0x0, 0x0, 0x3, 0x66, 0x72, 0x65, 0x64,
-\t\t0x0, 0x0, 0x0, 0x0, 0x7b},
 };
 U_BOOT_DRVINFO(phandle_source) = {
 \t.name\t\t= "source",

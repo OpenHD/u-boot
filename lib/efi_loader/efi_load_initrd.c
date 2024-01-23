@@ -4,6 +4,7 @@
  */
 
 #define LOG_CATEGORY LOGC_EFI
+#include <common.h>
 #include <efi_loader.h>
 #include <efi_load_initrd.h>
 #include <efi_variable.h>
@@ -207,13 +208,14 @@ efi_status_t efi_initrd_register(void)
 	if (ret != EFI_SUCCESS)
 		return ret;
 
-	ret = efi_install_multiple_protocol_interfaces(&efi_initrd_handle,
-						       /* initramfs */
-						       &efi_guid_device_path, &dp_lf2_handle,
-						       /* LOAD_FILE2 */
-						       &efi_guid_load_file2_protocol,
-						       &efi_lf2_protocol,
-						       NULL);
+	ret = EFI_CALL(efi_install_multiple_protocol_interfaces
+		       (&efi_initrd_handle,
+			/* initramfs */
+			&efi_guid_device_path, &dp_lf2_handle,
+			/* LOAD_FILE2 */
+			&efi_guid_load_file2_protocol,
+			(void *)&efi_lf2_protocol,
+			NULL));
 
 	return ret;
 }
@@ -226,22 +228,8 @@ efi_status_t efi_initrd_register(void)
  *
  * Return:	status code
  */
-efi_status_t efi_initrd_deregister(void)
+void efi_initrd_deregister(void)
 {
-	efi_status_t ret;
-
-	if (!efi_initrd_handle)
-		return EFI_SUCCESS;
-
-	ret = efi_uninstall_multiple_protocol_interfaces(efi_initrd_handle,
-							 /* initramfs */
-							 &efi_guid_device_path,
-							 &dp_lf2_handle,
-							 /* LOAD_FILE2 */
-							 &efi_guid_load_file2_protocol,
-							 &efi_lf2_protocol,
-							 NULL);
+	efi_delete_handle(efi_initrd_handle);
 	efi_initrd_handle = NULL;
-
-	return ret;
 }

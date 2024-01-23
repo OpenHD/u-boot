@@ -3,12 +3,16 @@
  * Copyright (C) 2018, Bin Meng <bmeng.cn@gmail.com>
  */
 
+#include <common.h>
 #include <command.h>
-#include <cpu_func.h>
+#include <hang.h>
 
 int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
-	reset_cpu();
+	printf("resetting ...\n");
+
+	printf("reset not supported yet\n");
+	hang();
 
 	return 0;
 }

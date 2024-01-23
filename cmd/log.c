@@ -375,7 +375,8 @@ static int do_log_rec(struct cmd_tbl *cmdtp, int flag, int argc,
 	return 0;
 }
 
-U_BOOT_LONGHELP(log,
+#ifdef CONFIG_SYS_LONGHELP
+static char log_help_text[] =
 	"level [<level>] - get/set log level\n"
 	"categories - list log categories\n"
 	"drivers - list log drivers\n"
@@ -404,7 +405,9 @@ U_BOOT_LONGHELP(log,
 	"\tc=category, l=level, F=file, L=line number, f=function, m=msg\n"
 	"\tor 'default', or 'all' for all\n"
 	"log rec <category> <level> <file> <line> <func> <message> - "
-		"output a log record");
+		"output a log record"
+	;
+#endif
 
 U_BOOT_CMD_WITH_SUBCMDS(log, "log system", log_help_text,
 	U_BOOT_SUBCMD_MKENT(level, 2, 1, do_log_level),

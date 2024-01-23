@@ -12,10 +12,10 @@
 	segment@300000 {
 
 		target-module@e000 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 
 			lcdc: lcdc@0 {
-				bootph-all;
+				u-boot,dm-pre-reloc;
 			};
 		};
 	};

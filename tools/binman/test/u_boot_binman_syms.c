@@ -5,10 +5,8 @@
  * Simple program to create some binman symbols. This is used by binman tests.
  */
 
-#include <linux/kconfig.h>
+#define CONFIG_BINMAN
 #include <binman_sym.h>
-
-DECLARE_BINMAN_MAGIC_SYM;
 
 binman_sym_declare(unsigned long, u_boot_spl_any, offset);
 binman_sym_declare(unsigned long long, u_boot_spl2, offset);

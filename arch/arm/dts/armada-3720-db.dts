@@ -180,7 +180,7 @@
 				reg = <0x0 0x200000>;
 			};
 			partition@200000 {
-				label = "U-Boot Env";
+				label = "U-boot Env";
 				reg = <0x200000 0x10000>;
 			};
 			partition@210000 {

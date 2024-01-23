@@ -5,25 +5,25 @@
  */
 
 &topckgen {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &topckgen {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pericfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &timer0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &apmixedsys {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

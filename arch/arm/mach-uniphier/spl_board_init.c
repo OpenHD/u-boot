@@ -7,7 +7,6 @@
 #include <debug_uart.h>
 #include <hang.h>
 #include <spl.h>
-#include <linux/printk.h>
 
 #include "init.h"
 #include "micro-support-card.h"

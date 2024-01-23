@@ -12,16 +12,16 @@
 	memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		ccu: cache-controller@f7000000 {
 			compatible = "arteris,ncore-ccu";
 			reg = <0xf7000000 0x100900>;
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		clocks {
@@ -42,7 +42,7 @@
 
 &clkmgr {
 	compatible = "intel,n5x-clkmgr";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gmac0 {
@@ -85,7 +85,7 @@
 };
 
 &memclkmgr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc {
@@ -107,13 +107,13 @@
 };
 
 &qspi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rst {
 	compatible = "altr,rst-mgr";
 	altr,modrst-offset = <0x20>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdr {
@@ -121,7 +121,7 @@
 	resets = <&rst DDRSCH_RESET>;
 	clocks = <&memclkmgr>;
 	clock-names = "mem_clk";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &spi0 {
@@ -134,7 +134,7 @@
 
 &sysmgr {
 	compatible = "altr,sys-mgr", "syscon";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &timer0 {
@@ -155,7 +155,7 @@
 
 &uart0 {
 	clocks = <&clkmgr N5X_L4_SP_CLK>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart1 {
@@ -165,17 +165,17 @@
 &usb0 {
 	clocks = <&clkmgr N5X_USB_CLK>;
 	disable-over-current;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usb1 {
 	clocks = <&clkmgr N5X_USB_CLK>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &watchdog0 {
 	clocks = <&clkmgr N5X_L4_SYS_FREE_CLK>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &watchdog1 {

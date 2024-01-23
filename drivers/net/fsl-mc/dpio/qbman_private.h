@@ -4,6 +4,7 @@
  */
 
 /* Perform extra checking */
+#include <common.h>
 #include <errno.h>
 #include <asm/io.h>
 #include <linux/bug.h>

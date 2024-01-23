@@ -21,7 +21,7 @@
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
 		clock-frequency = <60000000>;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	scif1: serial@ffe80000 {
@@ -30,7 +30,7 @@
 		clocks = <&scif_clks>;
 		clock-names = "fck";
 		status = "okay";
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	pci@fe200000 {

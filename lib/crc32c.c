@@ -10,6 +10,7 @@
  * any later version.
  */
 
+#include <common.h>
 #include <compiler.h>
 
 uint32_t crc32c_cal(uint32_t crc, const char *data, int length,

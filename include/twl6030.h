@@ -7,6 +7,7 @@
 #ifndef TWL6030_H
 #define TWL6030_H
 
+#include <common.h>
 #include <i2c.h>
 
 /* I2C chip addresses */

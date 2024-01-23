@@ -14,9 +14,6 @@ struct z_erofs_decompress_req {
 	unsigned int decodedskip;
 	unsigned int inputsize, decodedlength;
 
-	/* cut point of interlaced uncompressed data */
-	unsigned int interlaced_offset;
-
 	/* indicate the algorithm will be used for decompression */
 	unsigned int alg;
 	bool partial_decoding;

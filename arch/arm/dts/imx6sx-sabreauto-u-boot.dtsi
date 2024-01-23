@@ -14,7 +14,3 @@
 		compatible = "jedec,spi-nor";
 	};
 };
-
-&pinctrl_uart1 {
-	bootph-all;
-};

@@ -13,7 +13,6 @@
 #include <asm/io.h>
 #include <linux/bitops.h>
 #include <linux/err.h>
-#include <linux/printk.h>
 #include <power/regulator.h>
 
 #define SARADC_CTRL_CHN_MASK		GENMASK(2, 0)
@@ -146,10 +145,10 @@ int rockchip_saradc_of_to_plat(struct udevice *dev)
 	struct rockchip_saradc_data *data;
 
 	data = (struct rockchip_saradc_data *)dev_get_driver_data(dev);
-	priv->regs = dev_read_addr_ptr(dev);
-	if (!priv->regs) {
+	priv->regs = (struct rockchip_saradc_regs *)dev_read_addr(dev);
+	if (priv->regs == (struct rockchip_saradc_regs *)FDT_ADDR_T_NONE) {
 		pr_err("Dev: %s - can't get address!", dev->name);
-		return -EINVAL;
+		return -ENODATA;
 	}
 
 	priv->data = data;

@@ -5,6 +5,7 @@
  * Author: Weijie Gao <weijie.gao@mediatek.com>
  */
 
+#include <common.h>
 #include <init.h>
 #include <spl.h>
 #include <asm/sections.h>

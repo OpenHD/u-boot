@@ -6,37 +6,37 @@
  */
 
 &infracfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pericfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &timer0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mcucfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &dramc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &apmixedsys {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &topckgen {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &snfi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

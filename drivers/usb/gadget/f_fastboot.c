@@ -17,7 +17,6 @@
 #include <fastboot.h>
 #include <log.h>
 #include <malloc.h>
-#include <linux/printk.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/composite.h>
@@ -120,7 +119,6 @@ static struct usb_descriptor_header *fb_fs_function[] = {
 	(struct usb_descriptor_header *)&interface_desc,
 	(struct usb_descriptor_header *)&fs_ep_in,
 	(struct usb_descriptor_header *)&fs_ep_out,
-	NULL,
 };
 
 static struct usb_descriptor_header *fb_hs_function[] = {
@@ -422,7 +420,6 @@ static int fastboot_tx_write_str(const char *buffer)
 
 static void compl_do_reset(struct usb_ep *ep, struct usb_request *req)
 {
-	g_dnl_unregister();
 	do_reset(NULL, 0, 0, NULL);
 }
 
@@ -497,25 +494,7 @@ static void do_bootm_on_complete(struct usb_ep *ep, struct usb_request *req)
 	do_exit_on_complete(ep, req);
 }
 
-static int multiresponse_cmd = -1;
-static void multiresponse_on_complete(struct usb_ep *ep, struct usb_request *req)
-{
-	char response[FASTBOOT_RESPONSE_LEN] = {0};
-
-	if (multiresponse_cmd == -1)
-		return;
-
-	/* Call handler to obtain next response */
-	fastboot_multiresponse(multiresponse_cmd, response);
-	fastboot_tx_write_str(response);
-
-	/* If response is final OKAY/FAIL response disconnect this handler and unset cmd */
-	if (!strncmp("OKAY", response, 4) || !strncmp("FAIL", response, 4)) {
-		multiresponse_cmd = -1;
-		fastboot_func->in_req->complete = fastboot_complete;
-	}
-}
-
+#if CONFIG_IS_ENABLED(FASTBOOT_UUU_SUPPORT)
 static void do_acmd_complete(struct usb_ep *ep, struct usb_request *req)
 {
 	/* When usb dequeue complete will be called
@@ -525,6 +504,7 @@ static void do_acmd_complete(struct usb_ep *ep, struct usb_request *req)
 	if (req->status == 0)
 		fastboot_acmd_complete();
 }
+#endif
 
 static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 {
@@ -539,18 +519,8 @@ static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 		cmdbuf[req->actual] = '\0';
 		cmd = fastboot_handle_command(cmdbuf, response);
 	} else {
-		pr_err("buffer overflow\n");
+		pr_err("buffer overflow");
 		fastboot_fail("buffer overflow", response);
-	}
-
-	if (!strncmp(FASTBOOT_MULTIRESPONSE_START, response, 4)) {
-		multiresponse_cmd = cmd;
-		fastboot_multiresponse(multiresponse_cmd, response);
-
-		/* Only add complete callback if first is not a final OKAY/FAIL response */
-		if (strncmp("OKAY", response, 4) && strncmp("FAIL", response, 4)) {
-			fastboot_func->in_req->complete = multiresponse_on_complete;
-		}
 	}
 
 	if (!strncmp("DATA", response, 4)) {
@@ -574,10 +544,11 @@ static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 		case FASTBOOT_COMMAND_REBOOT_RECOVERY:
 			fastboot_func->in_req->complete = compl_do_reset;
 			break;
+#if CONFIG_IS_ENABLED(FASTBOOT_UUU_SUPPORT)
 		case FASTBOOT_COMMAND_ACMD:
-			if (CONFIG_IS_ENABLED(FASTBOOT_UUU_SUPPORT))
-				fastboot_func->in_req->complete = do_acmd_complete;
+			fastboot_func->in_req->complete = do_acmd_complete;
 			break;
+#endif
 		}
 	}
 

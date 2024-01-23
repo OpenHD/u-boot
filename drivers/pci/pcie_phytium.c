@@ -12,7 +12,6 @@
 #include <pci.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
-#include <linux/printk.h>
 
 /**
  * struct phytium_pcie - phytium PCIe controller state

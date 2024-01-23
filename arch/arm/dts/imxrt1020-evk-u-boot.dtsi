@@ -6,82 +6,81 @@
 
 / {
 	chosen {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 
 	clocks {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 
 	soc {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };
 
 &osc {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &anatop {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &clks {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio5 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpt1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &lpuart1 { /* console */
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &semc {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
 	bank1: bank@0 {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };
 
 &iomuxc {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
 	imxrt1020-evk {
-		bootph-pre-ram;
+		u-boot,dm-spl;
+		pinctrl_lpuart1: lpuart1grp {
+			u-boot,dm-spl;
+		};
 
 		pinctrl_semc: semcgrp {
-			bootph-pre-ram;
+			u-boot,dm-spl;
 		};
 
 		pinctrl_usdhc0: usdhc0grp {
-			bootph-pre-ram;
+			u-boot,dm-spl;
 		};
 	};
 };
 
-&pinctrl_lpuart1 {
-	bootph-pre-ram;
-};
-
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

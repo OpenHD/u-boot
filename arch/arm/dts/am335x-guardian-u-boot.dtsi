@@ -8,12 +8,12 @@
 
 / {
 	ocp {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &l4_wkup {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &l4_per {
@@ -21,25 +21,25 @@
 	segment@300000 {
 
 		target-module@e000 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 
 			lcdc: lcdc@0 {
-				bootph-all;
+				u-boot,dm-pre-reloc;
 			};
 		};
 	};
 };
 
 &mmc1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc1_pins {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &scm {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &spi0 {
@@ -54,31 +54,31 @@
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0_pins {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usb {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usb_ctrl_mod {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usb0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usb0_phy {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &am33xx_pinmux {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	lcd0_pins: pinmux_lcd0_pins {
 		pinctrl-single,pins = <

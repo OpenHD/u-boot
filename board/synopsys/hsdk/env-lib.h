@@ -7,6 +7,7 @@
 #ifndef __BOARD_ENV_LIB_H
 #define __BOARD_ENV_LIB_H
 
+#include <common.h>
 #include <config.h>
 #include <linux/kernel.h>
 

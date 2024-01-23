@@ -3,6 +3,7 @@
  * Copyright (C) 2020 Stefan Roese <sr@denx.de>
  */
 
+#include <common.h>
 #include <cpu_func.h>
 #include <log.h>
 #include <spl.h>

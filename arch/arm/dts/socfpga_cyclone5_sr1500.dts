@@ -72,12 +72,12 @@
 &mmc0 {
 	status = "okay";
 	bus-width = <8>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
 	status = "okay";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usb1 {
@@ -90,10 +90,10 @@
 
 &qspi {
 	status = "okay";
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	flash0: n25q00@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "n25q00", "jedec,spi-nor";

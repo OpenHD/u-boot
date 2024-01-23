@@ -486,8 +486,6 @@ void fdt_fixup_pstore(void *blob)
 {
 	char node[32];
 	int  nodeoffset;	/* node offset from libfdt */
-	u32 addr_cells_root;
-	u32 size_cells_root;
 	u32 addr_cells;
 	u32 size_cells;
 
@@ -497,8 +495,6 @@ void fdt_fixup_pstore(void *blob)
 		log_err("fdt_path_offset() returned %s\n", fdt_strerror(nodeoffset));
 		return;
 	}
-	addr_cells_root = fdt_getprop_u32_default_node(blob, nodeoffset, 0, "#address-cells", 2);
-	size_cells_root = fdt_getprop_u32_default_node(blob, nodeoffset, 0, "#size-cells", 2);
 
 	nodeoffset = fdt_find_or_add_subnode(blob, nodeoffset, "reserved-memory");
 	if (nodeoffset < 0) {
@@ -507,10 +503,8 @@ void fdt_fixup_pstore(void *blob)
 		return;
 	}
 
-	addr_cells = fdt_getprop_u32_default_node(blob, nodeoffset, 0,
-						  "#address-cells", addr_cells_root);
-	size_cells = fdt_getprop_u32_default_node(blob, nodeoffset, 0,
-						  "#size-cells", size_cells_root);
+	addr_cells = fdt_getprop_u32_default_node(blob, nodeoffset, 0, "#address-cells", 2);
+	size_cells = fdt_getprop_u32_default_node(blob, nodeoffset, 0, "#size-cells", 2);
 	fdt_setprop_u32(blob, nodeoffset, "#address-cells", addr_cells);
 	fdt_setprop_u32(blob, nodeoffset, "#size-cells", size_cells);
 

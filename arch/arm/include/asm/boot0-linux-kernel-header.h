@@ -31,6 +31,8 @@
 	.long	\sym\()_hi32
 	.endm
 
+.globl _start
+_start:
 	/*
 	 * DO NOT MODIFY. Image header expected by Linux boot-loaders.
 	 */

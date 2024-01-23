@@ -7,7 +7,7 @@
 #include <dt-bindings/memory/stm32-sdram.h>
 /{
 	clocks {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	aliases {
@@ -26,9 +26,9 @@
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pin-controller {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		fmc: fmc@A0000000 {
@@ -39,7 +39,7 @@
 			pinctrl-0 = <&fmc_pins_d32>;
 			pinctrl-names = "default";
 			st,mem_remap = <4>;
-			bootph-all;
+			u-boot,dm-pre-reloc;
 
 			/*
 			 * Memory configuration from sdram
@@ -68,86 +68,86 @@
 };
 
 &clk_hse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_lse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_i2s_ckin {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pwrcfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &syscfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rcc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioa {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiob {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiod {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioe {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiof {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiog {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioh {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioj {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiok {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
 	usart1_pins_a: usart1-0	{
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pins1 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		pins2 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
 	fmc_pins_d32: fmc_d32@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pins
 		{
 			pinmux = <STM32_PINMUX('I',10, AF12)>, /* D31 */
@@ -213,11 +213,11 @@
 				 <STM32_PINMUX('H', 2, AF12)>, /* SDCKE0 */
 				 <STM32_PINMUX('G', 8, AF12)>; /* SDCLK> */
 			slew-rate = <2>;
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 };
 
-&timers5 {
-	bootph-all;
+&timer5 {
+	u-boot,dm-pre-reloc;
 };

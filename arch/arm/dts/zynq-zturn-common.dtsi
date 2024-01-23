@@ -49,7 +49,7 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 		autorepeat;
-		key {
+		K1 {
 			label = "K1";
 			gpios = <&gpio0 0x32 0x1>;
 			linux,code = <0x66>;
@@ -64,7 +64,7 @@
 };
 
 &qspi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
@@ -78,17 +78,17 @@
 };
 
 &sdhci0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
 &uart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 

@@ -16,7 +16,6 @@
 #include <dm/lists.h>
 #include <dm/root.h>
 #include <linux/delay.h>
-#include <linux/printk.h>
 #include <linux/usb/musb.h>
 #include <usb.h>
 #include "linux-compat.h"

@@ -18,14 +18,14 @@ enum soc_type {
 	SOC_MPC8379,
 };
 
-static inline bool mpc83xx_has_sdhc(int type)
+bool mpc83xx_has_sdhc(int type)
 {
 	return (type == SOC_MPC8308) ||
 	       (type == SOC_MPC8309) ||
 	       (type == SOC_MPC8379);
 }
 
-static inline bool mpc83xx_has_tsec(int type)
+bool mpc83xx_has_tsec(int type)
 {
 	return (type == SOC_MPC8308) ||
 	       (type == SOC_MPC8313) ||
@@ -34,37 +34,37 @@ static inline bool mpc83xx_has_tsec(int type)
 	       (type == SOC_MPC8379);
 }
 
-static inline bool mpc83xx_has_pcie1(int type)
+bool mpc83xx_has_pcie1(int type)
 {
 	return (type == SOC_MPC8308) ||
 	       (type == SOC_MPC8315) ||
 	       (type == SOC_MPC8379);
 }
 
-static inline bool mpc83xx_has_pcie2(int type)
+bool mpc83xx_has_pcie2(int type)
 {
 	return (type == SOC_MPC8315) ||
 	       (type == SOC_MPC8379);
 }
 
-static inline bool mpc83xx_has_sata(int type)
+bool mpc83xx_has_sata(int type)
 {
 	return (type == SOC_MPC8315) ||
 	       (type == SOC_MPC8379);
 }
 
-static inline bool mpc83xx_has_pci(int type)
+bool mpc83xx_has_pci(int type)
 {
 	return type != SOC_MPC8308;
 }
 
-static inline bool mpc83xx_has_second_i2c(int type)
+bool mpc83xx_has_second_i2c(int type)
 {
 	return (type != SOC_MPC8315) &&
 	       (type != SOC_MPC832X);
 }
 
-static inline bool mpc83xx_has_quicc_engine(int type)
+bool mpc83xx_has_quicc_engine(int type)
 {
 	return (type == SOC_MPC8309) ||
 	       (type == SOC_MPC832X) ||

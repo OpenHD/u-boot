@@ -3,11 +3,12 @@
  * Copyright (C) 2015, Bin Meng <bmeng.cn@gmail.com>
  */
 
-#include <linux/types.h>
+#include <common.h>
+#include <linux/ctype.h>
 
-u8 table_compute_checksum(const void *v, const int len)
+u8 table_compute_checksum(void *v, int len)
 {
-	const u8 *bytes = v;
+	u8 *bytes = v;
 	u8 checksum = 0;
 	int i;
 

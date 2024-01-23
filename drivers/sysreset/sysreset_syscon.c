@@ -14,7 +14,6 @@
 #include <sysreset.h>
 #include <syscon.h>
 #include <linux/err.h>
-#include <linux/printk.h>
 
 struct syscon_reboot_priv {
 	struct regmap *regmap;

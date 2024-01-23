@@ -45,21 +45,22 @@
 
 	ethernet_phy: ethernet-phy@0 {
 		reg = <0>;
+		device_type = "ethernet-phy";
 	};
 };
 
 &qspi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
 &sdhci0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
 &uart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 

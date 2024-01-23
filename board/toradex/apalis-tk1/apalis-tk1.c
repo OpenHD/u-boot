@@ -17,7 +17,6 @@
 #include <fdt_support.h>
 #include <pci_tegra.h>
 #include <linux/delay.h>
-#include <linux/printk.h>
 #include <power/as3722.h>
 #include <power/pmic.h>
 
@@ -95,7 +94,7 @@ int checkboard(void)
 {
 	puts("Model: Toradex Apalis TK1 2GB\n");
 
-	return tdx_checkboard();
+	return 0;
 }
 
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)

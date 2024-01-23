@@ -14,7 +14,6 @@
 #include <asm/io.h>
 #include <dm/device_compat.h>
 #include <linux/err.h>
-#include <linux/printk.h>
 
 /**
  * struct stm32_copro_privdata - power processor private data

@@ -1,5 +1,5 @@
 LS1012AFRDM BOARD
-M:	Pramod Kumar <pramod.kumar_1@nxp.com>
+M:	Rajesh Bhagat <rajesh.bhagat@nxp.com>
 S:	Maintained
 F:	board/freescale/ls1012afrdm/
 F:	include/configs/ls1012afrdm.h

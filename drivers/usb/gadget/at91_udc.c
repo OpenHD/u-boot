@@ -21,7 +21,6 @@
 #include <asm/io.h>
 #include <asm/gpio.h>
 #include <asm/hardware.h>
-#include <linux/printk.h>
 #include <mach/at91_matrix.h>
 #include <linux/list.h>
 #include <linux/usb/ch9.h>
@@ -1430,7 +1429,7 @@ static const struct at91_udc_caps at91sam9261_udc_caps = {
 };
 #endif
 
-int dm_usb_gadget_handle_interrupts(struct udevice *dev)
+int usb_gadget_handle_interrupts(int index)
 {
 	struct at91_udc *udc = controller;
 

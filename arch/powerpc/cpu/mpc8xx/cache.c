@@ -4,6 +4,7 @@
  * Christophe Leroy, CS Systemes d'Information, christophe.leroy@c-s.fr
  */
 
+#include <common.h>
 #include <cpu_func.h>
 #include <asm/processor.h>
 #include <asm/ppc.h>

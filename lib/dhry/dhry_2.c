@@ -39,7 +39,7 @@
  ****************************************************************************/
 /* SCCSid is defined in dhry_1.c */
 
-#include <linux/string.h>
+#include <common.h>
 #include "dhry.h"
 
 #ifndef REG

@@ -9,8 +9,8 @@ image.
 """
 
 from binman.entry import Entry
-from u_boot_pylib import tools
-from u_boot_pylib import tout
+from patman import tools
+from patman import tout
 
 FDTMAP_MAGIC   = b'_FDTMAP_'
 FDTMAP_HDR_LEN = 16

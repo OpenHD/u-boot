@@ -2,7 +2,7 @@
 /*
  * (C) Copyright 2013 - 2014 Xilinx, Inc
  *
- * Michal Simek <michal.simek@amd.com>
+ * Michal Simek <michal.simek@xilinx.com>
  */
 
 #include <asm-offsets.h>
@@ -37,8 +37,8 @@ SECTIONS
 	}
 
 	. = ALIGN(4);
-	__u_boot_list : {
-		KEEP(*(SORT(__u_boot_list*)));
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
 	}
 	__init_end = . ;
 
@@ -54,7 +54,6 @@ SECTIONS
 		__bss_end = .;
 	}
 	_end = . ;
-	_image_binary_end = .;
 }
 
 #if defined(CONFIG_SPL_MAX_FOOTPRINT)

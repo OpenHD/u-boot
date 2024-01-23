@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2014 - 2018 Xilinx, Inc.
- * Michal Simek <michal.simek@amd.com>
+ * Michal Simek <michal.simek@xilinx.com>
  */
 
-#include <command.h>
 #include <common.h>
 #include <cpu_func.h>
 #include <env.h>
 #include <fdtdec.h>
 #include <init.h>
+#include <image.h>
 #include <env_internal.h>
 #include <log.h>
 #include <malloc.h>
@@ -27,10 +27,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #if defined(CONFIG_FPGA_VERSALPL)
-static xilinx_desc versalpl = {
-	xilinx_versal, csu_dma, 1, &versal_op, 0, &versal_op, NULL,
-	FPGA_LEGACY
-};
+static xilinx_desc versalpl = XILINX_VERSAL_DESC;
 #endif
 
 int board_init(void)
@@ -94,23 +91,6 @@ int board_early_init_r(void)
 	return 0;
 }
 
-unsigned long do_go_exec(ulong (*entry)(int, char * const []), int argc,
-			 char *const argv[])
-{
-	int ret = 0;
-
-	if (current_el() > 1) {
-		smp_kick_all_cpus();
-		dcache_disable();
-		armv8_switch_to_el1(0x0, 0, 0, 0, (unsigned long)entry,
-				    ES_TO_AARCH64);
-	} else {
-		printf("FAIL: current EL is not above EL1\n");
-		ret = EINVAL;
-	}
-	return ret;
-}
-
 static u8 versal_get_bootmode(void)
 {
 	u8 bootmode;
@@ -126,16 +106,24 @@ static u8 versal_get_bootmode(void)
 	return bootmode;
 }
 
-static int boot_targets_setup(void)
+int board_late_init(void)
 {
 	u8 bootmode;
 	struct udevice *dev;
 	int bootseq = -1;
 	int bootseq_len = 0;
 	int env_targets_len = 0;
-	const char *mode = NULL;
+	const char *mode;
 	char *new_targets;
 	char *env_targets;
+
+	if (!(gd->flags & GD_FLG_ENV_DEFAULT)) {
+		debug("Saved variables - Skipping\n");
+		return 0;
+	}
+
+	if (!CONFIG_IS_ENABLED(ENV_VARS_UBOOT_RUNTIME_CONFIG))
+		return 0;
 
 	bootmode = versal_get_bootmode();
 
@@ -167,15 +155,12 @@ static int boot_targets_setup(void)
 					      "mmc@f1050000", &dev) &&
 		    uclass_get_device_by_name(UCLASS_MMC,
 					      "sdhci@f1050000", &dev)) {
-			debug("SD1 driver for SD1 device is not present\n");
-			break;
+			puts("Boot from EMMC but without SD1 enabled!\n");
+			return -1;
 		}
 		debug("mmc1 device found at %p, seq %d\n", dev, dev_seq(dev));
 		mode = "mmc";
 		bootseq = dev_seq(dev);
-		break;
-	case SELECTMAP_MODE:
-		puts("SELECTMAP_MODE\n");
 		break;
 	case SD_MODE:
 		puts("SD_MODE\n");
@@ -183,8 +168,8 @@ static int boot_targets_setup(void)
 					      "mmc@f1040000", &dev) &&
 		    uclass_get_device_by_name(UCLASS_MMC,
 					      "sdhci@f1040000", &dev)) {
-			debug("SD0 driver for SD0 device is not present\n");
-			break;
+			puts("Boot from SD0 but without SD0 enabled!\n");
+			return -1;
 		}
 		debug("mmc0 device found at %p, seq %d\n", dev, dev_seq(dev));
 
@@ -200,8 +185,8 @@ static int boot_targets_setup(void)
 					      "mmc@f1050000", &dev) &&
 		    uclass_get_device_by_name(UCLASS_MMC,
 					      "sdhci@f1050000", &dev)) {
-			debug("SD1 driver for SD1 device is not present\n");
-			break;
+			puts("Boot from SD1 but without SD1 enabled!\n");
+			return -1;
 		}
 		debug("mmc1 device found at %p, seq %d\n", dev, dev_seq(dev));
 
@@ -209,59 +194,37 @@ static int boot_targets_setup(void)
 		bootseq = dev_seq(dev);
 		break;
 	default:
+		mode = "";
 		printf("Invalid Boot Mode:0x%x\n", bootmode);
 		break;
 	}
 
-	if (mode) {
-		if (bootseq >= 0) {
-			bootseq_len = snprintf(NULL, 0, "%i", bootseq);
-			debug("Bootseq len: %x\n", bootseq_len);
-		}
-
-		/*
-		 * One terminating char + one byte for space between mode
-		 * and default boot_targets
-		 */
-		env_targets = env_get("boot_targets");
-		if (env_targets)
-			env_targets_len = strlen(env_targets);
-
-		new_targets = calloc(1, strlen(mode) + env_targets_len + 2 +
-				     bootseq_len);
-		if (!new_targets)
-			return -ENOMEM;
-
-		if (bootseq >= 0)
-			sprintf(new_targets, "%s%x %s", mode, bootseq,
-				env_targets ? env_targets : "");
-		else
-			sprintf(new_targets, "%s %s", mode,
-				env_targets ? env_targets : "");
-
-		env_set("boot_targets", new_targets);
+	if (bootseq >= 0) {
+		bootseq_len = snprintf(NULL, 0, "%i", bootseq);
+		debug("Bootseq len: %x\n", bootseq_len);
 	}
 
-	return 0;
-}
+	/*
+	 * One terminating char + one byte for space between mode
+	 * and default boot_targets
+	 */
+	env_targets = env_get("boot_targets");
+	if (env_targets)
+		env_targets_len = strlen(env_targets);
 
-int board_late_init(void)
-{
-	int ret;
+	new_targets = calloc(1, strlen(mode) + env_targets_len + 2 +
+			     bootseq_len);
+	if (!new_targets)
+		return -ENOMEM;
 
-	if (!(gd->flags & GD_FLG_ENV_DEFAULT)) {
-		debug("Saved variables - Skipping\n");
-		return 0;
-	}
+	if (bootseq >= 0)
+		sprintf(new_targets, "%s%x %s", mode, bootseq,
+			env_targets ? env_targets : "");
+	else
+		sprintf(new_targets, "%s %s", mode,
+			env_targets ? env_targets : "");
 
-	if (!IS_ENABLED(CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG))
-		return 0;
-
-	if (IS_ENABLED(CONFIG_DISTRO_DEFAULTS)) {
-		ret = boot_targets_setup();
-		if (ret)
-			return ret;
-	}
+	env_set("boot_targets", new_targets);
 
 	return board_late_init_xilinx();
 }
@@ -285,6 +248,28 @@ int dram_init(void)
 		return -EINVAL;
 
 	return 0;
+}
+
+ulong board_get_usable_ram_top(ulong total_size)
+{
+	phys_size_t size;
+	phys_addr_t reg;
+	struct lmb lmb;
+
+	if (!total_size)
+		return gd->ram_top;
+
+	/* found enough not-reserved memory to relocated U-Boot */
+	lmb_init(&lmb);
+	lmb_add(&lmb, gd->ram_base, gd->ram_size);
+	boot_fdt_add_mem_rsv_regions(&lmb, (void *)gd->fdt_blob);
+	size = ALIGN(CONFIG_SYS_MALLOC_LEN + total_size, MMU_SECTION_SIZE);
+	reg = lmb_alloc(&lmb, size, MMU_SECTION_SIZE);
+
+	if (!reg)
+		reg = gd->ram_top - size;
+
+	return reg + size;
 }
 
 void reset_cpu(void)
@@ -315,7 +300,6 @@ enum env_location env_get_location(enum env_operation op, int prio)
 			return ENVL_SPI_FLASH;
 		return ENVL_NOWHERE;
 	case JTAG_MODE:
-	case SELECTMAP_MODE:
 	default:
 		return ENVL_NOWHERE;
 	}

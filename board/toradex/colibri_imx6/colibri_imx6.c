@@ -29,7 +29,6 @@
 #include <asm/mach-imx/iomux-v3.h>
 #include <asm/mach-imx/sata.h>
 #include <asm/mach-imx/video.h>
-#include <asm/sections.h>
 #include <cpu.h>
 #include <dm/platform_data/serial_mxc.h>
 #include <fsl_esdhc_imx.h>
@@ -74,7 +73,7 @@ DECLARE_GLOBAL_DATA_PTR;
 int dram_init(void)
 {
 	/* use the DDR controllers configured size */
-	gd->ram_size = get_ram_size((void *)CFG_SYS_SDRAM_BASE,
+	gd->ram_size = get_ram_size((void *)CONFIG_SYS_SDRAM_BASE,
 				    (ulong)imx_ddr_size());
 
 	return 0;
@@ -291,7 +290,7 @@ int board_ehci_hcd_init(int port)
 
 #if defined(CONFIG_FSL_ESDHC_IMX) && defined(CONFIG_SPL_BUILD)
 /* use the following sequence: eMMC, MMC */
-struct fsl_esdhc_cfg usdhc_cfg[CFG_SYS_FSL_USDHC_NUM] = {
+struct fsl_esdhc_cfg usdhc_cfg[CONFIG_SYS_FSL_USDHC_NUM] = {
 	{USDHC3_BASE_ADDR},
 	{USDHC1_BASE_ADDR},
 };
@@ -621,16 +620,13 @@ int board_late_init(void)
 	env_set("board_rev", env_str);
 #endif
 
-	if (IS_ENABLED(CONFIG_USB) && is_boot_from_usb()) {
+#ifdef CONFIG_CMD_USB_SDP
+	if (is_boot_from_usb()) {
+		printf("Serial Downloader recovery mode, using sdp command\n");
 		env_set("bootdelay", "0");
-		if (IS_ENABLED(CONFIG_CMD_USB_SDP)) {
-			printf("Serial Downloader recovery mode, using sdp command\n");
-			env_set("bootcmd", "sdp 0");
-		} else if (IS_ENABLED(CONFIG_CMD_FASTBOOT)) {
-			printf("Fastboot recovery mode, using fastboot command\n");
-			env_set("bootcmd", "fastboot usb 0");
-		}
+		env_set("bootcmd", "sdp 0");
 	}
+#endif /* CONFIG_CMD_USB_SDP */
 
 	return 0;
 }
@@ -652,8 +648,7 @@ int checkboard(void)
 	printf("Model: Toradex Colibri iMX6 %s %sMB%s\n",
 	       is_cpu_type(MXC_CPU_MX6DL) ? "DualLite" : "Solo",
 	       (gd->ram_size == 0x20000000) ? "512" : "256", it);
-
-	return tdx_checkboard();
+	return 0;
 }
 
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
@@ -772,7 +767,8 @@ MX6_MMDC_P1_MPRDDQBY3DL, 0x33333333,
 /*
  * MDMISC	mirroring	interleaved (row/bank/col)
  */
-MX6_MMDC_P0_MDMISC, 0x000b17c0,
+/* TODO: check what the RALAT field does */
+MX6_MMDC_P0_MDMISC, 0x00081740,
 
 /*
  * MDSCR	con_req
@@ -904,7 +900,8 @@ MX6_MMDC_P1_MPRDDQBY3DL, 0x33333333,
 /*
  * MDMISC	mirroring	interleaved (row/bank/col)
  */
-MX6_MMDC_P0_MDMISC, 0x000b17c0,
+/* TODO: check what the RALAT field does */
+MX6_MMDC_P0_MDMISC, 0x00081740,
 
 /*
  * MDSCR	con_req

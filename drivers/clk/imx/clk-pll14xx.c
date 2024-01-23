@@ -18,7 +18,6 @@
 #include <linux/iopoll.h>
 #include <clk.h>
 #include <div64.h>
-#include <linux/printk.h>
 
 #include "clk.h"
 

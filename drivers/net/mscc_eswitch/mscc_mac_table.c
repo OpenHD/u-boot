@@ -3,7 +3,6 @@
  * Copyright (c) 2018 Microsemi Corporation
  */
 
-#include <errno.h>
 #include <linux/bitops.h>
 #include <linux/io.h>
 #include "mscc_mac_table.h"

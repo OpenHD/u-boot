@@ -28,11 +28,11 @@
 	dcc: dcc {
 		compatible = "arm,dcc";
 		status = "disabled";
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	amba: amba {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -54,14 +54,14 @@
 		};
 
 		slcr: slcr@f8000000 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 			#address-cells = <1>;
 			#size-cells = <1>;
 			compatible = "xlnx,zynq-slcr", "syscon", "simple-bus";
 			reg = <0xF8000000 0x1000>;
 			ranges;
 			clkc: clkc@100 {
-				bootph-all;
+				u-boot,dm-pre-reloc;
 				#clock-cells = <1>;
 				compatible = "xlnx,ps7-clkc";
 				clock-output-names = "armpll", "ddrpll",
@@ -85,13 +85,6 @@
 						"swdt", "dbg_trc", "dbg_apb";
 				reg = <0x100 0x100>;
 			};
-		};
-
-		scutimer: timer@f8f00600 {
-			bootph-all;
-			compatible = "arm,cortex-a9-twd-timer";
-			reg = <0xf8f00600 0x20>;
-			clock-frequency = <333333333>;
 		};
 	};
 };

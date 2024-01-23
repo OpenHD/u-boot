@@ -12,7 +12,6 @@
 #include <asm/arch-rockchip/grf_rk3399.h>
 #include <asm/arch-rockchip/hardware.h>
 #include <asm/arch-rockchip/misc.h>
-#include <linux/printk.h>
 #include <power/regulator.h>
 
 #define GRF_IO_VSEL_BT565_SHIFT 0

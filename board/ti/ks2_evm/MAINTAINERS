@@ -1,9 +1,12 @@
-KeyStone II EVM Boards
-M:	Andrew Davis <afd@ti.com>
+KS2_EVM BOARD
+M:	Vitaly Andrianov <vitalya@ti.com>
 S:	Maintained
-F:	arch/arm/mach-keystone/
 F:	board/ti/ks2_evm/
-N:	k2hk
-N:	k2e
-N:	k2l
-N:	k2g
+F:	include/configs/k2hk_evm.h
+F:	configs/k2hk_evm_defconfig
+F:	include/configs/k2e_evm.h
+F:	configs/k2e_evm_defconfig
+F:	include/configs/k2l_evm.h
+F:	configs/k2l_evm_defconfig
+F:	include/configs/k2g_evm.h
+F:	configs/k2g_evm_defconfig

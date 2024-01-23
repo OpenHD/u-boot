@@ -7,9 +7,9 @@
 #include "imx8mn-bsh-smm-s2-u-boot-common.dtsi"
 
 &pinctrl_gpmi_nand {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpmi {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

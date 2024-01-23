@@ -7,25 +7,25 @@
 #include "imx8mm-icore-mx8mm-u-boot.dtsi"
 
 &gpio1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_uart2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc1_gpio {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &uart2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

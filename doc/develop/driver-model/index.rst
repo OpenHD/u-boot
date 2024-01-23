@@ -20,7 +20,6 @@ subsystems
    livetree
    migration
    nvme
-   nvmxip
    of-plat
    pci-info
    pmic-framework

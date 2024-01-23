@@ -15,7 +15,7 @@
 	chosen {
 		bootargs = "rootfstype=ubifs root=ubi0:rootfs ubi.mtd=5 rw";
 		stdout-path = "serial0:115200n8";
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	memory {
@@ -162,7 +162,7 @@
 			};
 
 			dbgu: serial@fffff200 {
-				bootph-all;
+				u-boot,dm-pre-reloc;
 				status = "okay";
 			};
 

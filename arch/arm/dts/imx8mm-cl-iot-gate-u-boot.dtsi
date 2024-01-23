@@ -6,19 +6,26 @@
 #include "imx8mm-u-boot.dtsi"
 
 / {
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+
 	wdt-reboot {
 		compatible = "wdt-reboot";
-		bootph-pre-ram;
+		u-boot,dm-spl;
 		wdt = <&wdog1>;
 	};
 };
 
 &{/soc@0/bus@30800000/i2c@30a30000/pmic@4b} {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &{/soc@0/bus@30800000/i2c@30a30000/pmic@4b/regulators} {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &fec1 {
@@ -26,77 +33,73 @@
 };
 
 &gpio1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio4 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio5 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &i2c1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &i2c2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_i2c2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_pmic {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_uart3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc2_gpio {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc3 {
-	bootph-pre-ram;
-};
-
-&pinctrl_wdog {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &uart3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &wdog1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

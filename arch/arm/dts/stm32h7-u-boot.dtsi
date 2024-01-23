@@ -4,7 +4,7 @@
 
 /{
 	clocks {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	aliases {
@@ -24,9 +24,9 @@
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pin-controller {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		fmc: fmc@52004000 {
@@ -42,83 +42,83 @@
 };
 
 &clk_hse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_i2s {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_lse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 
 &fmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioa {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpiob {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpioc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpiod {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpioe {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpiof {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpiog {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpioh {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpioi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpioj {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &gpiok {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	compatible = "st,stm32-gpio";
 };
 
 &pwrcfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rcc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc1 {
@@ -126,9 +126,9 @@
 };
 
 &timer5 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

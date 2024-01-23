@@ -10,7 +10,6 @@
 #include <i2c.h>
 #include <log.h>
 #include <malloc.h>
-#include <linux/printk.h>
 #include <power/pmic.h>
 #include <power/sandbox_pmic.h>
 

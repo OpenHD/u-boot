@@ -22,7 +22,6 @@
 #include <power-domain.h>
 #include <reset.h>
 #include <linux/delay.h>
-#include <linux/printk.h>
 
 #include <asm/io.h>
 #include <asm/gpio.h>
@@ -462,7 +461,7 @@ static int tegra_pcie_parse_port_info(ofnode node, uint *index, uint *lanes)
 
 	*lanes = err;
 
-	err = ofnode_read_pci_addr(node, 0, "reg", &addr, NULL);
+	err = ofnode_read_pci_addr(node, 0, "reg", &addr);
 	if (err < 0) {
 		pr_err("failed to parse \"reg\" property\n");
 		return err;
@@ -532,7 +531,7 @@ static int tegra_pcie_parse_dt(struct udevice *dev, enum tegra_pci_id id,
 
 		lanes |= num_lanes << (index << 3);
 
-		if (!ofnode_is_enabled(subnode))
+		if (!ofnode_is_available(subnode))
 			continue;
 
 		port = malloc(sizeof(*port));

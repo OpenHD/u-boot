@@ -17,7 +17,6 @@
 #include <asm/arch-rockchip/hardware.h>
 #include <dm/ofnode.h>
 #include <linux/err.h>
-#include <linux/printk.h>
 
 #define GRF_BASE	0x20008000
 

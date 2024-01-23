@@ -19,9 +19,7 @@ extern "C" {
  * like uint8_t, uint64_t, and bool (with |false|, |true| keywords)
  * must be present.
  */
-#include <stdio.h>
-#include <stdbool.h>
-#include <linux/types.h>
+#include <common.h>
 
 /* If you don't have gcc or clang, these attribute macros may need to
  * be adjusted.

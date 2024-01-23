@@ -11,7 +11,7 @@
 };
 
 &uart4 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	clock-frequency = <24000000>;
 	status = "okay";
 };

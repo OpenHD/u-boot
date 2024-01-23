@@ -7,4 +7,3 @@ Advantech
    :maxdepth: 2
 
    imx8qm-rom7720-a1.rst
-   imx8qm-dmsse20-a1.rst

@@ -5,6 +5,7 @@
  *  Copyright (c) 2017 Heinrich Schuchardt
  */
 
+#include <common.h>
 #include <efi_loader.h>
 
 /* Conversion factor from seconds to multiples of 100ns */

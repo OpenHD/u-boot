@@ -10,14 +10,10 @@ U-Boot API documentation
    dfu
    dm
    efi
-   event
    getopt
-   interrupt
    linker_lists
    lmb
    logging
-   nvmem
-   part
    pinctrl
    rng
    sandbox

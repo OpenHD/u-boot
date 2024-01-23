@@ -11,7 +11,6 @@
 #include <dm/devres.h>
 #include <linux/bitops.h>
 #include <linux/compat.h>
-#include <linux/printk.h>
 #endif
 #include <linux/kernel.h>
 #ifndef __UBOOT__

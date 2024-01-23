@@ -9,8 +9,6 @@
 /dts-v1/;
 
 #include "sdm845.dtsi"
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/input/input.h>
 
 / {
 	model = "Samsung S9 (SM-G9600)";
@@ -23,7 +21,7 @@
 	};
 
 	aliases {
-		serial0 = &uart9;
+		serial0 = &debug_uart;
 	};
 
 	memory {
@@ -49,19 +47,15 @@
 		serial@a84000 {
 			status = "okay";
 		};
-	};
-};
 
-&pm8998_resin {
-	status = "okay";
-};
-
-&tlmm {
-	muic_i2c: muic-i2c-n {
-		pins = "GPIO_33", "GPIO_34";
-		drive-strength = <0x2>;
-		function = "gpio";
-		bias-disable;
+		pinctrl@3900000 {
+			muic_i2c: muic_i2c {
+				pins = "GPIO_33", "GPIO_34";
+				drive-strength = <0x2>;
+				function = "gpio";
+				bias-disable;
+			};
+		};
 	};
 };
 

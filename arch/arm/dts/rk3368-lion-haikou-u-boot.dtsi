@@ -39,19 +39,19 @@
 };
 
 &gpio2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &service_msch {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &dmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	/*
 	 * Validation of throughput using SPEC2000 shows the following
@@ -75,43 +75,43 @@
 };
 
 &pmugrf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sgrf {
-	bootph-all;
+        u-boot,dm-pre-reloc;
 };
 
 &cru {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &grf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &emmc {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &sdmmc {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &spi1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
 	spiflash: w25q32dw@0 {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };
 
 &timer0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	clock-frequency = <24000000>;
 	status = "okay";
 };

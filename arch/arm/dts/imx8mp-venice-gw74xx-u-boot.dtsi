@@ -6,11 +6,24 @@
 #include "imx8mp-u-boot.dtsi"
 
 / {
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+
 	wdt-reboot {
 		compatible = "wdt-reboot";
-		bootph-pre-ram;
+		u-boot,dm-spl;
 		wdt = <&wdog1>;
 	};
+};
+
+&eqos {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
 };
 
 &ethphy0 {
@@ -26,7 +39,7 @@
 };
 
 &gpio1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
 	dio0_hog {
 		gpio-hog;
@@ -44,182 +57,109 @@
 };
 
 &gpio2 {
-	bootph-pre-ram;
-
-	m2_pin20 {
-		gpio-hog;
-		input;
-		gpios = <6 GPIO_ACTIVE_HIGH>;
-		line-name = "m2_pin20";
-	};
-
-	m2_pin22 {
-		gpio-hog;
-		input;
-		gpios = <11 GPIO_ACTIVE_HIGH>;
-		line-name = "m2_pin22";
-	};
-
-	tpm_rst_hog {
-		gpio-hog;
-		output-high;
-		gpios = <12 GPIO_ACTIVE_HIGH>;
-		line-name = "tpm_rst#";
-	};
+	u-boot,dm-spl;
 
 	pcie1_wdis_hog {
 		gpio-hog;
+		gpios = <17 GPIO_ACTIVE_HIGH>;
 		output-high;
-		gpios = <13 GPIO_ACTIVE_HIGH>;
 		line-name = "pcie1_wdis#";
-	};
-
-	pcie3_wdis_hog {
-		gpio-hog;
-		output-high;
-		gpios = <14 GPIO_ACTIVE_HIGH>;
-		line-name = "pcie3_wdis#";
 	};
 
 	pcie2_wdis_hog {
 		gpio-hog;
-		output-high;
 		gpios = <18 GPIO_ACTIVE_HIGH>;
+		output-high;
 		line-name = "pcie2_wdis#";
+	};
+
+	pcie3_wdis_hog {
+		gpio-hog;
+		gpios = <14 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "pcie3_wdis#";
 	};
 };
 
 &gpio3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
-	m2_rst {
+	m2_dis2_hog {
 		gpio-hog;
-		output-low;
-		gpios = <6 GPIO_ACTIVE_HIGH>;
-		line-name = "m2_rst";
+		gpios = <0 GPIO_ACTIVE_LOW>;
+		output-high;
+		line-name = "m2_gdis#";
+	};
+
+	m2rst_hog {
+		gpio-hog;
+		gpios = <6 GPIO_ACTIVE_LOW>;
+		output-high;
+		line-name = "m2_rst#";
+	};
+
+	m2_off_hog {
+		gpio-hog;
+		gpios = <14 GPIO_ACTIVE_LOW>;
+		output-high;
+		line-name = "m2_off#";
 	};
 };
 
 &gpio4 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
-	m2_off {
+	m2_dis1_hog {
 		gpio-hog;
+		gpios = <18 GPIO_ACTIVE_LOW>;
 		output-high;
-		gpios = <2 GPIO_ACTIVE_HIGH>;
-		line-name = "m2_off#";
-	};
-
-	m2_wdis {
-		gpio-hog;
-		output-high;
-		gpios = <18 GPIO_ACTIVE_HIGH>;
 		line-name = "m2_wdis#";
 	};
 
-	rs485_en {
+	uart_rs485_hog {
 		gpio-hog;
+		gpios = <31 GPIO_ACTIVE_LOW>;
 		output-low;
-		gpios = <31 GPIO_ACTIVE_HIGH>;
-		line-name = "rs485_en";
+		line-name = "uart_rs485";
 	};
 };
 
 &gpio5 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
-	rs485_half {
+	uart_half_hog {
 		gpio-hog;
-		output-low;
-		gpios = <0 GPIO_ACTIVE_HIGH>;
-		line-name = "rs485_hd";
+		gpios = <0 GPIO_ACTIVE_LOW>;
+		output-high;
+		line-name = "uart_half";
 	};
 
-	rs485_term {
+	uart_term_hog {
 		gpio-hog;
+		gpios = <1 GPIO_ACTIVE_LOW>;
 		output-low;
-		gpios = <1 GPIO_ACTIVE_HIGH>;
-		line-name = "rs485_term";
+		line-name = "uart_term";
 	};
 };
 
 &i2c1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &i2c2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &i2c3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_i2c1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_wdog {
-	bootph-pre-ram;
-};
-
-&switch {
-	ports {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		lan1: port@0 {
-			phy-handle = <&sw_phy0>;
-		};
-
-		lan2: port@1 {
-			phy-handle = <&sw_phy1>;
-		};
-
-		lan3: port@2 {
-			phy-handle = <&sw_phy2>;
-		};
-
-		lan4: port@3 {
-			phy-handle = <&sw_phy3>;
-		};
-
-		lan5: port@4 {
-			phy-handle = <&sw_phy4>;
-		};
-	};
-
-	mdios {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		mdio@0 {
-			reg = <0>;
-			compatible = "microchip,ksz-mdio";
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			sw_phy0: ethernet-phy@0 {
-				reg = <0x0>;
-			};
-
-			sw_phy1: ethernet-phy@1 {
-				reg = <0x1>;
-			};
-
-			sw_phy2: ethernet-phy@2 {
-				reg = <0x2>;
-			};
-
-			sw_phy3: ethernet-phy@3 {
-				reg = <0x3>;
-			};
-
-			sw_phy4: ethernet-phy@4 {
-				reg = <0x4>;
-			};
-		};
-	};
+	u-boot,dm-spl;
 };
 
 &usdhc2 {
@@ -228,7 +168,7 @@
 	assigned-clocks = <&clk IMX8MP_CLK_USDHC2>;
 	sd-uhs-ddr50;
 	sd-uhs-sdr104;
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc3 {
@@ -237,9 +177,9 @@
 	assigned-clocks = <&clk IMX8MP_CLK_USDHC3>;
 	mmc-hs400-1_8v;
 	mmc-hs400-enhanced-strobe;
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &wdog1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

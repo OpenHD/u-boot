@@ -1,11 +1,7 @@
-.. SPDX-License-Identifier: GPL-2.0-or-later
-.. sectionauthor:: Marcel Ziswiler <marcel.ziswiler@toradex.com>
+.. SPDX-License-Identifier: GPL-2.0+
 
-Apalis iMX8 Module
-==================
-
-- SoM: https://www.toradex.com/computer-on-modules/apalis-arm-family/nxp-imx-8
-- Carrier board: https://www.toradex.com/products/carrier-board/apalis-evaluation-board
+Apalis iMX8QM V1.0B Module
+==========================
 
 Quick Start
 -----------
@@ -22,7 +18,7 @@ Get and Build the ARM Trusted Firmware
 
 .. code-block:: bash
 
-    $ git clone -b imx_4.14.78_1.0.0_ga https://github.com/nxp-imx/imx-atf
+    $ git clone -b imx_4.14.78_1.0.0_ga https://source.codeaurora.org/external/imx/imx-atf
     $ cd imx-atf/
     $ make PLAT=imx8qm bl31
 
@@ -53,7 +49,6 @@ Copy the following firmware to the U-Boot folder:
 
 Build U-Boot
 ------------
-
 .. code-block:: bash
 
     $ make apalis-imx8_defconfig
@@ -66,8 +61,8 @@ Get the latest version of the universal update utility (uuu) aka ``mfgtools 3.0`
 
 https://community.nxp.com/external-link.jspa?url=https%3A%2F%2Fgithub.com%2FNXPmicro%2Fmfgtools%2Freleases
 
-Put the module into USB recovery aka serial downloader mode, connect the USB
-device to your host and execute ``uuu``:
+Put the module into USB recovery aka serial downloader mode, connect USB device
+to your host and execute uuu:
 
 .. code-block:: bash
 
@@ -85,10 +80,3 @@ partition and boot:
     setexpr blkcnt ${filesize} + 0x1ff && setexpr blkcnt ${blkcnt} / 0x200
     mmc dev 0 1
     mmc write ${loadaddr} 0x0 ${blkcnt}
-
-As a convenience, instead of the last three commands, one may also use the
-update U-Boot wrapper:
-
-.. code-block:: bash
-
-    > run update_uboot

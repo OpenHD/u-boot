@@ -8,6 +8,11 @@
 #include <init.h>
 #include <asm/fsp/fsp_support.h>
 
+int arch_fsp_init(void)
+{
+	return 0;
+}
+
 void board_final_cleanup(void)
 {
 	u32 status;

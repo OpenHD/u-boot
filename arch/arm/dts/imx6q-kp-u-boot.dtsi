@@ -10,9 +10,9 @@
 
 / {
 	clocks {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 		osc {
-			bootph-pre-ram;
+			u-boot,dm-spl;
 		};
 	};
 
@@ -23,37 +23,37 @@
 };
 
 &clks {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_uart1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc4 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &uart1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc4 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &wdog1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

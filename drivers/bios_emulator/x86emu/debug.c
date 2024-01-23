@@ -40,7 +40,6 @@
 #include <stdarg.h>
 #include <common.h>
 #include <linux/ctype.h>
-#include <linux/printk.h>
 #include "x86emu/x86emui.h"
 
 /*----------------------------- Implementation ----------------------------*/

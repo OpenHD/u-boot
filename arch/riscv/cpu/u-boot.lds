@@ -44,11 +44,11 @@ SECTIONS
 
 	. = ALIGN(4);
 
-	__u_boot_list : {
-		KEEP(*(SORT(__u_boot_list*)));
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
 	}
 
-	. = ALIGN(8);
+	. = ALIGN(4);
 
 	.efi_runtime_rel : {
 		__efi_runtime_rel_start = .;
@@ -57,6 +57,8 @@ SECTIONS
 		__efi_runtime_rel_stop = .;
 	}
 
+	. = ALIGN(4);
+
 	/DISCARD/ : { *(.rela.plt*) }
 	.rela.dyn : {
 		__rel_dyn_start = .;
@@ -64,7 +66,7 @@ SECTIONS
 		__rel_dyn_end = .;
 	}
 
-	. = ALIGN(8);
+	. = ALIGN(4);
 
 	.dynsym : {
 		__dyn_sym_start = .;
@@ -72,7 +74,7 @@ SECTIONS
 		__dyn_sym_end = .;
 	}
 
-	. = ALIGN(8);
+	. = ALIGN(4);
 
 	_end = .;
 

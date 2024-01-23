@@ -2,90 +2,90 @@
 
 / {
 	chosen {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	clocks {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		altera_arria10_hps_eosc1 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		altera_arria10_hps_cb_intosc_ls {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		altera_arria10_hps_f2h_free {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
 	clock_manager@0xffd04000 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		mainpll {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		perpll {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		alteragrp {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
 	pinmux@0xffd07000 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		shared {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		dedicated {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		dedicated_cfg {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 
 		fpga {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
 	noc@0xffd10000 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		firewall {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
 	fpgabridge@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	fpgabridge@1 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	fpgabridge@2 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	fpgabridge@3 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	fpgabridge@4 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	fpgabridge@5 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };

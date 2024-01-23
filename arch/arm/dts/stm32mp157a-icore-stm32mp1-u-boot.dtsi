@@ -10,47 +10,47 @@
 #include "stm32mp15-ddr3-icore-1x4Gb-1066-binG.dtsi"
 
 &vddcore {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vdd {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vdd_usb {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vdda {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vdd_ddr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vtt_ddr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vref_ddr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &vdd_sd {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &v3v3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &v2v8 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &v1v8 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rcc {
@@ -124,7 +124,7 @@
 		reg = <1>;
 		cfg = < 2 65 1 0 0 PQR(1,1,1) >;
 		frac = < 0x1400 >;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	/* VCO = 417.8 MHz => P = 209, Q = 24, R = 11 */
@@ -133,7 +133,7 @@
 		reg = <2>;
 		cfg = < 1 33 1 16 36 PQR(1,1,1) >;
 		frac = < 0x1a04 >;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	/* VCO = 594.0 MHz => P = 99, Q = 74, R = 74 */
@@ -141,6 +141,6 @@
 		compatible = "st,stm32mp1-pll";
 		reg = <3>;
 		cfg = < 3 98 5 7 7 PQR(1,1,1) >;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };

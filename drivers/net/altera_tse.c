@@ -430,10 +430,16 @@ static int tse_mdio_init(const char *name, struct altera_tse_priv *priv)
 static int tse_phy_init(struct altera_tse_priv *priv, void *dev)
 {
 	struct phy_device *phydev;
+	unsigned int mask = 0xffffffff;
 
-	phydev = phy_connect(priv->bus, -1, dev, priv->interface);
+	if (priv->phyaddr)
+		mask = 1 << priv->phyaddr;
+
+	phydev = phy_find_by_mask(priv->bus, mask);
 	if (!phydev)
 		return -ENODEV;
+
+	phy_connect_dev(phydev, dev, priv->interface);
 
 	phydev->supported &= PHY_GBIT_FEATURES;
 	phydev->advertising = phydev->supported;

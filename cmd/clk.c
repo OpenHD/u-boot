@@ -22,7 +22,7 @@ static void show_clks(struct udevice *dev, int depth, int last_flag)
 	u32 rate;
 
 	clkp = dev_get_clk_ptr(dev);
-	if (clkp) {
+	if (device_get_uclass_id(dev) == UCLASS_CLK && clkp) {
 		parent = clk_get_parent(clkp);
 		if (!IS_ERR(parent) && depth == -1)
 			return;
@@ -49,39 +49,35 @@ static void show_clks(struct udevice *dev, int depth, int last_flag)
 		printf("%s\n", dev->name);
 	}
 
-	device_foreach_child_probe(child, dev) {
-		if (device_get_uclass_id(child) != UCLASS_CLK)
-			continue;
+	list_for_each_entry(child, &dev->child_head, sibling_node) {
 		if (child == dev)
 			continue;
+
 		is_last = list_is_last(&child->sibling_node, &dev->child_head);
 		show_clks(child, depth, (last_flag << 1) | is_last);
 	}
 }
 
-static int soc_clk_dump(void)
+int __weak soc_clk_dump(void)
 {
 	struct udevice *dev;
-	const struct clk_ops *ops;
+	struct uclass *uc;
+	int ret;
+
+	ret = uclass_get(UCLASS_CLK, &uc);
+	if (ret)
+		return ret;
 
 	printf(" Rate               Usecnt      Name\n");
 	printf("------------------------------------------\n");
 
-	uclass_foreach_dev_probe(UCLASS_CLK, dev)
+	uclass_foreach_dev(dev, uc)
 		show_clks(dev, -1, 0);
-
-	uclass_foreach_dev_probe(UCLASS_CLK, dev) {
-		ops = dev_get_driver_ops(dev);
-		if (ops && ops->dump) {
-			printf("\n%s %s:\n", dev->driver->name, dev->name);
-			ops->dump(dev);
-		}
-	}
 
 	return 0;
 }
 #else
-static int soc_clk_dump(void)
+int __weak soc_clk_dump(void)
 {
 	puts("Not implemented\n");
 	return 1;
@@ -161,8 +157,10 @@ static int do_clk(struct cmd_tbl *cmdtp, int flag, int argc,
 		return CMD_RET_USAGE;
 }
 
-U_BOOT_LONGHELP(clk,
+#ifdef CONFIG_SYS_LONGHELP
+static char clk_help_text[] =
 	"dump - Print clock frequencies\n"
-	"clk setfreq [clk] [freq] - Set clock frequency");
+	"clk setfreq [clk] [freq] - Set clock frequency";
+#endif
 
 U_BOOT_CMD(clk, 4, 1, do_clk, "CLK sub-system", clk_help_text);

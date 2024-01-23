@@ -7,6 +7,7 @@
 #ifndef __include_tegra_kbc_h__
 #define __include_tegra_kbc_h__
 
+#include <common.h>
 
 #define KEY_IS_MODIFIER(key) ((key) >= KEY_FIRST_MODIFIER)
 

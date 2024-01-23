@@ -7,21 +7,20 @@
  *
  */
 
+#include <common.h>
 #include <asm/io.h>
 #include <dm/uclass.h>
 #include <k3-ddrss.h>
 #include <spl.h>
 #include <fdt_support.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/sys_proto.h>
 #include <env.h>
 
 #include "../common/board_detect.h"
 
-#define board_is_am64x_gpevm() (board_ti_k3_is("AM64-GPEVM") || \
-				board_ti_k3_is("AM64-HSEVM"))
-
-#define board_is_am64x_skevm() (board_ti_k3_is("AM64-SKEVM") || \
-				board_ti_k3_is("AM64B-SKEVM"))
+#define board_is_am64x_gpevm()	board_ti_k3_is("AM64-GPEVM")
+#define board_is_am64x_skevm()	board_ti_k3_is("AM64-SKEVM")
 
 DECLARE_GLOBAL_DATA_PTR;
 

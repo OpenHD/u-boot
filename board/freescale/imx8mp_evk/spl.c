@@ -37,8 +37,14 @@ void spl_dram_init(void)
 
 void spl_board_init(void)
 {
-	arch_misc_init();
+	if (IS_ENABLED(CONFIG_FSL_CAAM)) {
+		struct udevice *dev;
+		int ret;
 
+		ret = uclass_get_device_by_driver(UCLASS_MISC, DM_DRIVER_GET(caam_jr), &dev);
+		if (ret)
+			printf("Failed to initialize caam_jr: %d\n", ret);
+	}
 	/*
 	 * Set GIC clock to 500Mhz for OD VDD_SOC. Kernel driver does
 	 * not allow to change it. Should set the clock after PMIC
@@ -67,44 +73,43 @@ struct i2c_pads_info i2c_pad_info1 = {
 	},
 };
 
-#if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
+#if CONFIG_IS_ENABLED(POWER_LEGACY)
+#define I2C_PMIC	0
 int power_init_board(void)
 {
-	struct udevice *dev;
+	struct pmic *p;
 	int ret;
 
-	ret = pmic_get("pmic@25", &dev);
-	if (ret == -ENODEV) {
-		puts("No pmic@25\n");
-		return 0;
-	}
-	if (ret < 0)
-		return ret;
+	ret = power_pca9450_init(I2C_PMIC, 0x25);
+	if (ret)
+		printf("power init failed");
+	p = pmic_get("PCA9450");
+	pmic_probe(p);
 
 	/* BUCKxOUT_DVS0/1 control BUCK123 output */
-	pmic_reg_write(dev, PCA9450_BUCK123_DVS, 0x29);
+	pmic_reg_write(p, PCA9450_BUCK123_DVS, 0x29);
 
 	/*
-	 * Increase VDD_SOC to typical value 0.95V before first
-	 * DRAM access, set DVS1 to 0.85V for suspend.
+	 * increase VDD_SOC to typical value 0.95V before first
+	 * DRAM access, set DVS1 to 0.85v for suspend.
 	 * Enable DVS control through PMIC_STBY_REQ and
 	 * set B1_ENMODE=1 (ON by PMIC_ON_REQ=H)
 	 */
-	if (CONFIG_IS_ENABLED(IMX8M_VDD_SOC_850MV))
-		pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS0, 0x14);
-	else
-		pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS0, 0x1C);
+#ifdef CONFIG_IMX8M_VDD_SOC_850MV
+	/* set DVS0 to 0.85v for special case*/
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS0, 0x14);
+#else
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS0, 0x1C);
+#endif
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS1, 0x14);
+	pmic_reg_write(p, PCA9450_BUCK1CTRL, 0x59);
 
-	pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS1, 0x14);
-	pmic_reg_write(dev, PCA9450_BUCK1CTRL, 0x59);
+	/* Kernel uses OD/OD freq for SOC */
+	/* To avoid timing risk from SOC to ARM,increase VDD_ARM to OD voltage 0.95v */
+	pmic_reg_write(p, PCA9450_BUCK2OUT_DVS0, 0x1C);
 
-	/*
-	 * Kernel uses OD/OD freq for SOC.
-	 * To avoid timing risk from SOC to ARM,increase VDD_ARM to OD
-	 * voltage 0.95V.
-	 */
-
-	pmic_reg_write(dev, PCA9450_BUCK2OUT_DVS0, 0x1C);
+	/* set WDOG_B_CFG to cold reset */
+	pmic_reg_write(p, PCA9450_RESET_CTRL, 0xA1);
 
 	return 0;
 }
@@ -138,6 +143,8 @@ void board_init_f(ulong dummy)
 	preloader_console_init();
 
 	enable_tzc380();
+
+	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 
 	power_init_board();
 

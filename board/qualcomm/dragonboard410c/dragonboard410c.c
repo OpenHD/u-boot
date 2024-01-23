@@ -5,7 +5,6 @@
  * (C) Copyright 2015 Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
  */
 
-#include <button.h>
 #include <common.h>
 #include <cpu_func.h>
 #include <dm.h>
@@ -109,20 +108,32 @@ int board_usb_init(int index, enum usb_init_type init)
 /* Check for vol- button - if pressed - stop autoboot */
 int misc_init_r(void)
 {
-	struct udevice *btn;
-	int ret;
-	enum button_state_t state;
+	struct udevice *pon;
+	struct gpio_desc resin;
+	int node, ret;
 
-	ret = button_get_by_label("vol_down", &btn);
+	ret = uclass_get_device_by_name(UCLASS_GPIO, "pm8916_pon@800", &pon);
 	if (ret < 0) {
-		printf("Couldn't find power button!\n");
-		return ret;
+		printf("Failed to find PMIC pon node. Check device tree\n");
+		return 0;
 	}
 
-	state = button_get_state(btn);
-	if (state == BUTTON_ON) {
+	node = fdt_subnode_offset(gd->fdt_blob, dev_of_offset(pon),
+				  "key_vol_down");
+	if (node < 0) {
+		printf("Failed to find key_vol_down node. Check device tree\n");
+		return 0;
+	}
+
+	if (gpio_request_by_name_nodev(offset_to_ofnode(node), "gpios", 0,
+				       &resin, 0)) {
+		printf("Failed to request key_vol_down button.\n");
+		return 0;
+	}
+
+	if (dm_gpio_get_value(&resin)) {
 		env_set("preboot", "setenv preboot; fastboot 0");
-		printf("vol_down pressed - Starting fastboot.\n");
+		printf("key_vol_down pressed - Starting fastboot.\n");
 	}
 
 	return 0;

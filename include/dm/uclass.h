@@ -265,23 +265,6 @@ int uclass_get_device_by_ofnode(enum uclass_id id, ofnode node,
 				struct udevice **devp);
 
 /**
- * uclass_get_device_by_of_path() - Get a uclass device by device tree path
- *
- * This searches the devices in the uclass for one attached to the
- * device tree node corresponding to the given path (which may also be
- * an alias).
- *
- * The device is probed to activate it ready for use.
- *
- * @id: ID to look up
- * @path: Device tree path to search for (if no such path then -ENODEV is returned)
- * @devp: Returns pointer to device (there is only one for each node)
- * Return: 0 if OK, -ve on error
- */
-int uclass_get_device_by_of_path(enum uclass_id id, const char *path,
-				 struct udevice **devp);
-
-/**
  * uclass_get_device_by_phandle_id() - Get a uclass device by phandle id
  *
  * This searches the devices in the uclass for one with the given phandle id.
@@ -337,37 +320,22 @@ int uclass_get_device_by_driver(enum uclass_id id, const struct driver *drv,
  * uclass_first_device() - Get the first device in a uclass
  *
  * The device returned is probed if necessary, and ready for use
- * Devices that fail to probe are skipped
  *
  * This function is useful to start iterating through a list of devices which
  * are functioning correctly and can be probed.
  *
  * @id: Uclass ID to look up
  * @devp: Returns pointer to the first device in that uclass if no error
- * occurred, or NULL if there is no usable device
+ * occurred, or NULL if there is no first device, or an error occurred with
+ * that device.
+ * Return: 0 if OK (found or not found), other -ve on error
  */
-void uclass_first_device(enum uclass_id id, struct udevice **devp);
-
-/**
- * uclass_next_device() - Get the next device in a uclass
- *
- * The device returned is probed if necessary, and ready for use
- * Devices that fail to probe are skipped
- *
- * This function is useful to iterate through a list of devices which
- * are functioning correctly and can be probed.
- *
- * @devp: On entry, pointer to device to lookup. On exit, returns pointer
- * to the next device in the uclass if no error occurred, or NULL if there is
- * no next device
- */
-void uclass_next_device(struct udevice **devp);
+int uclass_first_device(enum uclass_id id, struct udevice **devp);
 
 /**
  * uclass_first_device_err() - Get the first device in a uclass
  *
- * The device returned is probed if necessary, and ready for use if no error is
- * returned
+ * The device returned is probed if necessary, and ready for use
  *
  * @id: Uclass ID to look up
  * @devp: Returns pointer to the first device in that uclass, or NULL if none
@@ -376,10 +344,24 @@ void uclass_next_device(struct udevice **devp);
 int uclass_first_device_err(enum uclass_id id, struct udevice **devp);
 
 /**
+ * uclass_next_device() - Get the next device in a uclass
+ *
+ * The device returned is probed if necessary, and ready for use
+ *
+ * This function is useful to iterate through a list of devices which
+ * are functioning correctly and can be probed.
+ *
+ * @devp: On entry, pointer to device to lookup. On exit, returns pointer
+ * to the next device in the uclass if no error occurred, or NULL if there is
+ * no next device, or an error occurred with that next device.
+ * Return: 0 if OK (found or not found), other -ve on error
+ */
+int uclass_next_device(struct udevice **devp);
+
+/**
  * uclass_next_device_err() - Get the next device in a uclass
  *
- * The device returned is probed if necessary, and ready for use if no error is
- * returned
+ * The device returned is probed if necessary, and ready for use
  *
  * @devp: On entry, pointer to device to lookup. On exit, returns pointer
  * to the next device in the uclass if no error occurred, or NULL if
@@ -391,8 +373,7 @@ int uclass_next_device_err(struct udevice **devp);
 /**
  * uclass_first_device_check() - Get the first device in a uclass
  *
- * The device returned is probed if necessary, and ready for use if no error is
- * returned
+ * The device returned is probed if necessary, and ready for use
  *
  * This function is useful to start iterating through a list of devices which
  * are functioning correctly and can be probed.
@@ -408,8 +389,7 @@ int uclass_first_device_check(enum uclass_id id, struct udevice **devp);
 /**
  * uclass_next_device_check() - Get the next device in a uclass
  *
- * The device returned is probed if necessary, and ready for use if no error is
- * returned
+ * The device returned is probed if necessary, and ready for use
  *
  * This function is useful to start iterating through a list of devices which
  * are functioning correctly and can be probed.
@@ -511,7 +491,7 @@ int uclass_id_count(enum uclass_id id);
  * are no more devices.
  */
 #define uclass_foreach_dev_probe(id, dev)	\
-	for (uclass_first_device(id, &dev); dev; \
-	     uclass_next_device(&dev))
+	for (int _ret = uclass_first_device_err(id, &dev); !_ret && dev; \
+	     _ret = uclass_next_device_err(&dev))
 
 #endif

@@ -13,12 +13,13 @@ import concurrent.futures
 import re
 import sys
 
+from binman import comp_util
 from binman.entry import Entry
 from binman import state
 from dtoc import fdt_util
-from u_boot_pylib import tools
-from u_boot_pylib import tout
-from u_boot_pylib.tools import to_hex_size
+from patman import tools
+from patman import tout
+from patman.tools import to_hex_size
 
 
 class Entry_section(Entry):
@@ -40,7 +41,7 @@ class Entry_section(Entry):
     For example code, see etypes which subclass `Entry_section`, or `cbfs.py`
     for a more involved example::
 
-       $ grep -l \\(Entry_section tools/binman/etype/*.py
+       $ grep -l \(Entry_section tools/binman/etype/*.py
 
     ReadNode()
         Call `super().ReadNode()`, then read any special properties for the
@@ -144,10 +145,6 @@ class Entry_section(Entry):
         be written at offset 4 in the image file, since the first 16 bytes are
         skipped when writing.
 
-    filename
-        filename to write the unpadded section contents to within the output
-        directory (None to skip this).
-
     Since a section is also an entry, it inherits all the properies of entries
     too.
 
@@ -167,20 +164,6 @@ class Entry_section(Entry):
         self._skip_at_start = None
         self._end_4gb = False
         self._ignore_missing = False
-        self._filename = None
-        self.align_default = 0
-
-    def IsSpecialSubnode(self, node):
-        """Check if a node is a special one used by the section itself
-
-        Some nodes are used for hashing / signatures and do not add entries to
-        the actual section.
-
-        Returns:
-            bool: True if the node is a special one, else False
-        """
-        start_list = ('cipher', 'hash', 'signature', 'template')
-        return any(node.name.startswith(name) for name in start_list)
 
     def ReadNode(self):
         """Read properties from the section node"""
@@ -201,14 +184,12 @@ class Entry_section(Entry):
                 self._skip_at_start = 0
         self._name_prefix = fdt_util.GetString(self._node, 'name-prefix')
         self.align_default = fdt_util.GetInt(self._node, 'align-default', 0)
-        self._filename = fdt_util.GetString(self._node, 'filename',
-                                            self._filename)
 
         self.ReadEntries()
 
     def ReadEntries(self):
         for node in self._node.subnodes:
-            if self.IsSpecialSubnode(node):
+            if node.name.startswith('hash') or node.name.startswith('signature'):
                 continue
             entry = Entry.Create(self, node,
                                  expanded=self.GetImage().use_expanded,
@@ -278,7 +259,6 @@ class Entry_section(Entry):
 
         Args:
             entry: Entry to check
-            entry_data: Data for the entry, False if is null
 
         Returns:
             Contents of the entry along with any pad bytes before and
@@ -317,15 +297,12 @@ class Entry_section(Entry):
         This should be overridden by subclasses which want to build their own
         data structure for the section.
 
-        Missing entries will have be given empty (or fake) data, so are
-        processed normally here.
-
         Args:
             required: True if the data must be present, False if it is OK to
                 return None
 
         Returns:
-            Contents of the section (bytes), None if not available
+            Contents of the section (bytes)
         """
         section_data = bytearray()
 
@@ -336,32 +313,14 @@ class Entry_section(Entry):
             # earlier in the image description. See testCollectionSection().
             if not required and entry_data is None:
                 return None
-
-            entry_data_final = entry_data
-            if entry_data is None:
-                pad_byte = (entry._pad_byte if isinstance(entry, Entry_section)
-                            else self._pad_byte)
-                entry_data_final = tools.get_bytes(self._pad_byte, entry.size)
-
-            data = self.GetPaddedDataForEntry(entry, entry_data_final)
+            data = self.GetPaddedDataForEntry(entry, entry_data)
             # Handle empty space before the entry
             pad = (entry.offset or 0) - self._skip_at_start - len(section_data)
             if pad > 0:
                 section_data += tools.get_bytes(self._pad_byte, pad)
 
             # Add in the actual entry data
-            if entry.overlap:
-                end_offset = entry.offset + entry.size
-                if end_offset > len(section_data):
-                    entry.Raise("Offset %#x (%d) ending at %#x (%d) must overlap with existing entries" %
-                                (entry.offset, entry.offset, end_offset,
-                                 end_offset))
-                # Don't write anything for null entries'
-                if entry_data is not None:
-                    section_data = (section_data[:entry.offset] + data +
-                                    section_data[entry.offset + entry.size:])
-            else:
-                section_data += data
+            section_data += data
 
         self.Detail('GetData: %d entries, total size %#x' %
                     (len(self._entries), len(section_data)))
@@ -390,8 +349,7 @@ class Entry_section(Entry):
         """Get the contents of an entry
 
         This builds the contents of the section, stores this as the contents of
-        the section and returns it. If the section has a filename, the data is
-        written there also.
+        the section and returns it
 
         Args:
             required: True if the data must be present, False if it is OK to
@@ -402,15 +360,10 @@ class Entry_section(Entry):
             This excludes any padding. If the section is compressed, the
             compressed data is returned
         """
-        if not self.build_done:
-            data = self.BuildSectionData(required)
-            if data is None:
-                return None
-            self.SetContents(data)
-        else:
-            data = self.data
-        if self._filename:
-            tools.write_file(tools.get_output_filename(self._filename), data)
+        data = self.BuildSectionData(required)
+        if data is None:
+            return None
+        self.SetContents(data)
         return data
 
     def GetOffsets(self):
@@ -435,11 +388,8 @@ class Entry_section(Entry):
             self._SortEntries()
         self._extend_entries()
 
-        if self.build_done:
-            self.size = None
-        else:
-            data = self.BuildSectionData(True)
-            self.SetContents(data)
+        data = self.BuildSectionData(True)
+        self.SetContents(data)
 
         self.CheckSize()
 
@@ -490,13 +440,12 @@ class Entry_section(Entry):
                             (entry.offset, entry.offset, entry.size, entry.size,
                              self._node.path, self._skip_at_start,
                              self._skip_at_start, max_size, max_size))
-            if not entry.overlap:
-                if entry.offset < offset and entry.size:
-                    entry.Raise("Offset %#x (%d) overlaps with previous entry '%s' ending at %#x (%d)" %
-                                (entry.offset, entry.offset, prev_name, offset,
-                                 offset))
-                offset = entry.offset + entry.size
-                prev_name = entry.GetPath()
+            if entry.offset < offset and entry.size:
+                entry.Raise("Offset %#x (%d) overlaps with previous entry '%s' "
+                            "ending at %#x (%d)" %
+                            (entry.offset, entry.offset, prev_name, offset, offset))
+            offset = entry.offset + entry.size
+            prev_name = entry.GetPath()
 
     def WriteSymbols(self, section):
         """Write symbol values into binary files for access at run time"""
@@ -557,54 +506,10 @@ class Entry_section(Entry):
         node = self._node.GetFdt().LookupPhandle(phandle)
         if not node:
             source_entry.Raise("Cannot find node for phandle %d" % phandle)
-        entry = self.FindEntryByNode(node)
-        if not entry:
-            source_entry.Raise("Cannot find entry for node '%s'" % node.name)
-        return entry.GetData(required)
-
-    def LookupEntry(self, entries, sym_name, msg):
-        """Look up the entry for an ENF  symbol
-
-        Args:
-            entries (dict): entries to search:
-                key: entry name
-                value: Entry object
-            sym_name: Symbol name in the ELF file to look up in the format
-                _binman_<entry>_prop_<property> where <entry> is the name of
-                the entry and <property> is the property to find (e.g.
-                _binman_u_boot_prop_offset). As a special case, you can append
-                _any to <entry> to have it search for any matching entry. E.g.
-                _binman_u_boot_any_prop_offset will match entries called u-boot,
-                u-boot-img and u-boot-nodtb)
-            msg: Message to display if an error occurs
-
-        Returns:
-            tuple:
-                Entry: entry object that was found
-                str: name used to search for entries (uses '-' instead of the
-                    '_' used by the symbol name)
-                str: property name the symbol refers to, e.g. 'image_pos'
-
-        Raises:
-            ValueError:the symbol name cannot be decoded, e.g. does not have
-                a '_binman_' prefix
-        """
-        m = re.match(r'^_binman_(\w+)_prop_(\w+)$', sym_name)
-        if not m:
-            raise ValueError("%s: Symbol '%s' has invalid format" %
-                             (msg, sym_name))
-        entry_name, prop_name = m.groups()
-        entry_name = entry_name.replace('_', '-')
-        entry = entries.get(entry_name)
-        if not entry:
-            if entry_name.endswith('-any'):
-                root = entry_name[:-4]
-                for name in entries:
-                    if name.startswith(root):
-                        rest = name[len(root):]
-                        if rest in ['', '-elf', '-img', '-nodtb']:
-                            entry = entries[name]
-        return entry, entry_name, prop_name
+        for entry in self._entries.values():
+            if entry._node == node:
+                return entry.GetData(required)
+        source_entry.Raise("Cannot find entry for node '%s'" % node.name)
 
     def LookupSymbol(self, sym_name, optional, msg, base_addr, entries=None):
         """Look up a symbol in an ELF file
@@ -643,9 +548,23 @@ class Entry_section(Entry):
             ValueError if the symbol is invalid or not found, or references a
                 property which is not supported
         """
+        m = re.match(r'^_binman_(\w+)_prop_(\w+)$', sym_name)
+        if not m:
+            raise ValueError("%s: Symbol '%s' has invalid format" %
+                             (msg, sym_name))
+        entry_name, prop_name = m.groups()
+        entry_name = entry_name.replace('_', '-')
         if not entries:
             entries = self._entries
-        entry, entry_name, prop_name = self.LookupEntry(entries, sym_name, msg)
+        entry = entries.get(entry_name)
+        if not entry:
+            if entry_name.endswith('-any'):
+                root = entry_name[:-4]
+                for name in entries:
+                    if name.startswith(root):
+                        rest = name[len(root):]
+                        if rest in ['', '-img', '-nodtb']:
+                            entry = entries[name]
         if not entry:
             err = ("%s: Entry '%s' not found in list (%s)" %
                    (msg, entry_name, ','.join(entries.keys())))
@@ -714,44 +633,14 @@ class Entry_section(Entry):
 
     def GetEntryContents(self, skip_entry=None):
         """Call ObtainContents() for each entry in the section
-
-        The overall goal of this function is to read in any available data in
-        this entry and any subentries. This includes reading in blobs, setting
-        up objects which have predefined contents, etc.
-
-        Since entry types which contain entries call ObtainContents() on all
-        those entries too, the result is that ObtainContents() is called
-        recursively for the whole tree below this one.
-
-        Entries with subentries are generally not *themselves& processed here,
-        i.e. their ObtainContents() implementation simply obtains contents of
-        their subentries, skipping their own contents. For example, the
-        implementation here (for entry_Section) does not attempt to pack the
-        entries into a final result. That is handled later.
-
-        Generally, calling this results in SetContents() being called for each
-        entry, so that the 'data' and 'contents_size; properties are set, and
-        subsequent calls to GetData() will return value data.
-
-        Where 'allow_missing' is set, this can result in the 'missing' property
-        being set to True if there is no data. This is handled by setting the
-        data to b''. This function will still return success. Future calls to
-        GetData() for this entry will return b'', or in the case where the data
-        is faked, GetData() will return that fake data.
-
-        Args:
-            skip_entry: (single) Entry to skip, or None to process all entries
-
-        Note that this may set entry.absent to True if the entry is not
-        actually needed
         """
         def _CheckDone(entry):
             if entry != skip_entry:
-                if entry.ObtainContents() is False:
+                if not entry.ObtainContents():
                     next_todo.append(entry)
             return entry
 
-        todo = self.GetEntries().values()
+        todo = self._entries.values()
         for passnum in range(3):
             threads = state.GetThreads()
             next_todo = []
@@ -787,10 +676,6 @@ class Entry_section(Entry):
             self.Raise('Internal error: Could not complete processing of contents: remaining %s' %
                        todo)
         return True
-
-    def drop_absent(self):
-        """Drop entries which are absent"""
-        self._entries = {n: e for n, e in self._entries.items() if not e.absent}
 
     def _SetEntryOffsetSize(self, name, offset, size):
         """Set the offset and size of an entry
@@ -848,9 +733,6 @@ class Entry_section(Entry):
     def LoadData(self, decomp=True):
         for entry in self._entries.values():
             entry.LoadData(decomp)
-        data = self.ReadData(decomp)
-        self.contents_size = len(data)
-        self.ProcessContentsUpdate(data)
         self.Detail('Loaded data')
 
     def GetImage(self):
@@ -895,7 +777,7 @@ class Entry_section(Entry):
         data = parent_data[offset:offset + child.size]
         if decomp:
             indata = data
-            data = child.DecompressData(indata)
+            data = comp_util.decompress(indata, child.compress)
             if child.uncomp_size:
                 tout.info("%s: Decompressing data size %#x with algo '%s' to data size %#x" %
                             (child.GetPath(), len(indata), child.compress,
@@ -907,15 +789,10 @@ class Entry_section(Entry):
         return data
 
     def WriteData(self, data, decomp=True):
-        ok = super().WriteData(data, decomp)
-
-        # The section contents are now fixed and cannot be rebuilt from the
-        # containing entries.
-        self.mark_build_done()
-        return ok
+        self.Raise("Replacing sections is not implemented yet")
 
     def WriteChildData(self, child):
-        return super().WriteChildData(child)
+        return True
 
     def SetAllowMissing(self, allow_missing):
         """Set whether a section allows missing external blobs
@@ -924,29 +801,28 @@ class Entry_section(Entry):
             allow_missing: True if allowed, False if not allowed
         """
         self.allow_missing = allow_missing
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.SetAllowMissing(allow_missing)
 
     def SetAllowFakeBlob(self, allow_fake):
         """Set whether a section allows to create a fake blob
 
         Args:
-            allow_fake: True if allowed, False if not allowed
+            allow_fake_blob: True if allowed, False if not allowed
         """
         super().SetAllowFakeBlob(allow_fake)
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.SetAllowFakeBlob(allow_fake)
 
     def CheckMissing(self, missing_list):
         """Check if any entries in this section have missing external blobs
 
-        If there are missing (non-optional) blobs, the entries are added to the
-        list
+        If there are missing blobs, the entries are added to the list
 
         Args:
             missing_list: List of Entry objects to be added to
         """
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.CheckMissing(missing_list)
 
     def CheckFakedBlobs(self, faked_blobs_list):
@@ -955,21 +831,10 @@ class Entry_section(Entry):
         If there are faked blobs, the entries are added to the list
 
         Args:
-            faked_blobs_list: List of Entry objects to be added to
+            fake_blobs_list: List of Entry objects to be added to
         """
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.CheckFakedBlobs(faked_blobs_list)
-
-    def CheckOptional(self, optional_list):
-        """Check the section for missing but optional external blobs
-
-        If there are missing (optional) blobs, the entries are added to the list
-
-        Args:
-            optional_list (list): List of Entry objects to be added to
-        """
-        for entry in self.GetEntries().values():
-            entry.CheckOptional(optional_list)
 
     def check_missing_bintools(self, missing_list):
         """Check if any entries in this section have missing bintools
@@ -980,7 +845,7 @@ class Entry_section(Entry):
             missing_list: List of Bintool objects to be added to
         """
         super().check_missing_bintools(missing_list)
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.check_missing_bintools(missing_list)
 
     def _CollectEntries(self, entries, entries_by_name, add_entry):
@@ -1030,19 +895,9 @@ class Entry_section(Entry):
             entry.Raise(f'Missing required properties/entry args: {missing}')
 
     def CheckAltFormats(self, alt_formats):
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.CheckAltFormats(alt_formats)
 
     def AddBintools(self, btools):
-        super().AddBintools(btools)
-        for entry in self.GetEntries().values():
+        for entry in self._entries.values():
             entry.AddBintools(btools)
-
-    def read_elf_segments(self):
-        entries = self.GetEntries()
-
-        # If the section only has one entry, see if it can provide ELF segments
-        if len(entries) == 1:
-            for entry in entries.values():
-                return entry.read_elf_segments()
-        return None

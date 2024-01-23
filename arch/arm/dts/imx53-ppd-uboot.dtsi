@@ -38,21 +38,21 @@
 };
 
 &gpio1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio4 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpio5 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

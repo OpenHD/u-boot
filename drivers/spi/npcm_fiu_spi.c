@@ -11,7 +11,6 @@
 #include <linux/bitfield.h>
 #include <linux/log2.h>
 #include <linux/iopoll.h>
-#include <power/regulator.h>
 
 #define DW_SIZE			4
 #define CHUNK_SIZE		16
@@ -34,34 +33,6 @@
 #define UMA_CTS_EXEC_DONE	BIT(0)
 #define UMA_CTS_RDYST		BIT(24)
 #define UMA_CTS_DEV_NUM_MASK	GENMASK(9, 8)
-
-/* Direct Write Configuration Register */
-#define DWR_CFG_WBURST_MASK	GENMASK(25, 24)
-#define DWR_CFG_ADDSIZ_MASK	GENMASK(17, 16)
-#define DWR_CFG_ABPCK_MASK	GENMASK(11, 10)
-#define DRW_CFG_DBPCK_MASK	GENMASK(9, 8)
-#define DRW_CFG_WRCMD		2
-enum {
-	DWR_WBURST_1_BYTE,
-	DWR_WBURST_16_BYTE = 3,
-};
-
-enum {
-	DWR_ADDSIZ_24_BIT,
-	DWR_ADDSIZ_32_BIT,
-};
-
-enum {
-	DWR_ABPCK_BIT_PER_CLK,
-	DWR_ABPCK_2_BIT_PER_CLK,
-	DWR_ABPCK_4_BIT_PER_CLK,
-};
-
-enum {
-	DWR_DBPCK_BIT_PER_CLK,
-	DWR_DBPCK_2_BIT_PER_CLK,
-	DWR_DBPCK_4_BIT_PER_CLK,
-};
 
 struct npcm_fiu_regs {
 	unsigned int    drd_cfg;
@@ -96,10 +67,19 @@ struct npcm_fiu_regs {
 
 struct npcm_fiu_priv {
 	struct npcm_fiu_regs *regs;
+	struct clk clk;
 };
 
 static int npcm_fiu_spi_set_speed(struct udevice *bus, uint speed)
 {
+	struct npcm_fiu_priv *priv = dev_get_priv(bus);
+	int ret;
+
+	debug("%s: set speed %u\n", bus->name, speed);
+	ret = clk_set_rate(&priv->clk, speed);
+	if (ret < 0)
+		return ret;
+
 	return 0;
 }
 
@@ -369,38 +349,13 @@ static int npcm_fiu_exec_op(struct spi_slave *slave,
 static int npcm_fiu_spi_probe(struct udevice *bus)
 {
 	struct npcm_fiu_priv *priv = dev_get_priv(bus);
-	struct udevice *vqspi_supply;
-	int vqspi_uv;
+	int ret;
 
 	priv->regs = (struct npcm_fiu_regs *)dev_read_addr_ptr(bus);
 
-	if (IS_ENABLED(CONFIG_DM_REGULATOR)) {
-		device_get_supply_regulator(bus, "vqspi-supply", &vqspi_supply);
-		vqspi_uv = dev_read_u32_default(bus, "vqspi-microvolt", 0);
-		/* Set IO voltage */
-		if (vqspi_supply && vqspi_uv)
-			regulator_set_value(vqspi_supply, vqspi_uv);
-	}
-
-	return 0;
-}
-
-static int npcm_fiu_spi_bind(struct udevice *bus)
-{
-	struct npcm_fiu_regs *regs;
-
-	if (dev_read_bool(bus, "nuvoton,spix-mode")) {
-		regs = dev_read_addr_ptr(bus);
-		if (!regs)
-			return -EINVAL;
-
-		/* Setup direct write cfg for SPIX */
-		writel(FIELD_PREP(DWR_CFG_WBURST_MASK, DWR_WBURST_16_BYTE) |
-		       FIELD_PREP(DWR_CFG_ADDSIZ_MASK, DWR_ADDSIZ_24_BIT) |
-		       FIELD_PREP(DWR_CFG_ABPCK_MASK, DWR_ABPCK_4_BIT_PER_CLK) |
-		       FIELD_PREP(DRW_CFG_DBPCK_MASK, DWR_DBPCK_4_BIT_PER_CLK) |
-		       DRW_CFG_WRCMD, &regs->dwr_cfg);
-	}
+	ret = clk_get_by_index(bus, 0, &priv->clk);
+	if (ret < 0)
+		return ret;
 
 	return 0;
 }
@@ -429,5 +384,4 @@ U_BOOT_DRIVER(npcm_fiu_spi) = {
 	.ops    = &npcm_fiu_spi_ops,
 	.priv_auto = sizeof(struct npcm_fiu_priv),
 	.probe  = npcm_fiu_spi_probe,
-	.bind = npcm_fiu_spi_bind,
 };

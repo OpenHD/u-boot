@@ -704,8 +704,6 @@
 		clock-names = "sdhci";
 		resets = <&tegra_car 14>;
 		reset-names = "sdhci";
-		nvidia,default-tap = <0x2>;
-		nvidia,default-trim = <0x4>;
 		status = "disabled";
 	};
 
@@ -717,8 +715,6 @@
 		clock-names = "sdhci";
 		resets = <&tegra_car 9>;
 		reset-names = "sdhci";
-		nvidia,default-tap = <0x8>;
-		nvidia,default-trim = <0x0>;
 		status = "disabled";
 	};
 
@@ -730,8 +726,6 @@
 		clock-names = "sdhci";
 		resets = <&tegra_car 69>;
 		reset-names = "sdhci";
-		nvidia,default-tap = <0x3>;
-		nvidia,default-trim = <0x3>;
 		status = "disabled";
 	};
 
@@ -743,8 +737,6 @@
 		clock-names = "sdhci";
 		resets = <&tegra_car 15>;
 		reset-names = "sdhci";
-		nvidia,default-tap = <0x8>;
-		nvidia,default-trim = <0x0>;
 		status = "disabled";
 	};
 

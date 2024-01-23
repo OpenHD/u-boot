@@ -9,7 +9,6 @@
 #include <linux/io.h>
 #include <linux/ioport.h>
 #include <dm.h>
-#include <linux/printk.h>
 
 #include "brcmnand.h"
 

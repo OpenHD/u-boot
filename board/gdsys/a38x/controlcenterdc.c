@@ -7,7 +7,6 @@
 #include <common.h>
 #include <command.h>
 #include <dm.h>
-#include <event.h>
 #include <init.h>
 #include <miiphy.h>
 #include <net.h>
@@ -35,6 +34,19 @@ DECLARE_GLOBAL_DATA_PTR;
 #define DB_GP_88F68XX_GPP_OUT_VAL_MID	0x00001000
 #define DB_GP_88F68XX_GPP_POL_LOW	0x0
 #define DB_GP_88F68XX_GPP_POL_MID	0x0
+
+static int get_tpm(struct udevice **devp)
+{
+	int rc;
+
+	rc = uclass_first_device_err(UCLASS_TPM, devp);
+	if (rc) {
+		printf("Could not find TPM (ret=%d)\n", rc);
+		return CMD_RET_FAILURE;
+	}
+
+	return 0;
+}
 
 /*
  * Define the DDR layout / topology here in the board file. This will
@@ -272,22 +284,15 @@ int board_fix_fdt(void *rw_fdt_blob)
 	return 0;
 }
 
-#ifndef CONFIG_SPL_BUILD
-static int last_stage_init(void)
+int last_stage_init(void)
 {
 	struct udevice *tpm;
 	int ret;
 
-	if (IS_ENABLED(CONFIG_SPL_BUILD))
-		return 0;
+#ifndef CONFIG_SPL_BUILD
 	ccdc_eth_init();
-
-	ret = uclass_first_device_err(UCLASS_TPM, &tpm);
-	if (ret) {
-		printf("Could not find TPM (ret=%d)\n", ret);
-		return ret;
-	}
-
+#endif
+	ret = get_tpm(&tpm);
 	if (ret || tpm_init(tpm) || tpm1_startup(tpm, TPM_ST_CLEAR) ||
 	    tpm1_continue_self_test(tpm)) {
 		return 1;
@@ -300,5 +305,3 @@ static int last_stage_init(void)
 
 	return 0;
 }
-EVENT_SPY_SIMPLE(EVT_LAST_STAGE_INIT, last_stage_init);
-#endif

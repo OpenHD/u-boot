@@ -3,6 +3,7 @@
  * Copyright (C) 2018 Synopsys, Inc. All rights reserved.
  */
 
+#include <common.h>
 #include <cpu_func.h>
 #include <init.h>
 #include <malloc.h>

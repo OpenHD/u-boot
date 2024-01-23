@@ -6,6 +6,7 @@
  * Copyright (C) 2012  Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
  */
 
+#include <common.h>
 #include <net.h>
 #include <linux/errno.h>
 #include <netdev.h>

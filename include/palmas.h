@@ -6,6 +6,7 @@
 #ifndef PALMAS_H
 #define PALMAS_H
 
+#include <common.h>
 #include <i2c.h>
 
 /* I2C chip addresses, TW6035/37 */

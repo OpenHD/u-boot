@@ -38,7 +38,7 @@
 };
 
 &scif2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &qspi {

@@ -6,6 +6,7 @@
  * Copyright (c) 2011 The Chromium OS Authors.
  */
 
+#include <common.h>
 #include <command.h>
 #include <fdtdec.h>
 #include <linux/libfdt.h>

@@ -12,7 +12,7 @@
 };
 
 &dmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	/*
 	 * PX5-evb(2GB) need to use CBRD mode, or else the dram is not correct
@@ -28,46 +28,46 @@
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &service_msch {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &dmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
 &pmugrf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sgrf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &cru {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &grf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart4 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &emmc {
 	/* mmc to sram can't do dma, prevent aborts transferring TF-A parts */
 	u-boot,spl-fifo-mode;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &timer0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	clock-frequency = <24000000>;
 	status = "okay";
 };

@@ -19,14 +19,21 @@
  * Memory configuration
  */
 
-#define CFG_SYS_DDR_SDRAM_BASE	0x80000000
-#define CFG_SYS_SDRAM_BASE		CFG_SYS_DDR_SDRAM_BASE
-#define CFG_SYS_SDRAM_SIZE		SZ_512M
+#define CONFIG_SYS_DDR_SDRAM_BASE	0x80000000
+#define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_SDRAM_BASE
+#define CONFIG_SYS_SDRAM_SIZE		SZ_512M
+
+#define CONFIG_SYS_INIT_SP_ADDR		\
+	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
+
+#define CONFIG_SYS_BOOTM_LEN		SZ_128M
 
 /*
  * UART configuration
  */
-#define CFG_SYS_NS16550_CLK		33333333
+#define CONFIG_SYS_NS16550_SERIAL
+#define CONFIG_SYS_NS16550_CLK		33333333
+#define CONFIG_SYS_NS16550_MEM32
 
 /*
  * Ethernet PHY configuration
@@ -35,11 +42,13 @@
 /*
  * USB 1.1 configuration
  */
+#define CONFIG_USB_OHCI_NEW
+#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS 1
 
 /*
  * Environment settings
  */
-#define CFG_EXTRA_ENV_SETTINGS \
+#define CONFIG_EXTRA_ENV_SETTINGS \
 	"upgrade=if mmc rescan && " \
 		"fatload mmc 0:1 ${loadaddr} u-boot-update.img && " \
 		"iminfo ${loadaddr} && source ${loadaddr}; then; else echo " \

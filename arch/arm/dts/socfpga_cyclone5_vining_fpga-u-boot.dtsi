@@ -20,21 +20,21 @@
 };
 
 &qspi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	n25q128@0 {
 		compatible = "n25q128", "jedec,spi-nor";
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 	n25q00@1 {
 		compatible = "n25q00", "jedec,spi-nor";
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &uart0 {
 	clock-frequency = <100000000>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart1 {
@@ -54,5 +54,5 @@
 };
 
 &watchdog0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

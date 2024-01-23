@@ -14,7 +14,7 @@ struct serial_device {
 	int	(*tstc)(void);
 	void	(*putc)(const char c);
 	void	(*puts)(const char *s);
-#if CFG_POST & CFG_SYS_POST_UART
+#if CONFIG_POST & CONFIG_SYS_POST_UART
 	void	(*loop)(int);
 #endif
 	struct serial_device	*next;
@@ -137,7 +137,6 @@ enum adr_space_type {
  * @type:	type of the UART chip
  * @addr_space:	address space to access the registers
  * @addr:	physical address of the registers
- * @size:	size of the register area in bytes
  * @reg_width:	size (in bytes) of the IO accesses to the registers
  * @reg_offset:	offset to apply to the @addr from the start of the registers
  * @reg_shift:	quantity to shift the register offsets by
@@ -148,7 +147,6 @@ struct serial_device_info {
 	enum serial_chip_type type;
 	enum adr_space_type addr_space;
 	ulong addr;
-	ulong size;
 	u8 reg_width;
 	u8 reg_offset;
 	u8 reg_shift;
@@ -244,7 +242,7 @@ struct dm_serial_ops {
 	 * @return 0 if OK, -ve on error
 	 */
 	int (*clear)(struct udevice *dev);
-#if CFG_POST & CFG_SYS_POST_UART
+#if CONFIG_POST & CONFIG_SYS_POST_UART
 	/**
 	 * loop() - Control serial device loopback mode
 	 *
@@ -339,13 +337,6 @@ int serial_setconfig(struct udevice *dev, uint config);
  */
 int serial_getinfo(struct udevice *dev, struct serial_device_info *info);
 
-/**
- * fetch_baud_from_dtb() - Fetch the baudrate value from DT
- *
- * Return: baudrate if OK, -ve on error
- */
-int fetch_baud_from_dtb(void);
-
 void atmel_serial_initialize(void);
 void mcf_serial_initialize(void);
 void mpc85xx_serial_initialize(void);
@@ -371,11 +362,6 @@ void serial_setbrg(void);
 void serial_putc(const char ch);
 void serial_putc_raw(const char ch);
 void serial_puts(const char *str);
-#if defined(CONFIG_CONSOLE_FLUSH_SUPPORT) && CONFIG_IS_ENABLED(DM_SERIAL)
-void serial_flush(void);
-#else
-static inline void serial_flush(void) {}
-#endif
 int serial_getc(void);
 int serial_tstc(void);
 

@@ -3,8 +3,6 @@
  * (C) Copyright 2019 Rockchip Electronics Co., Ltd
  */
 
-#include "rockchip-u-boot.dtsi"
-
 / {
 	aliases {
 		mmc0 = &emmc;
@@ -17,7 +15,7 @@
 	};
 
 	dmc: dmc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		compatible = "rockchip,rk3328-dmc";
 		reg = <0x0 0xff400000 0x0 0x1000
 		       0x0 0xff780000 0x0 0x3000
@@ -27,35 +25,40 @@
 		       0x0 0xff798000 0x0 0x1000>;
 	};
 
-	rng: rng@ff060000 {
-		compatible = "rockchip,cryptov1-rng";
-		reg = <0x0 0xff060000 0x0 0x4000>;
-		status = "okay";
+	usb_host0_xhci: usb@ff600000 {
+		compatible = "rockchip,rk3328-xhci";
+		reg = <0x0 0xff600000 0x0 0x100000>;
+		interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
+		snps,dis-enblslpm-quirk;
+		snps,phyif-utmi-bits = <16>;
+		snps,dis-u2-freeclk-exists-quirk;
+		snps,dis-u2-susphy-quirk;
+		status = "disabled";
 	};
 };
 
 &cru {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &grf {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	clock-frequency = <24000000>;
 };
 
 &emmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	/* mmc to sram can't do dma, prevent aborts transfering TF-A parts */
 	u-boot,spl-fifo-mode;
 };
 
 &sdmmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	/* mmc to sram can't do dma, prevent aborts transfering TF-A parts */
 	u-boot,spl-fifo-mode;
@@ -66,5 +69,5 @@
 };
 
 &spi0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

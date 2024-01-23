@@ -15,19 +15,19 @@
 	};
 
 	ocp {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &i2c0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
 };

@@ -612,7 +612,7 @@ static int b53_phy_startup(struct phy_device *phydev)
 	return 0;
 }
 
-U_BOOT_PHY_DRIVER(b53) = {
+static struct phy_driver b53_driver = {
 	.name = "Broadcom BCM53125",
 	.uid = 0x03625c00,
 	.mask = 0xfffffc00,
@@ -622,6 +622,13 @@ U_BOOT_PHY_DRIVER(b53) = {
 	.startup = b53_phy_startup,
 	.shutdown = &genphy_shutdown,
 };
+
+int phy_b53_init(void)
+{
+	phy_register(&b53_driver);
+
+	return 0;
+}
 
 int do_b53_reg_read(const char *name, int argc, char *const argv[])
 {

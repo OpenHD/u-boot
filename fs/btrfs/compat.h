@@ -46,7 +46,7 @@
 /*
  * Read data from device specified by @desc and @part
  *
- * U-Boot equivalent of pread().
+ * U-boot equivalent of pread().
  *
  * Return the bytes of data read.
  * Return <0 for error.

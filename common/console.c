@@ -7,7 +7,6 @@
 #include <common.h>
 #include <console.h>
 #include <debug_uart.h>
-#include <display_options.h>
 #include <dm.h>
 #include <env.h>
 #include <stdarg.h>
@@ -19,14 +18,11 @@
 #include <stdio_dev.h>
 #include <exports.h>
 #include <env_internal.h>
-#include <video_console.h>
 #include <watchdog.h>
 #include <asm/global_data.h>
 #include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-#define CSI "\x1b["
 
 static int on_console(const char *name, const char *value, enum env_op op,
 	int flags)
@@ -202,7 +198,6 @@ static int console_setfile(int file, struct stdio_dev * dev)
 		case stdout:
 			gd->jt->putc  = putc;
 			gd->jt->puts  = puts;
-			STDIO_DEV_ASSIGN_FLUSH(gd->jt, flush);
 			gd->jt->printf = printf;
 			break;
 		}
@@ -368,19 +363,6 @@ static void console_puts(int file, const char *s)
 	}
 }
 
-#ifdef CONFIG_CONSOLE_FLUSH_SUPPORT
-static void console_flush(int file)
-{
-	int i;
-	struct stdio_dev *dev;
-
-	for_each_console_dev(i, file, dev) {
-		if (dev->flush != NULL)
-			dev->flush(dev);
-	}
-}
-#endif
-
 #if CONFIG_IS_ENABLED(SYS_CONSOLE_IS_IN_ENV)
 static inline void console_doenv(int file, struct stdio_dev *dev)
 {
@@ -429,14 +411,6 @@ static inline void console_puts(int file, const char *s)
 {
 	stdio_devices[file]->puts(stdio_devices[file], s);
 }
-
-#ifdef CONFIG_CONSOLE_FLUSH_SUPPORT
-static inline void console_flush(int file)
-{
-	if (stdio_devices[file]->flush)
-		stdio_devices[file]->flush(stdio_devices[file]);
-}
-#endif
 
 #if CONFIG_IS_ENABLED(SYS_CONSOLE_IS_IN_ENV)
 static inline void console_doenv(int file, struct stdio_dev *dev)
@@ -500,12 +474,12 @@ int serial_printf(const char *fmt, ...)
 
 int fgetc(int file)
 {
-	if ((unsigned int)file < MAX_FILES) {
+	if (file < MAX_FILES) {
 		/*
 		 * Effectively poll for input wherever it may be available.
 		 */
 		for (;;) {
-			schedule();
+			WATCHDOG_RESET();
 			if (CONFIG_IS_ENABLED(CONSOLE_MUX)) {
 				/*
 				 * Upper layer may have already called tstc() so
@@ -533,7 +507,7 @@ int fgetc(int file)
 
 int ftstc(int file)
 {
-	if ((unsigned int)file < MAX_FILES)
+	if (file < MAX_FILES)
 		return console_tstc(file);
 
 	return -1;
@@ -541,23 +515,15 @@ int ftstc(int file)
 
 void fputc(int file, const char c)
 {
-	if ((unsigned int)file < MAX_FILES)
+	if (file < MAX_FILES)
 		console_putc(file, c);
 }
 
 void fputs(int file, const char *s)
 {
-	if ((unsigned int)file < MAX_FILES)
+	if (file < MAX_FILES)
 		console_puts(file, s);
 }
-
-#ifdef CONFIG_CONSOLE_FLUSH_SUPPORT
-void fflush(int file)
-{
-	if ((unsigned int)file < MAX_FILES)
-		console_flush(file);
-}
-#endif
 
 int fprintf(int file, const char *fmt, ...)
 {
@@ -633,9 +599,6 @@ static void pre_console_putc(const char c)
 {
 	char *buffer;
 
-	if (gd->precon_buf_idx < 0)
-		return;
-
 	buffer = map_sysmem(CONFIG_VAL(PRE_CON_BUF_ADDR), CONFIG_VAL(PRE_CON_BUF_SZ));
 
 	buffer[CIRC_BUF_IDX(gd->precon_buf_idx++)] = c;
@@ -645,16 +608,13 @@ static void pre_console_putc(const char c)
 
 static void pre_console_puts(const char *s)
 {
-	if (gd->precon_buf_idx < 0)
-		return;
-
 	while (*s)
 		pre_console_putc(*s++);
 }
 
 static void print_pre_console_buffer(int flushpoint)
 {
-	long in = 0, out = 0;
+	unsigned long in = 0, out = 0;
 	char buf_out[CONFIG_VAL(PRE_CON_BUF_SZ) + 1];
 	char *buf_in;
 
@@ -671,7 +631,6 @@ static void print_pre_console_buffer(int flushpoint)
 
 	buf_out[out] = 0;
 
-	gd->precon_buf_idx = -1;
 	switch (flushpoint) {
 	case PRE_CONSOLE_FLUSHPOINT1_SERIAL:
 		puts(buf_out);
@@ -680,7 +639,6 @@ static void print_pre_console_buffer(int flushpoint)
 		console_puts_select(stdout, false, buf_out);
 		break;
 	}
-	gd->precon_buf_idx = in;
 }
 #else
 static inline void pre_console_putc(const char c) {}
@@ -773,40 +731,6 @@ void puts(const char *s)
 	}
 }
 
-#ifdef CONFIG_CONSOLE_FLUSH_SUPPORT
-void flush(void)
-{
-	if (!gd)
-		return;
-
-	/* sandbox can send characters to stdout before it has a console */
-	if (IS_ENABLED(CONFIG_SANDBOX) && !(gd->flags & GD_FLG_SERIAL_READY)) {
-		os_flush();
-		return;
-	}
-
-	if (IS_ENABLED(CONFIG_DEBUG_UART) && !(gd->flags & GD_FLG_SERIAL_READY))
-		return;
-
-	if (IS_ENABLED(CONFIG_SILENT_CONSOLE) && (gd->flags & GD_FLG_SILENT))
-		return;
-
-	if (IS_ENABLED(CONFIG_DISABLE_CONSOLE) && (gd->flags & GD_FLG_DISABLE_CONSOLE))
-		return;
-
-	if (!gd->have_console)
-		return;
-
-	if (gd->flags & GD_FLG_DEVINIT) {
-		/* Send to the standard output */
-		fflush(stdout);
-	} else {
-		/* Send directly to the handler */
-		serial_flush();
-	}
-}
-#endif
-
 #ifdef CONFIG_CONSOLE_RECORD
 int console_record_init(void)
 {
@@ -820,9 +744,6 @@ int console_record_init(void)
 		return ret;
 	ret = membuff_new((struct membuff *)&gd->console_in,
 			  CONFIG_CONSOLE_RECORD_IN_SIZE);
-
-	/* Start recording from the beginning */
-	gd->flags |= GD_FLG_RECORD;
 
 	return ret;
 }
@@ -848,17 +769,12 @@ int console_record_readline(char *str, int maxlen)
 		return -ENOSPC;
 
 	return membuff_readline((struct membuff *)&gd->console_out, str,
-				maxlen, '\0', false);
+				maxlen, ' ');
 }
 
 int console_record_avail(void)
 {
 	return membuff_avail((struct membuff *)&gd->console_out);
-}
-
-bool console_record_isempty(void)
-{
-	return membuff_isempty((struct membuff *)&gd->console_out);
 }
 
 int console_in_puts(const char *str)
@@ -981,11 +897,6 @@ static bool console_update_silent(void)
 	if (!IS_ENABLED(CONFIG_SILENT_CONSOLE))
 		return false;
 
-	if (IS_ENABLED(CONFIG_SILENT_CONSOLE_UNTIL_ENV) && !(gd->flags & GD_FLG_ENV_READY)) {
-		gd->flags |= GD_FLG_SILENT;
-		return false;
-	}
-
 	if (env_get("silent")) {
 		gd->flags |= GD_FLG_SILENT;
 		return false;
@@ -1021,69 +932,29 @@ int console_init_f(void)
 	return 0;
 }
 
-int console_clear(void)
+void stdio_print_current_devices(void)
 {
-	/*
-	 * Send clear screen and home
-	 *
-	 * FIXME(Heinrich Schuchardt <xypron.glpk@gmx.de>): This should go
-	 * through an API and only be written to serial terminals, not video
-	 * displays
-	 */
-	printf(CSI "2J" CSI "1;1H");
-	if (IS_ENABLED(CONFIG_VIDEO_ANSI))
-		return 0;
-
-	if (IS_ENABLED(CONFIG_VIDEO)) {
-		struct udevice *dev;
-		int ret;
-
-		ret = uclass_first_device_err(UCLASS_VIDEO_CONSOLE, &dev);
-		if (ret)
-			return ret;
-		ret = vidconsole_clear_and_reset(dev);
-		if (ret)
-			return ret;
-	}
-
-	return 0;
-}
-
-static void stdio_print_current_devices(void)
-{
-	char *stdinname, *stdoutname, *stderrname;
-
-	if (CONFIG_IS_ENABLED(CONSOLE_MUX) &&
-	    CONFIG_IS_ENABLED(SYS_CONSOLE_IS_IN_ENV)) {
-		/* stdin stdout and stderr are in environment */
-		stdinname  = env_get("stdin");
-		stdoutname = env_get("stdout");
-		stderrname = env_get("stderr");
-
-		stdinname = stdinname ? : "No input devices available!";
-		stdoutname = stdoutname ? : "No output devices available!";
-		stderrname = stderrname ? : "No error devices available!";
-	} else {
-		stdinname = stdio_devices[stdin] ?
-			stdio_devices[stdin]->name :
-			"No input devices available!";
-		stdoutname = stdio_devices[stdout] ?
-			stdio_devices[stdout]->name :
-			"No output devices available!";
-		stderrname = stdio_devices[stderr] ?
-			stdio_devices[stderr]->name :
-			"No error devices available!";
-	}
-
 	/* Print information */
 	puts("In:    ");
-	printf("%s\n", stdinname);
+	if (stdio_devices[stdin] == NULL) {
+		puts("No input devices available!\n");
+	} else {
+		printf ("%s\n", stdio_devices[stdin]->name);
+	}
 
 	puts("Out:   ");
-	printf("%s\n", stdoutname);
+	if (stdio_devices[stdout] == NULL) {
+		puts("No output devices available!\n");
+	} else {
+		printf ("%s\n", stdio_devices[stdout]->name);
+	}
 
 	puts("Err:   ");
-	printf("%s\n", stderrname);
+	if (stdio_devices[stderr] == NULL) {
+		puts("No error devices available!\n");
+	} else {
+		printf ("%s\n", stdio_devices[stderr]->name);
+	}
 }
 
 #if CONFIG_IS_ENABLED(SYS_CONSOLE_IS_IN_ENV)

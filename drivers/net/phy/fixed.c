@@ -93,7 +93,7 @@ static int fixedphy_shutdown(struct phy_device *phydev)
 	return 0;
 }
 
-U_BOOT_PHY_DRIVER(fixedphy) = {
+static struct phy_driver fixedphy_driver = {
 	.uid		= PHY_FIXED_ID,
 	.mask		= 0xffffffff,
 	.name		= "Fixed PHY",
@@ -103,3 +103,9 @@ U_BOOT_PHY_DRIVER(fixedphy) = {
 	.startup	= fixedphy_startup,
 	.shutdown	= fixedphy_shutdown,
 };
+
+int phy_fixed_init(void)
+{
+	phy_register(&fixedphy_driver);
+	return 0;
+}

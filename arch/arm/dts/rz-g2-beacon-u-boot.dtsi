@@ -9,12 +9,12 @@
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &cpg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &ehci0 {
@@ -26,11 +26,11 @@
 };
 
 &extal_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &extalr_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pfc {
@@ -41,10 +41,11 @@
 };
 
 &prr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rpc {
+	compatible = "renesas,rcar-gen3-rpc";
 	pinctrl-0 = <&qspi_pins>;
 	pinctrl-names = "default";
 	num-cs = <1>;

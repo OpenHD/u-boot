@@ -471,7 +471,7 @@ static ulong ast2600_clk_get_rate(struct clk *clk)
 		rate = ast2600_get_uart_huxclk_rate(priv->scu);
 		break;
 	default:
-		debug("%s: unknown clk %ld\n", __func__, clk->id);
+		debug("can't get clk rate\n");
 		return -ENOENT;
 	}
 
@@ -538,7 +538,7 @@ static uint32_t ast2600_configure_pll(struct ast2600_scu *scu,
 	}
 
 	p_cfg->reg.b.bypass = 0;
-	p_cfg->reg.b.off = 0;
+	p_cfg->reg.b.off = 1;
 	p_cfg->reg.b.reset = 1;
 
 	reg = readl(addr);
@@ -549,6 +549,7 @@ static uint32_t ast2600_configure_pll(struct ast2600_scu *scu,
 	/* write extend parameter */
 	writel(p_cfg->ext_reg, addr_ext);
 	udelay(100);
+	p_cfg->reg.b.off = 0;
 	p_cfg->reg.b.reset = 0;
 	reg &= ~GENMASK(25, 0);
 	reg |= p_cfg->reg.w;
@@ -1072,13 +1073,13 @@ static int ast2600_clk_enable(struct clk *clk)
 	case ASPEED_CLK_GATE_SDCLK:
 		ast2600_enable_sdclk(priv->scu);
 		break;
-	case ASPEED_CLK_SDIO:
+	case ASPEED_CLK_GATE_SDEXTCLK:
 		ast2600_enable_extsdclk(priv->scu);
 		break;
 	case ASPEED_CLK_GATE_EMMCCLK:
 		ast2600_enable_emmcclk(priv->scu);
 		break;
-	case ASPEED_CLK_EMMC:
+	case ASPEED_CLK_GATE_EMMCEXTCLK:
 		ast2600_enable_extemmcclk(priv->scu);
 		break;
 	case ASPEED_CLK_GATE_FSICLK:
@@ -1097,9 +1098,44 @@ static int ast2600_clk_enable(struct clk *clk)
 		ast2600_enable_rsaclk(priv->scu);
 		break;
 	default:
-		debug("%s: unknown clk %ld\n", __func__, clk->id);
+		pr_err("can't enable clk\n");
 		return -ENOENT;
 	}
+
+	return 0;
+}
+
+struct clk_ops ast2600_clk_ops = {
+	.get_rate = ast2600_clk_get_rate,
+	.set_rate = ast2600_clk_set_rate,
+	.enable = ast2600_clk_enable,
+};
+
+static int ast2600_clk_probe(struct udevice *dev)
+{
+	struct ast2600_clk_priv *priv = dev_get_priv(dev);
+
+	priv->scu = devfdt_get_addr_ptr(dev);
+	if (IS_ERR(priv->scu))
+		return PTR_ERR(priv->scu);
+
+	ast2600_init_rgmii_clk(priv->scu, &rgmii_clk_defconfig);
+	ast2600_init_rmii_clk(priv->scu, &rmii_clk_defconfig);
+	ast2600_configure_mac12_clk(priv->scu);
+	ast2600_configure_mac34_clk(priv->scu);
+	ast2600_configure_rsa_ecc_clk(priv->scu);
+
+	return 0;
+}
+
+static int ast2600_clk_bind(struct udevice *dev)
+{
+	int ret;
+
+	/* The reset driver does not have a device node, so bind it here */
+	ret = device_bind_driver(gd->dm_root, "ast_sysreset", "reset", &dev);
+	if (ret)
+		debug("Warning: No reset driver: ret=%d\n", ret);
 
 	return 0;
 }
@@ -1109,7 +1145,6 @@ struct aspeed_clks {
 	const char *name;
 };
 
-#if IS_ENABLED(CONFIG_CMD_CLK)
 static struct aspeed_clks aspeed_clk_names[] = {
 	{ ASPEED_CLK_HPLL, "hpll" },
 	{ ASPEED_CLK_MPLL, "mpll" },
@@ -1124,11 +1159,17 @@ static struct aspeed_clks aspeed_clk_names[] = {
 	{ ASPEED_CLK_HUARTX, "huxclk" },
 };
 
-static void ast2600_clk_dump(struct udevice *dev)
+int soc_clk_dump(void)
 {
+	struct udevice *dev;
 	struct clk clk;
 	unsigned long rate;
 	int i, ret;
+
+	ret = uclass_get_device_by_driver(UCLASS_CLK, DM_DRIVER_GET(aspeed_scu),
+					  &dev);
+	if (ret)
+		return ret;
 
 	printf("Clk\t\tHz\n");
 
@@ -1159,45 +1200,6 @@ static void ast2600_clk_dump(struct udevice *dev)
 		printf("%s(%3lu):\t%lu\n", aspeed_clk_names[i].name,
 		       aspeed_clk_names[i].id, rate);
 	}
-
-	return 0;
-}
-#endif
-
-struct clk_ops ast2600_clk_ops = {
-	.get_rate = ast2600_clk_get_rate,
-	.set_rate = ast2600_clk_set_rate,
-	.enable = ast2600_clk_enable,
-#if IS_ENABLED(CONFIG_CMD_CLK)
-	.dump = ast2600_clk_dump,
-#endif
-};
-
-static int ast2600_clk_probe(struct udevice *dev)
-{
-	struct ast2600_clk_priv *priv = dev_get_priv(dev);
-
-	priv->scu = devfdt_get_addr_ptr(dev);
-	if (IS_ERR(priv->scu))
-		return PTR_ERR(priv->scu);
-
-	ast2600_init_rgmii_clk(priv->scu, &rgmii_clk_defconfig);
-	ast2600_init_rmii_clk(priv->scu, &rmii_clk_defconfig);
-	ast2600_configure_mac12_clk(priv->scu);
-	ast2600_configure_mac34_clk(priv->scu);
-	ast2600_configure_rsa_ecc_clk(priv->scu);
-
-	return 0;
-}
-
-static int ast2600_clk_bind(struct udevice *dev)
-{
-	int ret;
-
-	/* The reset driver does not have a device node, so bind it here */
-	ret = device_bind_driver(gd->dm_root, "ast_sysreset", "reset", &dev);
-	if (ret)
-		debug("Warning: No reset driver: ret=%d\n", ret);
 
 	return 0;
 }

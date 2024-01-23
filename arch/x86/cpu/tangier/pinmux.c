@@ -13,7 +13,6 @@
 #include <asm/cpu.h>
 #include <asm/scu.h>
 #include <linux/io.h>
-#include <linux/printk.h>
 
 #define BUFCFG_OFFSET				0x100
 

@@ -8,6 +8,7 @@
  * MPC8xx Internal Memory Map Functions
  */
 
+#include <common.h>
 #include <command.h>
 #include <asm/global_data.h>
 
@@ -15,7 +16,6 @@
 #include <asm/cpm_8xx.h>
 #include <asm/iopin_8xx.h>
 #include <asm/io.h>
-#include <asm/ppc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 

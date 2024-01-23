@@ -69,7 +69,7 @@ static int dm9161_startup(struct phy_device *phydev)
 	return dm9161_parse_status(phydev);
 }
 
-U_BOOT_PHY_DRIVER(dm9161) = {
+static struct phy_driver DM9161_driver = {
 	.name = "Davicom DM9161E",
 	.uid = 0x181b880,
 	.mask = 0xffffff0,
@@ -78,3 +78,10 @@ U_BOOT_PHY_DRIVER(dm9161) = {
 	.startup = &dm9161_startup,
 	.shutdown = &genphy_shutdown,
 };
+
+int phy_davicom_init(void)
+{
+	phy_register(&DM9161_driver);
+
+	return 0;
+}

@@ -1,4 +1,5 @@
 ROCKPRO64
+M:	Akash Gajjar <akash@openedev.com>
 M:	Jagan Teki <jagan@amarulasolutions.com>
 S:	Maintained
 F:	board/pine64/rockpro64_rk3399

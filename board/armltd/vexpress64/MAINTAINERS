@@ -1,10 +1,9 @@
-VEXPRESS64 PLATFORM
+VEXPRESS64 BOARD
 M:	David Feng <fenghua@phytium.com.cn>
-M:	Linus Walleij <linus.walleij@linaro.org>
-M:	Peter Hoyes <Peter.Hoyes@arm.com>
 S:	Maintained
 F:	board/armltd/vexpress64/
-F:	include/configs/vexpress_aemv8.h
+F:	include/configs/vexpress_aemv8a.h
+F:	configs/vexpress_aemv8a_defconfig
 
 VEXPRESS_AEMV8A_SEMI BOARD
 M:	Linus Walleij <linus.walleij@linaro.org>

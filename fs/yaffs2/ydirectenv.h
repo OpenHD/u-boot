@@ -20,6 +20,7 @@
 #ifndef __YDIRECTENV_H__
 #define __YDIRECTENV_H__
 
+#include <common.h>
 #include <malloc.h>
 #include <linux/compat.h>
 

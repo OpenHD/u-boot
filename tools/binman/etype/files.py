@@ -11,7 +11,7 @@ import os
 
 from binman.etype.section import Entry_section
 from dtoc import fdt_util
-from u_boot_pylib import tools
+from patman import tools
 
 # This is imported if needed
 state = None

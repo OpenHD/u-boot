@@ -119,7 +119,6 @@ static u32 pta_scp03_invoke_func(struct udevice *dev, u32 func, uint num_params,
 {
 	u32 res;
 	static bool enabled;
-	static bool provisioned;
 
 	switch (func) {
 	case PTA_CMD_ENABLE_SCP03:
@@ -131,18 +130,12 @@ static u32 pta_scp03_invoke_func(struct udevice *dev, u32 func, uint num_params,
 		if (res)
 			return res;
 
-		/* If SCP03 was not enabled, enable it */
-		if (!enabled)
+		if (!enabled) {
 			enabled = true;
+		} else {
+		}
 
-		/* If SCP03 was not provisioned, provision new keys */
-		if (params[0].u.value.a && !provisioned)
-			provisioned = true;
-
-		/*
-		 * Either way, we asume both operations succeeded and that
-		 * the communication channel has now been stablished
-		 */
+		if (params[0].u.value.a)
 
 		return TEE_SUCCESS;
 	default:

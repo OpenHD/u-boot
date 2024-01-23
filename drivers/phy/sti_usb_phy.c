@@ -18,7 +18,6 @@
 #include <reset-uclass.h>
 #include <syscon.h>
 #include <wait_bit.h>
-#include <linux/printk.h>
 
 #include <linux/bitops.h>
 #include <linux/compat.h>

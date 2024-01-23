@@ -14,34 +14,34 @@
 	};
 
 	fs_loader0: fs-loader {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		compatible = "u-boot,fs-loader";
 		phandlepart = <&mmc 1>;
 	};
 };
 
 &fpga_mgr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	altr,bitstream = "fit_spl_fpga.itb";
 };
 
 &mmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 /* Clock available early */
 &main_sdmmc_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &peri_sdmmc_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc_free_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc_clk {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

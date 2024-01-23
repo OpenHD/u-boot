@@ -5,11 +5,23 @@
 
 #define LOG_CATEGORY	LOGC_BOOT
 
-#include <errno.h>
+#include <common.h>
 #include <smbios.h>
-#include <string.h>
-#include <tables_csum.h>
-#include <linux/kernel.h>
+
+static inline int verify_checksum(const struct smbios_entry *e)
+{
+	/*
+	 * Checksums for SMBIOS tables are calculated to have a value, so that
+	 * the sum over all bytes yields zero (using unsigned 8 bit arithmetic).
+	 */
+	u8 *byte = (u8 *)e;
+	u8 sum = 0;
+
+	for (int i = 0; i < e->length; i++)
+		sum += byte[i];
+
+	return sum;
+}
 
 const struct smbios_entry *smbios_entry(u64 address, u32 size)
 {
@@ -21,7 +33,7 @@ const struct smbios_entry *smbios_entry(u64 address, u32 size)
 	if (memcmp(entry->anchor, "_SM_", 4))
 		return NULL;
 
-	if (table_compute_checksum(entry, entry->length))
+	if (verify_checksum(entry))
 		return NULL;
 
 	return entry;
@@ -39,7 +51,14 @@ static u8 *find_next_header(u8 *pos)
 	return pos;
 }
 
-static struct smbios_header *get_next_header(const struct smbios_header *curr)
+static struct smbios_header *get_next_header(struct smbios_header *curr)
+{
+	u8 *pos = ((u8 *)curr) + curr->length;
+
+	return (struct smbios_header *)find_next_header(pos);
+}
+
+static const struct smbios_header *next_header(const struct smbios_header *curr)
 {
 	u8 *pos = ((u8 *)curr) + curr->length;
 
@@ -55,7 +74,7 @@ const struct smbios_header *smbios_header(const struct smbios_entry *entry, int 
 		if (header->type == type)
 			return header;
 
-		header = get_next_header(header);
+		header = next_header(header);
 	}
 
 	return NULL;

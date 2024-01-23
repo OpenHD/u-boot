@@ -7,7 +7,7 @@
 #include <dt-bindings/memory/stm32-sdram.h>
 /{
 	clocks {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	aliases {
@@ -27,7 +27,10 @@
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
+		pin-controller {
+			u-boot,dm-pre-reloc;
+		};
 
 		fmc: fmc@A0000000 {
 			compatible = "st,stm32-fmc";
@@ -37,7 +40,7 @@
 			pinctrl-0 = <&fmc_pins_d32>;
 			pinctrl-names = "default";
 			st,mem_remap = <4>;
-			bootph-all;
+			u-boot,dm-pre-reloc;
 
 			/*
 			 * Memory configuration from sdram
@@ -79,79 +82,64 @@
 };
 
 &clk_hse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_i2s_ckin {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_lse {
-	bootph-all;
-};
-
-&dsi {
-	clocks = <&rcc 0 STM32F4_APB2_CLOCK(DSI)>,
-		 <&rcc 0 STM32F4_APB2_CLOCK(LTDC)>,
-		 <&clk_hse>;
-	clock-names = "pclk", "px_clk", "ref";
+	u-boot,dm-pre-reloc;
 };
 
 &gpioa {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiob {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiod {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioe {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiof {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiog {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioh {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioj {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiok {
-	bootph-all;
-};
-
-&ltdc {
-	bootph-all;
-
-	clocks = <&rcc 0 STM32F4_APB2_CLOCK(LTDC)>;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
-
 	fmc_pins_d32: fmc_d32@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pins
 		{
 			pinmux = <STM32_PINMUX('I',10, AF12)>, /* D31 */
@@ -216,7 +204,7 @@
 				 <STM32_PINMUX('H', 2, AF12)>, /* SDCKE0 */
 				 <STM32_PINMUX('G', 8, AF12)>; /* SDCLK> */
 			slew-rate = <2>;
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 
@@ -233,18 +221,18 @@
 	};
 
 	usart3_pins_a: usart3-0	{
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		pins1 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 		pins2 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 		};
 	};
 };
 
 &pwrcfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &qspi {
@@ -261,13 +249,13 @@
 };
 
 &rcc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &syscfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
-&timers5 {
-	bootph-all;
+&timer5 {
+	u-boot,dm-pre-reloc;
 };

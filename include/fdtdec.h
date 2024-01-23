@@ -18,18 +18,15 @@
 #include <pci.h>
 
 /*
- * Support for 64bit fdt addresses.
- * This can be used not only for 64bit SoCs, but also
- * for large address extensions on 32bit SoCs.
- * Note that fdt data is always big
+ * A typedef for a physical address. Note that fdt data is always big
  * endian even on a litle endian machine.
  */
+typedef phys_addr_t fdt_addr_t;
+typedef phys_size_t fdt_size_t;
 
 #define FDT_SIZE_T_NONE (-1U)
 
-#ifdef CONFIG_FDT_64BIT
-typedef u64 fdt_addr_t;
-typedef u64 fdt_size_t;
+#ifdef CONFIG_PHYS_64BIT
 #define FDT_ADDR_T_NONE ((ulong)(-1))
 
 #define fdt_addr_to_cpu(reg) be64_to_cpu(reg)
@@ -38,8 +35,6 @@ typedef u64 fdt_size_t;
 #define cpu_to_fdt_size(reg) cpu_to_be64(reg)
 typedef fdt64_t fdt_val_t;
 #else
-typedef u32 fdt_addr_t;
-typedef u32 fdt_size_t;
 #define FDT_ADDR_T_NONE (-1U)
 
 #define fdt_addr_to_cpu(reg) be32_to_cpu(reg)
@@ -72,7 +67,7 @@ struct bd_info;
  *	U-Boot is packaged as an ELF file, e.g. for debugging purposes
  * @FDTSRC_ENV: Provided by the fdtcontroladdr environment variable. This should
  *	be used for debugging/development only
- * @FDTSRC_BLOBLIST: Provided by a bloblist from an earlier phase
+ * @FDTSRC_NONE: No devicetree at all
  */
 enum fdt_source_t {
 	FDTSRC_SEPARATE,
@@ -80,7 +75,6 @@ enum fdt_source_t {
 	FDTSRC_BOARD,
 	FDTSRC_EMBED,
 	FDTSRC_ENV,
-	FDTSRC_BLOBLIST,
 };
 
 /*
@@ -193,6 +187,7 @@ enum fdt_compat_id {
 	COMPAT_INTEL_BAYTRAIL_FSP,	/* Intel Bay Trail FSP */
 	COMPAT_INTEL_BAYTRAIL_FSP_MDP,	/* Intel FSP memory-down params */
 	COMPAT_INTEL_IVYBRIDGE_FSP,	/* Intel Ivy Bridge FSP */
+	COMPAT_SUNXI_NAND,		/* SUNXI NAND controller */
 	COMPAT_ALTERA_SOCFPGA_CLK,	/* SoCFPGA Clock initialization */
 	COMPAT_ALTERA_SOCFPGA_PINCTRL_SINGLE,	/* SoCFPGA pinctrl-single */
 	COMPAT_ALTERA_SOCFPGA_H2F_BRG,          /* SoCFPGA hps2fpga bridge */
@@ -558,6 +553,15 @@ uint64_t fdtdec_get_uint64(const void *blob, int node, const char *prop_name,
  * Return: integer value 0 (not enabled) or 1 (enabled)
  */
 int fdtdec_get_is_enabled(const void *blob, int node);
+
+/**
+ * Make sure we have a valid fdt available to control U-Boot.
+ *
+ * If not, a message is printed to the console if the console is ready.
+ *
+ * Return: 0 if all ok, -1 if not
+ */
+int fdtdec_prepare_fdt(void);
 
 /**
  * Checks that we have a valid fdt available to control U-Boot.
@@ -1191,8 +1195,7 @@ int fdtdec_resetup(int *rescan);
  *
  * The existing devicetree is available at gd->fdt_blob
  *
- * @err: 0 on success, -EEXIST if the devicetree is already correct, or other
- * internal error code if we fail to setup a DTB
+ * @err internal error code if we fail to setup a DTB
  * @returns new devicetree blob pointer
  */
 void *board_fdt_blob_setup(int *err);

@@ -50,9 +50,9 @@ static struct dwc3_device dwc3_device_data = {
 	.index = 0,
 };
 
-int dm_usb_gadget_handle_interrupts(struct udevice *dev)
+int usb_gadget_handle_interrupts(int index)
 {
-	dwc3_uboot_handle_interrupt(dev);
+	dwc3_uboot_handle_interrupt(index);
 	return 0;
 }
 

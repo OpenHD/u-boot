@@ -2,7 +2,7 @@
 /*
  * Copyright 2015 - 2016 Xilinx, Inc.
  *
- * Michal Simek <michal.simek@amd.com>
+ * Michal Simek <michal.simek@xilinx.com>
  */
 
 #include <common.h>

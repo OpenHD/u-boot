@@ -17,7 +17,6 @@
 #include <asm/global_data.h>
 #include <asm/mach-imx/boot_mode.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/sections.h>
 #include <dm.h>
 
 DECLARE_GLOBAL_DATA_PTR;

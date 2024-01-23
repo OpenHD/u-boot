@@ -7,45 +7,45 @@
 
 / {
 	ocp {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &l4_wkup {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &scm {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &am33xx_pinmux {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0_pins {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
 };
 
 &emmc_pins {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc1_pins {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &mmc3 {

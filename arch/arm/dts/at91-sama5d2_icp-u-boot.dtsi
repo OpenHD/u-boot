@@ -9,39 +9,39 @@
 
 / {
 	chosen {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &pinctrl_mikrobus1_uart {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl_qspi1_sck_cs_default {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl_qspi1_dat_default {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl_sdmmc0_default {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &qspi1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	flash@0 {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &sdmmc0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 { /* mikrobus1 uart */
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 

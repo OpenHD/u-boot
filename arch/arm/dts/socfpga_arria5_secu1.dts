@@ -97,7 +97,7 @@
 	vmmc-supply = <&regulator_3_3v>;
 	vqmmc-supply = <&regulator_3_3v>;
 	bus-width = <4>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &nand0 {
@@ -122,7 +122,7 @@
 
 &uart0 {
 	clock-frequency = <100000000>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
@@ -131,6 +131,6 @@
 };
 
 &watchdog0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };

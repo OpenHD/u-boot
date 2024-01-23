@@ -111,17 +111,20 @@ DECLARE_GLOBAL_DATA_PTR;
 #define MTD_WRITEABLE_CMD		1
 
 /* default values for mtdids and mtdparts variables */
+#if !defined(MTDIDS_DEFAULT)
 #ifdef CONFIG_MTDIDS_DEFAULT
 #define MTDIDS_DEFAULT CONFIG_MTDIDS_DEFAULT
 #else
 #define MTDIDS_DEFAULT NULL
 #endif
+#endif
+#if !defined(MTDPARTS_DEFAULT)
 #ifdef CONFIG_MTDPARTS_DEFAULT
 #define MTDPARTS_DEFAULT CONFIG_MTDPARTS_DEFAULT
 #else
 #define MTDPARTS_DEFAULT NULL
 #endif
-
+#endif
 #if defined(CONFIG_SYS_MTDPARTS_RUNTIME)
 extern void board_mtdparts_default(const char **mtdids, const char **mtdparts);
 #endif
@@ -2079,7 +2082,8 @@ U_BOOT_CMD(
 	"    - change active partition (e.g. part-id = nand0,1) of a MTD device"
 );
 
-U_BOOT_LONGHELP(mtdparts,
+#ifdef CONFIG_SYS_LONGHELP
+static char mtdparts_help_text[] =
 	"\n"
 	"    - list partition table\n"
 	"mtdparts delall\n"
@@ -2121,7 +2125,8 @@ U_BOOT_LONGHELP(mtdparts,
 	"<size>     := standard linux memsize OR '-' to denote all remaining space\n"
 	"<offset>   := partition start offset within the device\n"
 	"<name>     := '(' NAME ')'\n"
-	"<ro-flag>  := when set to 'ro' makes partition read-only (not used, passed to kernel)");
+	"<ro-flag>  := when set to 'ro' makes partition read-only (not used, passed to kernel)";
+#endif
 
 U_BOOT_CMD(
 	mtdparts,	6,	0,	do_mtdparts,

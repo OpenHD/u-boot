@@ -10,7 +10,6 @@
 #include <regmap.h>
 #include <syscon.h>
 #include <linux/bitops.h>
-#include <linux/printk.h>
 
 struct clk_boston {
 	struct regmap *regmap;

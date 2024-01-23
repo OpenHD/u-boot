@@ -19,12 +19,12 @@
 };
 
 &mmc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
 	clock-frequency = <100000000>;
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart1 {

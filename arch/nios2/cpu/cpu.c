@@ -35,17 +35,11 @@ int checkboard(void)
 }
 #endif
 
-void reset_cpu(void)
+int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
 	disable_interrupts();
 	/* indirect call to go beyond 256MB limitation of toolchain */
 	nios2_callr(gd->arch.reset_addr);
-}
-
-int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
-{
-	reset_cpu();
-
 	return 0;
 }
 
@@ -70,7 +64,7 @@ static void copy_exception_trampoline(void)
 }
 #endif
 
-static int nios_cpu_setup(void)
+static int nios_cpu_setup(void *ctx, struct event *event)
 {
 	struct udevice *dev;
 	int ret;
@@ -79,14 +73,14 @@ static int nios_cpu_setup(void)
 	if (ret)
 		return ret;
 
-	gd->ram_size = CFG_SYS_SDRAM_SIZE;
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 #ifndef CONFIG_ROM_STUBS
 	copy_exception_trampoline();
 #endif
 
 	return 0;
 }
-EVENT_SPY_SIMPLE(EVT_DM_POST_INIT_F, nios_cpu_setup);
+EVENT_SPY(EVT_DM_POST_INIT, nios_cpu_setup);
 
 static int altera_nios2_get_desc(const struct udevice *dev, char *buf,
 				 int size)

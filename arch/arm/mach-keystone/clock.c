@@ -6,6 +6,7 @@
  *     Texas Instruments Incorporated, <www.ti.com>
  */
 
+#include <common.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/clock_defs.h>
 #include <linux/bitops.h>

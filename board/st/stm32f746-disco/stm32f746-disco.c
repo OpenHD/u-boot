@@ -7,6 +7,7 @@
 #include <common.h>
 #include <dm.h>
 #include <init.h>
+#include <lcd.h>
 #include <log.h>
 #include <miiphy.h>
 #include <phy_interface.h>
@@ -14,6 +15,7 @@
 #include <serial.h>
 #include <spl.h>
 #include <splash.h>
+#include <st_logo_data.h>
 #include <video.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
@@ -132,6 +134,11 @@ int board_init(void)
 		printf("Unsupported PHY interface!\n");
 	}
 #endif
+
+#if defined(CONFIG_CMD_BMP)
+	bmp_display((ulong)stmicroelectronics_uboot_logo_8bit_rle,
+		    BMP_ALIGN_CENTER, BMP_ALIGN_CENTER);
+#endif /* CONFIG_CMD_BMP */
 
 	return 0;
 }

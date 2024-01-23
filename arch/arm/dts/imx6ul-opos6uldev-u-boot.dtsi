@@ -14,21 +14,21 @@
 };
 
 &aips1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 
 	spba-bus@02000000 {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };
 
 &lcdif {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 &pinctrl_uart1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &uart1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

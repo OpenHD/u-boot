@@ -2,7 +2,7 @@
 /*
  * Texas Instruments' AM654 DDRSS driver
  *
- * Copyright (C) 2018 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
  *	Lokesh Vutla <lokeshvutla@ti.com>
  */
 
@@ -13,13 +13,10 @@
 #include <ram.h>
 #include <asm/io.h>
 #include <power-domain.h>
+#include <asm/arch/sys_proto.h>
 #include <dm/device_compat.h>
 #include <power/regulator.h>
 #include "k3-am654-ddrss.h"
-
-void sdelay(unsigned long loops);
-u32 wait_on_value(u32 read_bit_mask, u32 match_value, void *read_addr,
-		  u32 bound);
 
 #define LDELAY 10000
 
@@ -903,7 +900,7 @@ static int am654_ddrss_power_on(struct am654_ddrss_desc *ddrss)
 static int am654_ddrss_ofdata_to_priv(struct udevice *dev)
 {
 	struct am654_ddrss_desc *ddrss = dev_get_priv(dev);
-	void *reg;
+	phys_addr_t reg;
 	int ret;
 
 	debug("%s(dev=%p)\n", __func__, dev);
@@ -926,26 +923,26 @@ static int am654_ddrss_ofdata_to_priv(struct udevice *dev)
 		return ret;
 	}
 
-	reg = dev_read_addr_name_ptr(dev, "ss");
-	if (!reg) {
+	reg = devfdt_get_addr_name(dev, "ss");
+	if (reg == FDT_ADDR_T_NONE) {
 		dev_err(dev, "No reg property for DDRSS wrapper logic\n");
 		return -EINVAL;
 	}
-	ddrss->ddrss_ss_cfg = reg;
+	ddrss->ddrss_ss_cfg = (void *)reg;
 
-	reg = dev_read_addr_name_ptr(dev, "ctl");
-	if (!reg) {
+	reg = devfdt_get_addr_name(dev, "ctl");
+	if (reg == FDT_ADDR_T_NONE) {
 		dev_err(dev, "No reg property for Controller region\n");
 		return -EINVAL;
 	}
-	ddrss->ddrss_ctl_cfg = reg;
+	ddrss->ddrss_ctl_cfg = (void *)reg;
 
-	reg = dev_read_addr_name_ptr(dev, "phy");
-	if (!reg) {
+	reg = devfdt_get_addr_name(dev, "phy");
+	if (reg == FDT_ADDR_T_NONE) {
 		dev_err(dev, "No reg property for PHY region\n");
 		return -EINVAL;
 	}
-	ddrss->ddrss_phy_cfg = reg;
+	ddrss->ddrss_phy_cfg = (void *)reg;
 
 	ret = dev_read_u32_array(dev, "ti,ss-reg",
 			         (u32 *)&ddrss->params.ss_reg,

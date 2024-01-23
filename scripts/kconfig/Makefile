@@ -93,16 +93,13 @@ endif
 endif
 
 %_defconfig: $(obj)/conf
-	$(Q)$(CPP) -nostdinc -I $(srctree) -undef -x assembler-with-cpp $(srctree)/arch/$(SRCARCH)/configs/$@ -o generated_defconfig
-	$(Q)$< $(silent) --defconfig=generated_defconfig $(Kconfig)
+	$(Q)$< $(silent) --defconfig=arch/$(SRCARCH)/configs/$@ $(Kconfig)
 
 # Added for U-Boot (backward compatibility)
 %_config: %_defconfig
 	@:
 
-configfiles=$(wildcard $(srctree)/kernel/configs/$@ \
-		$(srctree)/arch/$(SRCARCH)/configs/$@ \
-		$(shell find $(srctree)/board -name "$@"))
+configfiles=$(wildcard $(srctree)/kernel/configs/$@ $(srctree)/arch/$(SRCARCH)/configs/$@)
 
 %.config: $(obj)/conf
 	$(if $(call configfiles),, $(error No configuration exists for this target on this architecture))

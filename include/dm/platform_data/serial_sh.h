@@ -17,7 +17,6 @@ enum sh_serial_type {
 	PORT_SCIF,
 	PORT_SCIFA,
 	PORT_SCIFB,
-	PORT_HSCIF,
 };
 
 /*

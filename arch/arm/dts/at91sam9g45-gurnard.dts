@@ -32,10 +32,10 @@
 	};
 
 	ahb {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		fb@0x00500000 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 			status = "okay";
 			display-timings {
 				rev1 {

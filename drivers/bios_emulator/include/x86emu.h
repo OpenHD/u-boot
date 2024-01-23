@@ -42,6 +42,7 @@
 #define __X86EMU_X86EMU_H
 
 #include <asm/types.h>
+#include <common.h>
 #include <pci.h>
 #include <asm/io.h>
 #define X86API

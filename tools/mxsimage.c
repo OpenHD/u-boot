@@ -5,7 +5,7 @@
  * Copyright (C) 2012-2013 Marek Vasut <marex@denx.de>
  */
 
-#ifdef CFG_MXS
+#ifdef CONFIG_MXS
 
 #include <errno.h>
 #include <fcntl.h>
@@ -2239,7 +2239,7 @@ static int mxsimage_verify_header(unsigned char *ptr, int image_size,
 	return mxsimage_verify_print_header(params->imagefile, 1);
 }
 
-static void mxsimage_print_header(const void *hdr, struct image_tool_params *params)
+static void mxsimage_print_header(const void *hdr)
 {
 	if (imagefile)
 		mxsimage_verify_print_header(imagefile, 0);

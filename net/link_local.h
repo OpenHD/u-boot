@@ -10,12 +10,15 @@
  * Licensed under the GPL v2 or later
  */
 
+#if defined(CONFIG_CMD_LINK_LOCAL)
+
 #ifndef __LINK_LOCAL_H__
 #define __LINK_LOCAL_H__
 
-struct arp_hdr;
+#include <common.h>
 
 void link_local_receive_arp(struct arp_hdr *arp, int len);
 void link_local_start(void);
 
 #endif /* __LINK_LOCAL_H__ */
+#endif

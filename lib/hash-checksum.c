@@ -4,6 +4,7 @@
  */
 
 #ifndef USE_HOSTCC
+#include <common.h>
 #include <fdtdec.h>
 #include <asm/byteorder.h>
 #include <linux/errno.h>
@@ -22,10 +23,8 @@ int hash_calculate(const char *name,
 	struct hash_algo *algo;
 	int ret = 0;
 	void *ctx;
-	int i;
-
-	if (region_count < 1)
-		return -EINVAL;
+	uint32_t i;
+	i = 0;
 
 	ret = hash_progressive_lookup_algo(name, &algo);
 	if (ret)

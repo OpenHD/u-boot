@@ -10,6 +10,7 @@
  * - January is month 1.
  */
 
+#include <common.h>
 #include <rtc.h>
 #include <linux/math64.h>
 

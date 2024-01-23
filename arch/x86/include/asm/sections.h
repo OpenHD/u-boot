@@ -8,6 +8,4 @@
 
 #include <asm-generic/sections.h>
 
-extern char __data_end[];
-
 #endif

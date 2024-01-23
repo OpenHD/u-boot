@@ -11,8 +11,10 @@
 #define PHYS_SDRAM_1_SIZE		0x40000000	/* 1GiB on VINING_FPGA */
 
 /* Booting Linux */
+#define CONFIG_SYS_BOOTM_LEN	0x2000000	/* 32 MiB */
 
 /* Extra Environment */
+#define CONFIG_HOSTNAME			"socfpga_vining_fpga"
 
 /*
  * Active LOW GPIO buttons:
@@ -27,7 +29,7 @@
  *                            Linux system after 5 seconds
  */
 
-#define CFG_EXTRA_ENV_SETTINGS \
+#define CONFIG_EXTRA_ENV_SETTINGS \
 	"verify=n\0" \
 	"consdev=ttyS0\0"						\
 	"baudrate=115200\0"						\

@@ -6,39 +6,39 @@
 #include "imx6qdl-u-boot.dtsi"
 
 &gpio3 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpio6 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_uart2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &uart2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_usdhc1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &ecspi1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &pinctrl_ecspi1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &m25p80 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &gpmi {

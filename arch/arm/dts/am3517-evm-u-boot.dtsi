@@ -18,37 +18,37 @@
 };
 
 &gpio1 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &gpio2 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &gpio3 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &gpio5 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &gpio6 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &mmc2 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &mmc3 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &uart1 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };
 
 &uart2 {
-	/delete-property/ bootph-pre-ram;
+	/delete-property/ u-boot,dm-spl;
 };

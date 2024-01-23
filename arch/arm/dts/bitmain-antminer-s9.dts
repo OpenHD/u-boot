@@ -52,11 +52,6 @@
 
 &nfc0 {
 	status = "okay";
-	#address-cells = <1>;
-	#size-cells = <0>;
-	nand@0 {
-		reg = <0>;
-	};
 };
 
 &smcc {
@@ -75,13 +70,13 @@
 };
 
 &sdhci0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 	disable-wp;
 };
 
 &uart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 

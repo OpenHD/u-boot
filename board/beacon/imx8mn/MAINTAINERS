@@ -5,4 +5,3 @@ F:	board/beacon/imx8mn/
 F:	include/configs/imx8mn_beacon.h
 F:	configs/imx8mn_beacon_defconfig
 F:	configs/imx8mn_beacon_2g_defconfig
-F:	configs/imx8mn_beacon_fspi_defconfig

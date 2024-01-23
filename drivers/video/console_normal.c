@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2015 Google, Inc
- * (C) Copyright 2015
+ * (C) Copyright 2001-2015
+ * DENX Software Engineering -- wd@denx.de
+ * Compulab Ltd - http://compulab.co.il/
  * Bernecker & Rainer Industrieelektronik GmbH - http://www.br-automation.com
- * (C) Copyright 2023 Dzmitry Sankouski <dsankouski@gmail.com>
  */
 
 #include <common.h>
@@ -11,30 +12,47 @@
 #include <video.h>
 #include <video_console.h>
 #include <video_font.h>		/* Get font data, width and height */
-#include "vidconsole_internal.h"
 
-static int console_set_row(struct udevice *dev, uint row, int clr)
+static int console_normal_set_row(struct udevice *dev, uint row, int clr)
 {
 	struct video_priv *vid_priv = dev_get_uclass_priv(dev->parent);
-	struct console_simple_priv *priv = dev_get_priv(dev);
-	struct video_fontdata *fontdata = priv->fontdata;
-	void *line, *dst, *end;
-	int pixels = fontdata->height * vid_priv->xsize;
+	void *line, *end;
+	int pixels = VIDEO_FONT_HEIGHT * vid_priv->xsize;
 	int ret;
 	int i;
-	int pbytes;
 
-	ret = check_bpix_support(vid_priv->bpix);
-	if (ret)
-		return ret;
+	line = vid_priv->fb + row * VIDEO_FONT_HEIGHT * vid_priv->line_length;
+	switch (vid_priv->bpix) {
+	case VIDEO_BPP8:
+		if (IS_ENABLED(CONFIG_VIDEO_BPP8)) {
+			uint8_t *dst = line;
 
-	line = vid_priv->fb + row * fontdata->height * vid_priv->line_length;
-	dst = line;
-	pbytes = VNBYTES(vid_priv->bpix);
-	for (i = 0; i < pixels; i++)
-		fill_pixel_and_goto_next(&dst, clr, pbytes, pbytes);
-	end = dst;
+			for (i = 0; i < pixels; i++)
+				*dst++ = clr;
+			end = dst;
+			break;
+		}
+	case VIDEO_BPP16:
+		if (IS_ENABLED(CONFIG_VIDEO_BPP16)) {
+			uint16_t *dst = line;
 
+			for (i = 0; i < pixels; i++)
+				*dst++ = clr;
+			end = dst;
+			break;
+		}
+	case VIDEO_BPP32:
+		if (IS_ENABLED(CONFIG_VIDEO_BPP32)) {
+			uint32_t *dst = line;
+
+			for (i = 0; i < pixels; i++)
+				*dst++ = clr;
+			end = dst;
+			break;
+		}
+	default:
+		return -ENOSYS;
+	}
 	ret = vidconsole_sync_copy(dev, line, end);
 	if (ret)
 		return ret;
@@ -42,20 +60,18 @@ static int console_set_row(struct udevice *dev, uint row, int clr)
 	return 0;
 }
 
-static int console_move_rows(struct udevice *dev, uint rowdst,
-			     uint rowsrc, uint count)
+static int console_normal_move_rows(struct udevice *dev, uint rowdst,
+				     uint rowsrc, uint count)
 {
 	struct video_priv *vid_priv = dev_get_uclass_priv(dev->parent);
-	struct console_simple_priv *priv = dev_get_priv(dev);
-	struct video_fontdata *fontdata = priv->fontdata;
 	void *dst;
 	void *src;
 	int size;
 	int ret;
 
-	dst = vid_priv->fb + rowdst * fontdata->height * vid_priv->line_length;
-	src = vid_priv->fb + rowsrc * fontdata->height * vid_priv->line_length;
-	size = fontdata->height * vid_priv->line_length * count;
+	dst = vid_priv->fb + rowdst * VIDEO_FONT_HEIGHT * vid_priv->line_length;
+	src = vid_priv->fb + rowsrc * VIDEO_FONT_HEIGHT * vid_priv->line_length;
+	size = VIDEO_FONT_HEIGHT * vid_priv->line_length * count;
 	ret = vidconsole_memmove(dev, dst, src, size);
 	if (ret)
 		return ret;
@@ -63,82 +79,100 @@ static int console_move_rows(struct udevice *dev, uint rowdst,
 	return 0;
 }
 
-static int console_putc_xy(struct udevice *dev, uint x_frac, uint y, char ch)
+static int console_normal_putc_xy(struct udevice *dev, uint x_frac, uint y,
+				  char ch)
 {
 	struct vidconsole_priv *vc_priv = dev_get_uclass_priv(dev);
 	struct udevice *vid = dev->parent;
 	struct video_priv *vid_priv = dev_get_uclass_priv(vid);
-	struct console_simple_priv *priv = dev_get_priv(dev);
-	struct video_fontdata *fontdata = priv->fontdata;
-	int pbytes = VNBYTES(vid_priv->bpix);
-	int x, linenum, ret;
-	void *start, *line;
-	uchar *pfont = fontdata->video_fontdata +
-			(u8)ch * fontdata->char_pixel_bytes;
+	int i, row;
+	void *start;
+	void *line;
+	int ret;
 
-	if (x_frac + VID_TO_POS(vc_priv->x_charsize) > vc_priv->xsize_frac)
-		return -EAGAIN;
-	linenum = y;
-	x = VID_TO_PIXEL(x_frac);
-	start = vid_priv->fb + linenum * vid_priv->line_length + x * pbytes;
+	start = vid_priv->fb + y * vid_priv->line_length +
+		VID_TO_PIXEL(x_frac) * VNBYTES(vid_priv->bpix);
 	line = start;
 
 	if (x_frac + VID_TO_POS(vc_priv->x_charsize) > vc_priv->xsize_frac)
 		return -EAGAIN;
 
-	ret = fill_char_vertically(pfont, &line, vid_priv, fontdata, NORMAL_DIRECTION);
-	if (ret)
-		return ret;
+	for (row = 0; row < VIDEO_FONT_HEIGHT; row++) {
+		unsigned int idx = (u8)ch * VIDEO_FONT_HEIGHT + row;
+		uchar bits = video_fontdata[idx];
 
+		switch (vid_priv->bpix) {
+		case VIDEO_BPP8:
+			if (IS_ENABLED(CONFIG_VIDEO_BPP8)) {
+				uint8_t *dst = line;
+
+				for (i = 0; i < VIDEO_FONT_WIDTH; i++) {
+					*dst++ = (bits & 0x80) ?
+						vid_priv->colour_fg :
+						vid_priv->colour_bg;
+					bits <<= 1;
+				}
+				break;
+			}
+		case VIDEO_BPP16:
+			if (IS_ENABLED(CONFIG_VIDEO_BPP16)) {
+				uint16_t *dst = line;
+
+				for (i = 0; i < VIDEO_FONT_WIDTH; i++) {
+					*dst++ = (bits & 0x80) ?
+						vid_priv->colour_fg :
+						vid_priv->colour_bg;
+					bits <<= 1;
+				}
+				break;
+			}
+		case VIDEO_BPP32:
+			if (IS_ENABLED(CONFIG_VIDEO_BPP32)) {
+				uint32_t *dst = line;
+
+				for (i = 0; i < VIDEO_FONT_WIDTH; i++) {
+					*dst++ = (bits & 0x80) ?
+						vid_priv->colour_fg :
+						vid_priv->colour_bg;
+					bits <<= 1;
+				}
+				break;
+			}
+		default:
+			return -ENOSYS;
+		}
+		line += vid_priv->line_length;
+	}
 	ret = vidconsole_sync_copy(dev, start, line);
 	if (ret)
 		return ret;
 
-	return VID_TO_POS(fontdata->width);
+	return VID_TO_POS(VIDEO_FONT_WIDTH);
 }
 
-static int console_set_cursor_visible(struct udevice *dev, bool visible,
-				      uint x, uint y, uint index)
+static int console_normal_probe(struct udevice *dev)
 {
 	struct vidconsole_priv *vc_priv = dev_get_uclass_priv(dev);
-	struct udevice *vid = dev->parent;
-	struct video_priv *vid_priv = dev_get_uclass_priv(vid);
-	struct console_simple_priv *priv = dev_get_priv(dev);
-	struct video_fontdata *fontdata = priv->fontdata;
-	int pbytes = VNBYTES(vid_priv->bpix);
-	void *start, *line;
+	struct udevice *vid_dev = dev->parent;
+	struct video_priv *vid_priv = dev_get_uclass_priv(vid_dev);
 
-	/* for now, this is not used outside expo */
-	if (!IS_ENABLED(CONFIG_EXPO))
-		return -ENOSYS;
-
-	x += index * fontdata->width;
-	start = vid_priv->fb + y * vid_priv->line_length + x * pbytes;
-
-	/* place the cursor 1 pixel before the start of the next char */
-	x -= 1;
-
-	line = start;
-	draw_cursor_vertically(&line, vid_priv, vc_priv->y_charsize,
-			       NORMAL_DIRECTION);
+	vc_priv->x_charsize = VIDEO_FONT_WIDTH;
+	vc_priv->y_charsize = VIDEO_FONT_HEIGHT;
+	vc_priv->cols = vid_priv->xsize / VIDEO_FONT_WIDTH;
+	vc_priv->rows = vid_priv->ysize / VIDEO_FONT_HEIGHT;
 
 	return 0;
 }
 
-struct vidconsole_ops console_ops = {
-	.putc_xy	= console_putc_xy,
-	.move_rows	= console_move_rows,
-	.set_row	= console_set_row,
-	.get_font_size	= console_simple_get_font_size,
-	.get_font	= console_simple_get_font,
-	.select_font	= console_simple_select_font,
-	.set_cursor_visible	= console_set_cursor_visible,
+struct vidconsole_ops console_normal_ops = {
+	.putc_xy	= console_normal_putc_xy,
+	.move_rows	= console_normal_move_rows,
+	.set_row	= console_normal_set_row,
 };
 
 U_BOOT_DRIVER(vidconsole_normal) = {
-	.name		= "vidconsole0",
-	.id		= UCLASS_VIDEO_CONSOLE,
-	.ops		= &console_ops,
-	.probe		= console_probe,
-	.priv_auto	= sizeof(struct console_simple_priv),
+	.name	= "vidconsole0",
+	.id	= UCLASS_VIDEO_CONSOLE,
+	.ops	= &console_normal_ops,
+	.probe	= console_normal_probe,
 };

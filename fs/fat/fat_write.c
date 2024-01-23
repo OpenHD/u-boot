@@ -5,8 +5,6 @@
  * R/W (V)FAT 12/16/32 filesystem implementation by Donggeun Kim
  */
 
-#define LOG_CATEGORY LOGC_FS
-
 #include <common.h>
 #include <command.h>
 #include <config.h>
@@ -132,17 +130,15 @@ static int set_name(fat_itr *itr, const char *filename, char *shortname)
 		return period_location;
 	if (*dirent.name == ' ')
 		*dirent.name = '_';
-	/* Substitute character 0xe5 signaling deletetion by character 0x05 */
-	if (*dirent.name == DELETED_FLAG)
-		*dirent.name = aRING;
+	/* 0xe5 signals a deleted directory entry. Replace it by 0x05. */
+	if (*dirent.name == 0xe5)
+		*dirent.name = 0x05;
 
 	/* If filename and short name are the same, quit. */
 	sprintf(buf, "%.*s.%.3s", period_location, dirent.name, dirent.ext);
 	if (!strcmp(buf, filename)) {
 		ret = 1;
 		goto out;
-	} else if (!strcasecmp(buf, filename)) {
-		goto out_ret;
 	}
 
 	/* Construct an indexed short name */
@@ -179,13 +175,12 @@ static int set_name(fat_itr *itr, const char *filename, char *shortname)
 		if (find_directory_entry(itr, buf))
 			continue;
 
-		goto out_ret;
+		debug("chosen short name: %s\n", buf);
+		/* Each long name directory entry takes 13 characters. */
+		ret = (strlen(filename) + 25) / 13;
+		goto out;
 	}
 	return -EIO;
-out_ret:
-	debug("chosen short name: %s\n", buf);
-	/* Each long name directory entry takes 13 characters. */
-	ret = (strlen(filename) + 25) / 13;
 out:
 	memcpy(shortname, &dirent, SHORT_NAME_SIZE);
 	return ret;
@@ -690,8 +685,8 @@ get_set_cluster(fsdata *mydata, __u32 clustnum, loff_t pos, __u8 *buffer,
 	static u8 *tmpbuf_cluster;
 	unsigned int bytesperclust = mydata->clust_size * mydata->sect_size;
 	__u32 startsect;
-	loff_t clustcount, wsize;
-	int i, ret;
+	loff_t wsize;
+	int clustcount, i, ret;
 
 	*gotsize = 0;
 	if (!size)
@@ -1571,9 +1566,8 @@ int fat_unlink(const char *filename)
 	char *filename_copy, *dirname, *basename;
 
 	filename_copy = strdup(filename);
-	itr = malloc_cache_aligned(sizeof(fat_itr));
-	if (!itr || !filename_copy) {
-		printf("Error: out of memory\n");
+	if (!filename_copy) {
+		printf("Error: allocating memory\n");
 		ret = -ENOMEM;
 		goto exit;
 	}
@@ -1582,6 +1576,13 @@ int fat_unlink(const char *filename)
 	if (!strcmp(dirname, "/") && !strcmp(basename, "")) {
 		printf("Error: cannot remove root\n");
 		ret = -EINVAL;
+		goto exit;
+	}
+
+	itr = malloc_cache_aligned(sizeof(fat_itr));
+	if (!itr) {
+		printf("Error: allocating memory\n");
+		ret = -ENOMEM;
 		goto exit;
 	}
 
@@ -1599,7 +1600,7 @@ int fat_unlink(const char *filename)
 	}
 
 	if (!find_directory_entry(itr, basename)) {
-		log_err("%s: doesn't exist (%d)\n", basename, -ENOENT);
+		printf("%s: doesn't exist\n", basename);
 		ret = -ENOENT;
 		goto exit;
 	}

@@ -266,10 +266,6 @@ int interrupt_init(void)
 	struct udevice *dev;
 	int ret;
 
-	/*
-	 * When running as an EFI application we are not in control of
-	 * interrupts and should leave them alone.
-	 */
 	if (!ll_boot_init())
 		return 0;
 
@@ -278,6 +274,11 @@ int interrupt_init(void)
 	if (ret && ret != -ENODEV)
 		return ret;
 
+	/*
+	 * When running as an EFI application we are not in control of
+	 * interrupts and should leave them alone.
+	 */
+#ifndef CONFIG_EFI_APP
 	/* Just in case... */
 	disable_interrupts();
 
@@ -293,8 +294,14 @@ int interrupt_init(void)
 	/* Initialize core interrupt and exception functionality of CPU */
 	cpu_init_interrupts();
 
-	/* It is now safe to enable interrupts */
+	/*
+	 * It is now safe to enable interrupts.
+	 *
+	 * TODO(sjg@chromium.org): But we don't handle these correctly when
+	 * booted from EFI.
+	 */
 	enable_interrupts();
+#endif
 
 	return 0;
 }

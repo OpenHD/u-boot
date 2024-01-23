@@ -11,7 +11,6 @@
 #include <clk.h>
 #include <config.h>
 #include <dm.h>
-#include <efi_loader.h>
 #include <env.h>
 #include <env_internal.h>
 #include <fdt_simplefb.h>
@@ -25,6 +24,7 @@
 #include <log.h>
 #include <malloc.h>
 #include <misc.h>
+#include <mtd_node.h>
 #include <net.h>
 #include <netdev.h>
 #include <phy.h>
@@ -44,7 +44,6 @@
 #include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/iopoll.h>
-#include <linux/printk.h>
 #include <power/regulator.h>
 #include <usb/dwc2_udc.h>
 
@@ -83,20 +82,15 @@
 #define SYSCFG_PMCSETR_ETH_SEL_RGMII	BIT(21)
 #define SYSCFG_PMCSETR_ETH_SEL_RMII	BIT(23)
 
+/*
+ * Get a global data pointer
+ */
+DECLARE_GLOBAL_DATA_PTR;
+
 #define USB_LOW_THRESHOLD_UV		200000
 #define USB_WARNING_LOW_THRESHOLD_UV	660000
 #define USB_START_LOW_THRESHOLD_UV	1230000
 #define USB_START_HIGH_THRESHOLD_UV	2150000
-
-#if IS_ENABLED(CONFIG_EFI_HAVE_CAPSULE_SUPPORT)
-struct efi_fw_image fw_images[1];
-
-struct efi_capsule_update_info update_info = {
-	.num_images = ARRAY_SIZE(fw_images),
-	.images = fw_images,
-};
-
-#endif /* EFI_HAVE_CAPSULE_SUPPORT */
 
 int board_early_init_f(void)
 {
@@ -122,14 +116,14 @@ int checkboard(void)
 		mode = "basic";
 	}
 
-	fdt_compat = ofnode_get_property(ofnode_root(), "compatible",
-					 &fdt_compat_len);
+	fdt_compat = fdt_getprop(gd->fdt_blob, 0, "compatible",
+				 &fdt_compat_len);
 
 	log_info("Board: stm32mp1 in %s mode (%s)\n", mode,
 		 fdt_compat && fdt_compat_len ? fdt_compat : "");
 
 	/* display the STMicroelectronics board identification */
-	if (IS_ENABLED(CONFIG_CMD_STBOARD)) {
+	if (CONFIG_IS_ENABLED(CMD_STBOARD)) {
 		ret = uclass_get_device_by_driver(UCLASS_MISC,
 						  DM_DRIVER_GET(stm32mp_bsec),
 						  &dev);
@@ -300,7 +294,7 @@ static void __maybe_unused led_error_blink(u32 nb_blink)
 			for (i = 0; i < 2 * nb_blink; i++) {
 				led_set_state(led, LEDST_TOGGLE);
 				mdelay(125);
-				schedule();
+				WATCHDOG_RESET();
 			}
 			led_set_state(led, LEDST_ON);
 		}
@@ -505,7 +499,7 @@ static void sysconf_init(void)
 	ret = uclass_get_device_by_driver(UCLASS_PMIC,
 					  DM_DRIVER_GET(stm32mp_pwr_pmic),
 					  &pwr_dev);
-	if (!ret) {
+	if (!ret && IS_ENABLED(CONFIG_DM_REGULATOR)) {
 		ret = uclass_get_device_by_driver(UCLASS_MISC,
 						  DM_DRIVER_GET(stm32mp_bsec),
 						  &dev);
@@ -560,13 +554,16 @@ static void sysconf_init(void)
 	clrbits_le32(syscfg + SYSCFG_CMPCR, SYSCFG_CMPCR_SW_CTRL);
 }
 
-static int board_stm32mp15x_dk2_init(void)
+/* Fix to make I2C1 usable on DK2 for touchscreen usage in kernel */
+static int dk2_i2c1_fix(void)
 {
 	ofnode node;
 	struct gpio_desc hdmi, audio;
 	int ret = 0;
 
-	/* Fix to make I2C1 usable on DK2 for touchscreen usage in kernel */
+	if (!IS_ENABLED(CONFIG_DM_REGULATOR))
+		return -ENODEV;
+
 	node = ofnode_path("/soc/i2c@40012000/hdmi-transmitter@39");
 	if (!ofnode_valid(node)) {
 		log_debug("no hdmi-transmitter@39 ?\n");
@@ -614,7 +611,7 @@ error:
 	return ret;
 }
 
-static bool board_is_stm32mp15x_dk2(void)
+static bool board_is_dk2(void)
 {
 	if (CONFIG_IS_ENABLED(TARGET_ST_STM32MP15x) &&
 	    of_machine_is_compatible("st,stm32mp157c-dk2"))
@@ -623,7 +620,7 @@ static bool board_is_stm32mp15x_dk2(void)
 	return false;
 }
 
-static bool board_is_stm32mp15x_ev1(void)
+static bool board_is_ev1(void)
 {
 	if (CONFIG_IS_ENABLED(TARGET_ST_STM32MP15x) &&
 	    (of_machine_is_compatible("st,stm32mp157a-ev1") ||
@@ -647,7 +644,7 @@ U_BOOT_DRIVER(goodix) = {
 	.of_match	= goodix_ids,
 };
 
-static void board_stm32mp15x_ev1_init(void)
+static void board_ev1_init(void)
 {
 	struct udevice *dev;
 
@@ -660,13 +657,14 @@ int board_init(void)
 {
 	board_key_check();
 
-	if (board_is_stm32mp15x_ev1())
-		board_stm32mp15x_ev1_init();
+	if (board_is_ev1())
+		board_ev1_init();
 
-	if (board_is_stm32mp15x_dk2())
-		board_stm32mp15x_dk2_init();
+	if (board_is_dk2())
+		dk2_i2c1_fix();
 
-	regulators_enable_boot_on(_DEBUG);
+	if (IS_ENABLED(CONFIG_DM_REGULATOR))
+		regulators_enable_boot_on(_DEBUG);
 
 	/*
 	 * sysconf initialisation done only when U-Boot is running in secure
@@ -677,13 +675,6 @@ int board_init(void)
 
 	setup_led(LEDST_ON);
 
-#if IS_ENABLED(CONFIG_EFI_HAVE_CAPSULE_SUPPORT)
-	efi_guid_t image_type_guid = STM32MP_FIP_IMAGE_GUID;
-
-	guidcpy(&fw_images[0].image_type_id, &image_type_guid);
-	fw_images[0].fw_name = u"STM32MP-FIP";
-	fw_images[0].image_index = 1;
-#endif
 	return 0;
 }
 
@@ -699,8 +690,8 @@ int board_late_init(void)
 	int buf_len;
 
 	if (IS_ENABLED(CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG)) {
-		fdt_compat = ofnode_get_property(ofnode_root(), "compatible",
-						 &fdt_compat_len);
+		fdt_compat = fdt_getprop(gd->fdt_blob, 0, "compatible",
+					 &fdt_compat_len);
 		if (fdt_compat && fdt_compat_len) {
 			if (strncmp(fdt_compat, "st,", 3) != 0) {
 				env_set("board_name", fdt_compat);
@@ -831,7 +822,7 @@ enum env_location env_get_location(enum env_operation op, int prio)
 
 	case BOOT_FLASH_NAND:
 	case BOOT_FLASH_SPINAND:
-		if (IS_ENABLED(CONFIG_ENV_IS_IN_UBI))
+		if (CONFIG_IS_ENABLED(ENV_IS_IN_UBI))
 			return ENVL_UBI;
 		else
 			return ENVL_NOWHERE;
@@ -872,7 +863,7 @@ int mmc_get_boot(void)
 		STM32_SDMMC3_BASE
 	};
 
-	if (instance >= ARRAY_SIZE(sdmmc_addr))
+	if (instance > ARRAY_SIZE(sdmmc_addr))
 		return 0;
 
 	/* search associated sdmmc node in devicetree */
@@ -915,9 +906,22 @@ int mmc_get_env_dev(void)
 #if defined(CONFIG_OF_BOARD_SETUP)
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
-	fdt_copy_fixed_partitions(blob);
+	static const struct node_info nodes[] = {
+		{ "st,stm32f469-qspi",		MTD_DEV_TYPE_NOR,  },
+		{ "st,stm32f469-qspi",		MTD_DEV_TYPE_SPINAND},
+		{ "st,stm32mp15-fmc2",		MTD_DEV_TYPE_NAND, },
+		{ "st,stm32mp1-fmc2-nfc",	MTD_DEV_TYPE_NAND, },
+	};
+	char *boot_device;
 
-	if (IS_ENABLED(CONFIG_FDT_SIMPLEFB))
+	/* Check the boot-source and don't update MTD for serial or usb boot */
+	boot_device = env_get("boot_device");
+	if (!boot_device ||
+	    (strcmp(boot_device, "serial") && strcmp(boot_device, "usb")))
+		if (IS_ENABLED(CONFIG_FDT_FIXUP_PARTITIONS))
+			fdt_fixup_mtdparts(blob, nodes, ARRAY_SIZE(nodes));
+
+	if (CONFIG_IS_ENABLED(FDT_SIMPLEFB))
 		fdt_simplefb_enable_and_mem_rsv(blob);
 
 	return 0;
@@ -944,24 +948,3 @@ static void board_copro_image_process(ulong fw_image, size_t fw_size)
 }
 
 U_BOOT_FIT_LOADABLE_HANDLER(IH_TYPE_COPRO, board_copro_image_process);
-
-#if defined(CONFIG_FWU_MULTI_BANK_UPDATE)
-
-#include <fwu.h>
-
-/**
- * fwu_plat_get_bootidx() - Get the value of the boot index
- * @boot_idx: Boot index value
- *
- * Get the value of the bank(partition) from which the platform
- * has booted. This value is passed to U-Boot from the earlier
- * stage bootloader which loads and boots all the relevant
- * firmware images
- *
- */
-void fwu_plat_get_bootidx(uint *boot_idx)
-{
-	*boot_idx = (readl(TAMP_FWU_BOOT_INFO_REG) >>
-		    TAMP_FWU_BOOT_IDX_OFFSET) & TAMP_FWU_BOOT_IDX_MASK;
-}
-#endif /* CONFIG_FWU_MULTI_BANK_UPDATE */

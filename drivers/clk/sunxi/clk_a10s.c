@@ -20,7 +20,6 @@ static struct ccu_clk_gate a10s_gates[] = {
 	[CLK_AHB_MMC0]		= GATE(0x060, BIT(8)),
 	[CLK_AHB_MMC1]		= GATE(0x060, BIT(9)),
 	[CLK_AHB_MMC2]		= GATE(0x060, BIT(10)),
-	[CLK_AHB_NAND]		= GATE(0x060, BIT(13)),
 	[CLK_AHB_EMAC]		= GATE(0x060, BIT(17)),
 	[CLK_AHB_SPI0]		= GATE(0x060, BIT(20)),
 	[CLK_AHB_SPI1]		= GATE(0x060, BIT(21)),
@@ -36,7 +35,6 @@ static struct ccu_clk_gate a10s_gates[] = {
 	[CLK_APB1_UART2]	= GATE(0x06c, BIT(18)),
 	[CLK_APB1_UART3]	= GATE(0x06c, BIT(19)),
 
-	[CLK_NAND]		= GATE(0x080, BIT(31)),
 	[CLK_SPI0]		= GATE(0x0a0, BIT(31)),
 	[CLK_SPI1]		= GATE(0x0a4, BIT(31)),
 	[CLK_SPI2]		= GATE(0x0a8, BIT(31)),
@@ -51,9 +49,30 @@ static struct ccu_reset a10s_resets[] = {
 	[RST_USB_PHY1]		= RESET(0x0cc, BIT(1)),
 };
 
-const struct ccu_desc a10s_ccu_desc = {
+static const struct ccu_desc a10s_ccu_desc = {
 	.gates = a10s_gates,
 	.resets = a10s_resets,
-	.num_gates = ARRAY_SIZE(a10s_gates),
-	.num_resets = ARRAY_SIZE(a10s_resets),
+};
+
+static int a10s_clk_bind(struct udevice *dev)
+{
+	return sunxi_reset_bind(dev, ARRAY_SIZE(a10s_resets));
+}
+
+static const struct udevice_id a10s_ccu_ids[] = {
+	{ .compatible = "allwinner,sun5i-a10s-ccu",
+	  .data = (ulong)&a10s_ccu_desc },
+	{ .compatible = "allwinner,sun5i-a13-ccu",
+	  .data = (ulong)&a10s_ccu_desc },
+	{ }
+};
+
+U_BOOT_DRIVER(clk_sun5i_a10s) = {
+	.name		= "sun5i_a10s_ccu",
+	.id		= UCLASS_CLK,
+	.of_match	= a10s_ccu_ids,
+	.priv_auto	= sizeof(struct ccu_priv),
+	.ops		= &sunxi_clk_ops,
+	.probe		= sunxi_clk_probe,
+	.bind		= a10s_clk_bind,
 };

@@ -3,6 +3,7 @@
  * Copyright (C) 2018, Bin Meng <bmeng.cn@gmail.com>
  */
 
+#include <common.h>
 #include <fdtdec.h>
 #include <init.h>
 #include <linux/sizes.h>
@@ -19,7 +20,7 @@ int dram_init_banksize(void)
 	return fdtdec_setup_memory_banksize();
 }
 
-phys_addr_t board_get_usable_ram_top(phys_size_t total_size)
+ulong board_get_usable_ram_top(ulong total_size)
 {
 #ifdef CONFIG_64BIT
 	/*

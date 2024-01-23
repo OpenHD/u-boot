@@ -6,6 +6,7 @@
 #ifndef _TEGRA_XUSB_PADCTL_COMMON_H_
 #define _TEGRA_XUSB_PADCTL_COMMON_H_
 
+#include <common.h>
 #include <fdtdec.h>
 #include <dm/ofnode.h>
 

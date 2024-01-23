@@ -6,6 +6,11 @@
 #ifndef __ASM_MICROBLAZE_PROCESSOR_H
 #define __ASM_MICROBLAZE_PROCESSOR_H
 
+/* References to section boundaries */
+
+extern char _end[];
+extern char __text_start[];
+
 /* Microblaze board initialization function */
 void board_init(void);
 

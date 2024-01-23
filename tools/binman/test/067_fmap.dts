@@ -11,7 +11,6 @@
 			name-prefix = "ro-";
 			size = <0x10>;
 			pad-byte = <0x21>;
-			preserve;
 
 			u-boot {
 			};

@@ -241,7 +241,6 @@ static inline bool mmc_is_tuning_cmd(uint cmdidx)
 #define EXT_CSD_HC_WP_GRP_SIZE		221	/* RO */
 #define EXT_CSD_HC_ERASE_GRP_SIZE	224	/* RO */
 #define EXT_CSD_BOOT_MULT		226	/* RO */
-#define EXT_CSD_SEC_FEATURE		231	/* RO */
 #define EXT_CSD_GENERIC_CMD6_TIME       248     /* RO */
 #define EXT_CSD_BKOPS_SUPPORT		502	/* RO */
 
@@ -309,14 +308,8 @@ static inline bool mmc_is_tuning_cmd(uint cmdidx)
 
 #define EXT_CSD_HS_CTRL_REL	(1 << 0)	/* host controlled WR_REL_SET */
 
-#define EXT_CSD_BOOT_WP_B_SEC_WP_SEL	(0x80)	/* enable partition selector */
-#define EXT_CSD_BOOT_WP_B_PWR_WP_SEC_SEL (0x02)	/* partition selector to protect */
-#define EXT_CSD_BOOT_WP_B_PWR_WP_EN	(0x01)	/* power-on write-protect */
-
 #define EXT_CSD_WR_DATA_REL_USR		(1 << 0)	/* user data area WR_REL */
 #define EXT_CSD_WR_DATA_REL_GP(x)	(1 << ((x)+1))	/* GP part (x+1) WR_REL */
-
-#define EXT_CSD_SEC_FEATURE_TRIM_EN	(1 << 4) /* Support secure & insecure trim */
 
 #define R1_ILLEGAL_COMMAND		(1 << 22)
 #define R1_APP_CMD			(1 << 5)
@@ -558,8 +551,6 @@ int mmc_deferred_probe(struct mmc *mmc);
 int mmc_reinit(struct mmc *mmc);
 int mmc_get_b_max(struct mmc *mmc, void *dst, lbaint_t blkcnt);
 int mmc_hs400_prepare_ddr(struct mmc *mmc);
-int mmc_send_stop_transmission(struct mmc *mmc, bool write);
-
 #else
 struct mmc_ops {
 	int (*send_cmd)(struct mmc *mmc,
@@ -692,7 +683,6 @@ struct mmc {
 	uint tran_speed;
 	uint legacy_speed; /* speed for the legacy mode provided by the card */
 	uint read_bl_len;
-	bool can_trim;
 #if CONFIG_IS_ENABLED(MMC_WRITE)
 	uint write_bl_len;
 	uint erase_grp_size;	/* in 512-byte sectors */
@@ -773,7 +763,7 @@ struct mmc *mmc_create(const struct mmc_config *cfg, void *priv);
 /**
  * mmc_bind() - Set up a new MMC device ready for probing
  *
- * A child block device is bound with the UCLASS_MMC interface type. This
+ * A child block device is bound with the IF_TYPE_MMC interface type. This
  * allows the device to be used with CONFIG_BLK
  *
  * @dev:	MMC device to set up
@@ -898,17 +888,9 @@ int mmc_rpmb_write(struct mmc *mmc, void *addr, unsigned short blk,
 int mmc_rpmb_route_frames(struct mmc *mmc, void *req, unsigned long reqlen,
 			  void *rsp, unsigned long rsplen);
 
-/**
- * mmc_set_bkops_enable() - enable background operations
- * @param mmc		Pointer to a MMC device struct
- * @param autobkops	Enable automatic bkops, not manual bkops
- * @param enable	Enable bkops, not disable
- *
- * Enable or disable automatic or manual background operation of the eMMC.
- *
- * Return: 0 on success, <0 on error.
- */
-int mmc_set_bkops_enable(struct mmc *mmc, bool autobkops, bool enable);
+#ifdef CONFIG_CMD_BKOPS_ENABLE
+int mmc_set_bkops_enable(struct mmc *mmc);
+#endif
 
 /**
  * Start device initialization and return immediately; it does not block on
@@ -966,6 +948,11 @@ int mmc_get_env_dev(void);
 /* Minimum partition switch timeout in units of 10-milliseconds */
 #define MMC_MIN_PART_SWITCH_TIME	30 /* 300 ms */
 
+/* Set block count limit because of 16 bit register limit on some hardware*/
+#ifndef CONFIG_SYS_MMC_MAX_BLK_COUNT
+#define CONFIG_SYS_MMC_MAX_BLK_COUNT 65535
+#endif
+
 /**
  * mmc_get_blk_desc() - Get the block descriptor for an MMC device
  *
@@ -1003,18 +990,6 @@ int mmc_send_ext_csd(struct mmc *mmc, u8 *ext_csd);
  * Return:	0 for success
  */
 int mmc_boot_wp(struct mmc *mmc);
-
-/**
- * mmc_boot_wp_single_partition() - set write protection to a boot partition.
- *
- * This function sets a single boot partition to protect and leave the
- * other partition writable.
- *
- * @param mmc the mmc device.
- * @param partition 0 - first boot partition, 1 - second boot partition.
- * @return 0 for success
- */
-int mmc_boot_wp_single_partition(struct mmc *mmc, int partition);
 
 static inline enum dma_data_direction mmc_get_dma_dir(struct mmc_data *data)
 {

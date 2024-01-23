@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (C) 2018 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
  */
 
 /{
@@ -27,41 +27,41 @@
 };
 
 &dwc3_1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usb1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usb2_phy1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &am43xx_control_usb2phy1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &ocp2scp0 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &dwc3_2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usb2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &usb2_phy2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &am43xx_control_usb2phy2 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };
 
 &ocp2scp1 {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 };

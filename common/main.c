@@ -9,12 +9,10 @@
 #include <common.h>
 #include <autoboot.h>
 #include <bootstage.h>
-#include <bootstd.h>
 #include <cli.h>
 #include <command.h>
 #include <console.h>
 #include <env.h>
-#include <fdtdec.h>
 #include <init.h>
 #include <net.h>
 #include <version_string.h>
@@ -68,16 +66,6 @@ void main_loop(void)
 
 	autoboot_command(s);
 
-	/* if standard boot if enabled, assume that it will be able to boot */
-	if (IS_ENABLED(CONFIG_BOOTSTD_PROG)) {
-		int ret;
-
-		ret = bootstd_prog_boot();
-		printf("Standard boot failed (err=%dE)\n", ret);
-		panic("Failed to boot");
-	}
-
 	cli_loop();
-
 	panic("No CLI available");
 }

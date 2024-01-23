@@ -68,6 +68,6 @@
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };

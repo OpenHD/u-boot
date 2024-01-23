@@ -3,7 +3,7 @@
  * Copyright (C) 2015, Bin Meng <bmeng.cn@gmail.com>
  */
 
-#define LOG_CATEGORY LOGC_ACPI
+#define LOG_CATEGORY LOGC_BOARD
 
 #include <common.h>
 #include <bloblist.h>
@@ -16,7 +16,6 @@
 #include <asm/mpspec.h>
 #include <asm/tables.h>
 #include <asm/coreboot_tables.h>
-#include <linux/log2.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -55,14 +54,10 @@ static struct table_info table_list[] = {
 #ifdef CONFIG_GENERATE_MP_TABLE
 	{ "mp", write_mp_table, },
 #endif
-	/*
-	 * tables which can go in the bloblist must be last in this list, so
-	 * that the calculation of gd->table_end works properly
-	 */
 #ifdef CONFIG_GENERATE_ACPI_TABLE
 	{ "acpi", write_acpi_tables, BLOBLISTT_ACPI_TABLES, 0x10000, 0x1000},
 #endif
-#if defined(CONFIG_GENERATE_SMBIOS_TABLE) && !defined(CONFIG_QFW_SMBIOS)
+#ifdef CONFIG_GENERATE_SMBIOS_TABLE
 	{ "smbios", write_smbios_table, BLOBLISTT_SMBIOS_TABLES, 0x1000, 0x100},
 #endif
 };
@@ -83,45 +78,33 @@ void table_fill_string(char *dest, const char *src, size_t n, char pad)
 
 int write_tables(void)
 {
+	u32 rom_table_start;
+	u32 rom_table_end;
 	u32 high_table, table_size;
 	struct memory_area cfg_tables[ARRAY_SIZE(table_list) + 1];
-	bool use_high = false;
-	u32 rom_addr;
 	int i;
 
-	gd->arch.table_start = ROM_TABLE_ADDR;
-	rom_addr = gd->arch.table_start;
+	rom_table_start = ROM_TABLE_ADDR;
 
-	debug("Writing tables to %x:\n", rom_addr);
+	debug("Writing tables to %x:\n", rom_table_start);
 	for (i = 0; i < ARRAY_SIZE(table_list); i++) {
 		const struct table_info *table = &table_list[i];
 		int size = table->size ? : CONFIG_ROM_TABLE_SIZE;
-		u32 rom_table_end;
-
-		if (!strcmp("smbios", table->name))
-			gd->arch.smbios_start = rom_addr;
 
 		if (IS_ENABLED(CONFIG_BLOBLIST_TABLES) && table->tag) {
-			if (!gd->arch.table_end)
-				gd->arch.table_end = rom_addr;
-			rom_addr = (ulong)bloblist_add(table->tag, size,
-						       ilog2(table->align));
-			if (!rom_addr)
+			rom_table_start = (ulong)bloblist_add(table->tag, size,
+							      table->align);
+			if (!rom_table_start)
 				return log_msg_ret("bloblist", -ENOBUFS);
-
-			/* the bloblist is always in high memory */
-			use_high = true;
-			if (!gd->arch.table_start_high)
-				gd->arch.table_start_high = rom_addr;
 		}
-		rom_table_end = table->write(rom_addr);
+		rom_table_end = table->write(rom_table_start);
 		if (!rom_table_end) {
 			log_err("Can't create configuration table %d\n", i);
 			return -EINTR;
 		}
 
 		if (IS_ENABLED(CONFIG_SEABIOS)) {
-			table_size = rom_table_end - rom_addr;
+			table_size = rom_table_end - rom_table_start;
 			high_table = (u32)(ulong)high_table_malloc(table_size);
 			if (high_table) {
 				if (!table->write(high_table)) {
@@ -140,19 +123,14 @@ int write_tables(void)
 		}
 
 		debug("- wrote '%s' to %x, end %x\n", table->name,
-		      rom_addr, rom_table_end);
-		if (rom_table_end - rom_addr > size) {
+		      rom_table_start, rom_table_end);
+		if (rom_table_end - rom_table_start > size) {
 			log_err("Out of space for configuration tables: need %x, have %x\n",
-				rom_table_end - rom_addr, size);
+				rom_table_end - rom_table_start, size);
 			return log_msg_ret("bloblist", -ENOSPC);
 		}
-		rom_addr = rom_table_end;
+		rom_table_start = rom_table_end;
 	}
-
-	if (use_high)
-		gd->arch.table_end_high = rom_addr;
-	else
-		gd->arch.table_end = rom_addr;
 
 	if (IS_ENABLED(CONFIG_SEABIOS)) {
 		/* make sure the last item is zero */

@@ -25,7 +25,6 @@ struct ofnode_phandle_args;
  * @set_parent: Set current clock parent
  * @enable: Enable a clock.
  * @disable: Disable a clock.
- * @dump: Print clock information.
  *
  * The individual methods are described more fully below.
  */
@@ -40,9 +39,6 @@ struct clk_ops {
 	int (*set_parent)(struct clk *clk, struct clk *parent);
 	int (*enable)(struct clk *clk);
 	int (*disable)(struct clk *clk);
-#if IS_ENABLED(CONFIG_CMD_CLK)
-	void (*dump)(struct udevice *dev);
-#endif
 };
 
 #if 0 /* For documentation only */
@@ -68,7 +64,7 @@ int of_xlate(struct clk *clock, struct ofnode_phandle_args *args);
 
 /**
  * request() - Request a translated clock.
- * @clock:	The clock struct to request; this has been filled in by
+ * @clock:	The clock struct to request; this has been fille in by
  *		a previoux xxx_xlate() function call, or by the caller
  *		of clk_request().
  *
@@ -139,15 +135,6 @@ int enable(struct clk *clk);
  * Return: zero on success, or -ve error code.
  */
 int disable(struct clk *clk);
-
-/**
- * dump() - Print clock information.
- * @dev:	The clock device to dump.
- *
- * If present, this function is called by "clk dump" command for each
- * bound device.
- */
-void dump(struct udevice *dev);
 #endif
 
 #endif

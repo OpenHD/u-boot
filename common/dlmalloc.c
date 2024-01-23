@@ -8,13 +8,13 @@
  * as file malloc-2.6.6.c.
  */
 
-#if CONFIG_IS_ENABLED(UNIT_TEST)
-#define DEBUG
-#endif
-
 #include <common.h>
 #include <log.h>
 #include <asm/global_data.h>
+
+#if CONFIG_IS_ENABLED(UNIT_TEST)
+#define DEBUG
+#endif
 
 #include <malloc.h>
 #include <asm/io.h>
@@ -80,7 +80,7 @@ GmListElement* makeGmListElement (void* bas)
 	return this;
 }
 
-void gcleanup (void)
+void gcleanup ()
 {
 	BOOL rval;
 	assert ( (head == NULL) || (head->base == (void*)gAddressBase));
@@ -575,6 +575,19 @@ static mbinptr av_[NAV * 2 + 2] = {
  IAV(120), IAV(121), IAV(122), IAV(123), IAV(124), IAV(125), IAV(126), IAV(127)
 };
 
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+static void malloc_bin_reloc(void)
+{
+	mbinptr *p = &av_[2];
+	size_t i;
+
+	for (i = 2; i < ARRAY_SIZE(av_); ++i, ++p)
+		*p = (mbinptr)((ulong)*p + gd->reloc_off);
+}
+#else
+static inline void malloc_bin_reloc(void) {}
+#endif
+
 #ifdef CONFIG_SYS_MALLOC_DEFAULT_TO_INIT
 static void malloc_init(void);
 #endif
@@ -582,9 +595,6 @@ static void malloc_init(void);
 ulong mem_malloc_start = 0;
 ulong mem_malloc_end = 0;
 ulong mem_malloc_brk = 0;
-
-static bool malloc_testing;	/* enable test mode */
-static int malloc_max_allocs;	/* return NULL after this many calls to malloc() */
 
 void *sbrk(ptrdiff_t increment)
 {
@@ -618,9 +628,10 @@ void mem_malloc_init(ulong start, ulong size)
 
 	debug("using memory %#lx-%#lx for malloc()\n", mem_malloc_start,
 	      mem_malloc_end);
-#if CONFIG_IS_ENABLED(SYS_MALLOC_CLEAR_ON_INIT)
+#ifdef CONFIG_SYS_MALLOC_CLEAR_ON_INIT
 	memset((void *)mem_malloc_start, 0x0, size);
 #endif
+	malloc_bin_reloc();
 }
 
 /* field-extraction macros */
@@ -1291,15 +1302,10 @@ Void_t* mALLOc(bytes) size_t bytes;
 
   INTERNAL_SIZE_T nb;
 
-#if CONFIG_IS_ENABLED(SYS_MALLOC_F)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (!(gd->flags & GD_FLG_FULL_MALLOC_INIT))
 		return malloc_simple(bytes);
 #endif
-
-  if (CONFIG_IS_ENABLED(UNIT_TEST) && malloc_testing) {
-    if (--malloc_max_allocs < 0)
-      return NULL;
-  }
 
   /* check if mem_malloc_init() was run */
   if ((mem_malloc_start == 0) && (mem_malloc_end == 0)) {
@@ -1572,7 +1578,7 @@ void fREe(mem) Void_t* mem;
   mchunkptr fwd;       /* misc temp for linking */
   int       islr;      /* track whether merging with last_remainder */
 
-#if CONFIG_IS_ENABLED(SYS_MALLOC_F)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	/* free() is a no-op - all the memory will be freed on relocation */
 	if (!(gd->flags & GD_FLG_FULL_MALLOC_INIT)) {
 		VALGRIND_FREELIKE_BLOCK(mem, SIZE_SZ);
@@ -1735,7 +1741,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
   /* realloc of null is supposed to be same as malloc */
   if (oldmem == NULL) return mALLOc(bytes);
 
-#if CONFIG_IS_ENABLED(SYS_MALLOC_F)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (!(gd->flags & GD_FLG_FULL_MALLOC_INIT)) {
 		/* This is harder to support and should not be needed */
 		panic("pre-reloc realloc() is not supported");
@@ -1957,7 +1963,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
 
   if ((long)bytes < 0) return NULL;
 
-#if CONFIG_IS_ENABLED(SYS_MALLOC_F)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (!(gd->flags & GD_FLG_FULL_MALLOC_INIT)) {
 		return memalign_simple(alignment, bytes);
 	}
@@ -2139,7 +2145,7 @@ Void_t* cALLOc(n, elem_size) size_t n; size_t elem_size;
 
 
   /* check if expand_top called, in which case don't need to clear */
-#if CONFIG_IS_ENABLED(SYS_MALLOC_CLEAR_ON_INIT)
+#ifdef CONFIG_SYS_MALLOC_CLEAR_ON_INIT
 #if MORECORE_CLEARS
   mchunkptr oldtop = top;
   INTERNAL_SIZE_T oldtopsize = chunksize(top);
@@ -2153,7 +2159,7 @@ Void_t* cALLOc(n, elem_size) size_t n; size_t elem_size;
     return NULL;
   else
   {
-#if CONFIG_IS_ENABLED(SYS_MALLOC_F)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	if (!(gd->flags & GD_FLG_FULL_MALLOC_INIT)) {
 		memset(mem, 0, sz);
 		return mem;
@@ -2170,7 +2176,7 @@ Void_t* cALLOc(n, elem_size) size_t n; size_t elem_size;
 
     csz = chunksize(p);
 
-#if CONFIG_IS_ENABLED(SYS_MALLOC_CLEAR_ON_INIT)
+#ifdef CONFIG_SYS_MALLOC_CLEAR_ON_INIT
 #if MORECORE_CLEARS
     if (p == oldtop && csz > oldtopsize)
     {
@@ -2326,7 +2332,7 @@ size_t malloc_usable_size(mem) Void_t* mem;
 /* Utility to update current_mallinfo for malloc_stats and mallinfo() */
 
 #ifdef DEBUG
-static void malloc_update_mallinfo(void)
+static void malloc_update_mallinfo()
 {
   int i;
   mbinptr b;
@@ -2383,7 +2389,7 @@ static void malloc_update_mallinfo(void)
 */
 
 #ifdef DEBUG
-void malloc_stats(void)
+void malloc_stats()
 {
   malloc_update_mallinfo();
   printf("max system bytes = %10u\n",
@@ -2404,7 +2410,7 @@ void malloc_stats(void)
 */
 
 #ifdef DEBUG
-struct mallinfo mALLINFo(void)
+struct mallinfo mALLINFo()
 {
   malloc_update_mallinfo();
   return current_mallinfo;
@@ -2455,24 +2461,13 @@ int mALLOPt(param_number, value) int param_number; int value;
 
 int initf_malloc(void)
 {
-#if CONFIG_IS_ENABLED(SYS_MALLOC_F)
+#if CONFIG_VAL(SYS_MALLOC_F_LEN)
 	assert(gd->malloc_base);	/* Set up by crt0.S */
 	gd->malloc_limit = CONFIG_VAL(SYS_MALLOC_F_LEN);
 	gd->malloc_ptr = 0;
 #endif
 
 	return 0;
-}
-
-void malloc_enable_testing(int max_allocs)
-{
-	malloc_testing = true;
-	malloc_max_allocs = max_allocs;
-}
-
-void malloc_disable_testing(void)
-{
-	malloc_testing = false;
 }
 
 /*

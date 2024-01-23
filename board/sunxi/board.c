@@ -33,13 +33,11 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/global_data.h>
 #include <linux/delay.h>
-#include <linux/printk.h>
-#include <linux/types.h>
+#include <u-boot/crc.h>
 #ifndef CONFIG_ARM64
 #include <asm/armv7.h>
 #endif
 #include <asm/gpio.h>
-#include <sunxi_gpio.h>
 #include <asm/io.h>
 #include <u-boot/crc.h>
 #include <env_internal.h>
@@ -186,10 +184,14 @@ enum env_location env_get_location(enum env_operation op, int prio)
 	return ENVL_UNKNOWN;
 }
 
+#ifdef CONFIG_DM_MMC
+static void mmc_pinmux_setup(int sdc);
+#endif
+
 /* add board specific code here */
 int board_init(void)
 {
-	__maybe_unused int id_pfr1, ret;
+	__maybe_unused int id_pfr1, ret, satapwr_pin, macpwr_pin;
 
 	gd->bd->bi_boot_params = (PHYS_SDRAM_0 + 0x100);
 
@@ -226,6 +228,38 @@ int board_init(void)
 	if (ret)
 		return ret;
 
+	/* strcmp() would look better, but doesn't get optimised away. */
+	if (CONFIG_SATAPWR[0]) {
+		satapwr_pin = sunxi_name_to_gpio(CONFIG_SATAPWR);
+		if (satapwr_pin >= 0) {
+			gpio_request(satapwr_pin, "satapwr");
+			gpio_direction_output(satapwr_pin, 1);
+
+			/*
+			 * Give the attached SATA device time to power-up
+			 * to avoid link timeouts
+			 */
+			mdelay(500);
+		}
+	}
+
+	if (CONFIG_MACPWR[0]) {
+		macpwr_pin = sunxi_name_to_gpio(CONFIG_MACPWR);
+		if (macpwr_pin >= 0) {
+			gpio_request(macpwr_pin, "macpwr");
+			gpio_direction_output(macpwr_pin, 1);
+		}
+	}
+
+#if CONFIG_MACH_SUN50I_H616
+	/*
+	 * The bit[16] of register reg[0x03000000] must be zero for the THS
+	 * driver to work properly in the kernel. The BSP u-boot is putting
+	 * the whole register to zero so we are doing the same.
+	 */
+	writel(0x0, SUNXI_SRAMC_BASE);
+#endif
+
 #if CONFIG_IS_ENABLED(DM_I2C)
 	/*
 	 * Temporary workaround for enabling I2C clocks until proper sunxi DM
@@ -233,6 +267,7 @@ int board_init(void)
 	 */
 	i2c_init_board();
 #endif
+
 	eth_init_board();
 
 	return 0;
@@ -289,7 +324,7 @@ int dram_init(void)
 	return 0;
 }
 
-#if defined(CONFIG_NAND_SUNXI) && defined(CONFIG_SPL_BUILD)
+#if defined(CONFIG_NAND_SUNXI)
 static void nand_pinmux_setup(void)
 {
 	unsigned int pin;
@@ -325,8 +360,11 @@ void board_nand_init(void)
 {
 	nand_pinmux_setup();
 	nand_clock_setup();
+#ifndef CONFIG_SPL_BUILD
+	sunxi_nand_init();
+#endif
 }
-#endif /* CONFIG_NAND_SUNXI */
+#endif
 
 #ifdef CONFIG_MMC
 static void mmc_pinmux_setup(int sdc)
@@ -460,13 +498,6 @@ static void mmc_pinmux_setup(int sdc)
 			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
 			sunxi_gpio_set_drv(pin, 2);
 		}
-#elif defined(CONFIG_MACH_SUN8I_R528)
-                /* SDC2: PC2-PC7 */
-                for (pin = SUNXI_GPC(2); pin <= SUNXI_GPC(7); pin++) {
-                        sunxi_gpio_set_cfgpin(pin, SUNXI_GPC_SDC2);
-                        sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
-                        sunxi_gpio_set_drv(pin, 2);
-                }
 #else
 		puts("ERROR: No pinmux setup defined for MMC2!\n");
 #endif
@@ -503,14 +534,9 @@ static void mmc_pinmux_setup(int sdc)
 
 int board_mmc_init(struct bd_info *bis)
 {
-	/*
-	 * The BROM always accesses MMC port 0 (typically an SD card), and
-	 * most boards seem to have such a slot. The others haven't reported
-	 * any problem with unconditionally enabling this in the SPL.
-	 */
 	if (!IS_ENABLED(CONFIG_UART0_PORT_F)) {
-		mmc_pinmux_setup(0);
-		if (!sunxi_mmc_init(0))
+		mmc_pinmux_setup(CONFIG_MMC_SUNXI_SLOT);
+		if (!sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT))
 			return -1;
 	}
 
@@ -536,7 +562,7 @@ int mmc_get_env_dev(void)
 	}
 }
 #endif
-#endif /* CONFIG_MMC */
+#endif
 
 #ifdef CONFIG_SPL_BUILD
 
@@ -563,14 +589,18 @@ void sunxi_board_init(void)
 		status_led_init();
 #endif
 
+#ifdef CONFIG_MACH_SUN8I_H3
+	/* turn on power LED (PL10) on H3 boards */
+	gpio_direction_output(SUNXI_GPL(10), 1);
+#endif
+
 #ifdef CONFIG_SY8106A_POWER
 	power_failed = sy8106a_set_vout1(CONFIG_SY8106A_VOUT1_VOLT);
 #endif
 
 #if defined CONFIG_AXP152_POWER || defined CONFIG_AXP209_POWER || \
 	defined CONFIG_AXP221_POWER || defined CONFIG_AXP305_POWER || \
-	defined CONFIG_AXP809_POWER || defined CONFIG_AXP818_POWER || \
-	defined CONFIG_AXP313_POWER
+	defined CONFIG_AXP809_POWER || defined CONFIG_AXP818_POWER
 	power_failed = axp_init();
 
 	if (IS_ENABLED(CONFIG_AXP_DISABLE_BOOT_ON_POWERON) && !power_failed) {
@@ -583,46 +613,50 @@ void sunxi_board_init(void)
 		}
 	}
 
-#ifdef CONFIG_AXP_DCDC1_VOLT
+#if defined CONFIG_AXP221_POWER || defined CONFIG_AXP809_POWER || \
+	defined CONFIG_AXP818_POWER
 	power_failed |= axp_set_dcdc1(CONFIG_AXP_DCDC1_VOLT);
-	power_failed |= axp_set_dcdc5(CONFIG_AXP_DCDC5_VOLT);
 #endif
-#ifdef CONFIG_AXP_DCDC2_VOLT
+#if !defined(CONFIG_AXP305_POWER)
 	power_failed |= axp_set_dcdc2(CONFIG_AXP_DCDC2_VOLT);
 	power_failed |= axp_set_dcdc3(CONFIG_AXP_DCDC3_VOLT);
 #endif
-#ifdef CONFIG_AXP_DCDC4_VOLT
+#if !defined(CONFIG_AXP209_POWER) && !defined(CONFIG_AXP818_POWER)
 	power_failed |= axp_set_dcdc4(CONFIG_AXP_DCDC4_VOLT);
 #endif
+#if defined CONFIG_AXP221_POWER || defined CONFIG_AXP809_POWER || \
+	defined CONFIG_AXP818_POWER
+	power_failed |= axp_set_dcdc5(CONFIG_AXP_DCDC5_VOLT);
+#endif
 
-#ifdef CONFIG_AXP_ALDO1_VOLT
+#if defined CONFIG_AXP221_POWER || defined CONFIG_AXP809_POWER || \
+	defined CONFIG_AXP818_POWER
 	power_failed |= axp_set_aldo1(CONFIG_AXP_ALDO1_VOLT);
 #endif
-#ifdef CONFIG_AXP_ALDO2_VOLT
+#if !defined(CONFIG_AXP305_POWER)
 	power_failed |= axp_set_aldo2(CONFIG_AXP_ALDO2_VOLT);
 #endif
-#ifdef CONFIG_AXP_ALDO3_VOLT
+#if !defined(CONFIG_AXP152_POWER) && !defined(CONFIG_AXP305_POWER)
 	power_failed |= axp_set_aldo3(CONFIG_AXP_ALDO3_VOLT);
 #endif
-#ifdef CONFIG_AXP_ALDO4_VOLT
+#ifdef CONFIG_AXP209_POWER
 	power_failed |= axp_set_aldo4(CONFIG_AXP_ALDO4_VOLT);
 #endif
 
-#ifdef CONFIG_AXP_DLDO1_VOLT
+#if defined(CONFIG_AXP221_POWER) || defined(CONFIG_AXP809_POWER) || \
+	defined(CONFIG_AXP818_POWER)
 	power_failed |= axp_set_dldo(1, CONFIG_AXP_DLDO1_VOLT);
 	power_failed |= axp_set_dldo(2, CONFIG_AXP_DLDO2_VOLT);
-#endif
-#ifdef CONFIG_AXP_DLDO3_VOLT
+#if !defined CONFIG_AXP809_POWER
 	power_failed |= axp_set_dldo(3, CONFIG_AXP_DLDO3_VOLT);
 	power_failed |= axp_set_dldo(4, CONFIG_AXP_DLDO4_VOLT);
 #endif
-#ifdef CONFIG_AXP_ELDO1_VOLT
 	power_failed |= axp_set_eldo(1, CONFIG_AXP_ELDO1_VOLT);
 	power_failed |= axp_set_eldo(2, CONFIG_AXP_ELDO2_VOLT);
 	power_failed |= axp_set_eldo(3, CONFIG_AXP_ELDO3_VOLT);
 #endif
 
-#ifdef CONFIG_AXP_FLDO1_VOLT
+#ifdef CONFIG_AXP818_POWER
 	power_failed |= axp_set_fldo(1, CONFIG_AXP_FLDO1_VOLT);
 	power_failed |= axp_set_fldo(2, CONFIG_AXP_FLDO2_VOLT);
 	power_failed |= axp_set_fldo(3, CONFIG_AXP_FLDO3_VOLT);
@@ -631,7 +665,7 @@ void sunxi_board_init(void)
 #if defined CONFIG_AXP809_POWER || defined CONFIG_AXP818_POWER
 	power_failed |= axp_set_sw(IS_ENABLED(CONFIG_AXP_SW_ON));
 #endif
-#endif	/* CONFIG_AXPxxx_POWER */
+#endif
 	printf("DRAM:");
 	gd->ram_size = sunxi_dram_init();
 	printf(" %d MiB\n", (int)(gd->ram_size >> 20));
@@ -649,7 +683,7 @@ void sunxi_board_init(void)
 	else
 		printf("Failed to set core voltage! Can't set CPU frequency\n");
 }
-#endif /* CONFIG_SPL_BUILD */
+#endif
 
 #ifdef CONFIG_USB_GADGET
 int g_dnl_board_usb_cable_connected(void)
@@ -678,7 +712,7 @@ int g_dnl_board_usb_cable_connected(void)
 
 	return sun4i_usb_phy_vbus_detect(&phy);
 }
-#endif /* CONFIG_USB_GADGET */
+#endif
 
 #ifdef CONFIG_SERIAL_TAG
 void get_board_serial(struct tag_serialnr *serialnr)
@@ -907,6 +941,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 }
 
 #ifdef CONFIG_SPL_LOAD_FIT
+
 static void set_spl_dt_name(const char *name)
 {
 	struct boot_file_head *spl = get_spl_header(SPL_ENV_HEADER_VERSION);
@@ -939,7 +974,7 @@ int board_fit_config_name_match(const char *name)
 #ifdef CONFIG_PINE64_DT_SELECTION
 	if (strstr(best_dt_name, "-pine64-plus")) {
 		/* Differentiate the Pine A64 boards by their DRAM size. */
-		if (gd->ram_size == SZ_512M)
+		if ((gd->ram_size == 512 * 1024 * 1024))
 			best_dt_name = "sun50i-a64-pine64";
 	}
 #endif
@@ -974,4 +1009,4 @@ int board_fit_config_name_match(const char *name)
 
 	return ret;
 }
-#endif /* CONFIG_SPL_LOAD_FIT */
+#endif

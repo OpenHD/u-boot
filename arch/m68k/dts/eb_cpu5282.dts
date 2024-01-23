@@ -16,19 +16,10 @@
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
 &fec0 {
 	status = "okay";
-};
-
-&i2c0 {
-	status = "okay";
-
-	rtc@68 {
-		compatible = "dallas,ds1338";
-		reg = <0x68>;
-	};
 };

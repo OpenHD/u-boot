@@ -11,6 +11,7 @@
 #include <asm/gpio.h>
 
 #include <config.h>
+#include <common.h>
 #include <clk.h>
 #include <dm.h>
 #include <asm/io.h>

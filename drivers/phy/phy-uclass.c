@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (C) 2017 Texas Instruments Incorporated - https://www.ti.com/
+ * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
  * Written by Jean-Jacques Hiblot  <jjhiblot@ti.com>
  */
 
@@ -12,8 +12,6 @@
 #include <dm/devres.h>
 #include <generic-phy.h>
 #include <linux/list.h>
-#include <linux/printk.h>
-#include <power/regulator.h>
 
 /**
  * struct phy_counts - Init and power-on counts of a single PHY port
@@ -31,14 +29,12 @@
  *              without a matching generic_phy_exit() afterwards
  * @list: Handle for a linked list of these structures corresponding to
  *        ports of the same PHY provider
- * @supply: Handle to a phy-supply device
  */
 struct phy_counts {
 	unsigned long id;
 	int power_on_count;
 	int init_count;
 	struct list_head list;
-	struct udevice *supply;
 };
 
 static inline struct phy_ops *phy_dev_ops(struct udevice *dev)
@@ -62,7 +58,7 @@ static struct phy_counts *phy_get_counts(struct phy *phy)
 	return NULL;
 }
 
-static int phy_alloc_counts(struct phy *phy, struct udevice *supply)
+static int phy_alloc_counts(struct phy *phy)
 {
 	struct list_head *uc_priv;
 	struct phy_counts *counts;
@@ -80,7 +76,6 @@ static int phy_alloc_counts(struct phy *phy, struct udevice *supply)
 	counts->id = phy->id;
 	counts->power_on_count = 0;
 	counts->init_count = 0;
-	counts->supply = supply;
 	list_add(&counts->list, uc_priv);
 
 	return 0;
@@ -128,7 +123,7 @@ int generic_phy_get_by_index_nodev(ofnode node, int index, struct phy *phy)
 {
 	struct ofnode_phandle_args args;
 	struct phy_ops *ops;
-	struct udevice *phydev, *supply = NULL;
+	struct udevice *phydev;
 	int i, ret;
 
 	debug("%s(node=%s, index=%d, phy=%p)\n",
@@ -177,17 +172,7 @@ int generic_phy_get_by_index_nodev(ofnode node, int index, struct phy *phy)
 		goto err;
 	}
 
-	if (CONFIG_IS_ENABLED(DM_REGULATOR)) {
-		ret = device_get_supply_regulator(phydev, "phy-supply",
-						  &supply);
-		if (ret && ret != -ENOENT) {
-			debug("%s: device_get_supply_regulator failed: %d\n",
-			      __func__, ret);
-			goto err;
-		}
-	}
-
-	ret = phy_alloc_counts(phy, supply);
+	ret = phy_alloc_counts(phy);
 	if (ret) {
 		debug("phy_alloc_counts() failed: %d\n", ret);
 		goto err;
@@ -196,7 +181,6 @@ int generic_phy_get_by_index_nodev(ofnode node, int index, struct phy *phy)
 	return 0;
 
 err:
-	phy->dev = NULL;
 	return ret;
 }
 
@@ -212,9 +196,6 @@ int generic_phy_get_by_name(struct udevice *dev, const char *phy_name,
 	int index;
 
 	debug("%s(dev=%p, name=%s, phy=%p)\n", __func__, dev, phy_name, phy);
-
-	assert(phy);
-	phy->dev = NULL;
 
 	index = dev_read_stringlist_search(dev, "phy-names", phy_name);
 	if (index < 0) {
@@ -233,24 +214,24 @@ int generic_phy_init(struct phy *phy)
 
 	if (!generic_phy_valid(phy))
 		return 0;
+	ops = phy_dev_ops(phy->dev);
+	if (!ops->init)
+		return 0;
+
 	counts = phy_get_counts(phy);
 	if (counts->init_count > 0) {
 		counts->init_count++;
 		return 0;
 	}
 
-	ops = phy_dev_ops(phy->dev);
-	if (ops->init) {
-		ret = ops->init(phy);
-		if (ret) {
-			dev_err(phy->dev, "PHY: Failed to init %s: %d.\n",
-				phy->dev->name, ret);
-			return ret;
-		}
-	}
-	counts->init_count = 1;
+	ret = ops->init(phy);
+	if (ret)
+		dev_err(phy->dev, "PHY: Failed to init %s: %d.\n",
+			phy->dev->name, ret);
+	else
+		counts->init_count = 1;
 
-	return 0;
+	return ret;
 }
 
 int generic_phy_reset(struct phy *phy)
@@ -279,6 +260,10 @@ int generic_phy_exit(struct phy *phy)
 
 	if (!generic_phy_valid(phy))
 		return 0;
+	ops = phy_dev_ops(phy->dev);
+	if (!ops->exit)
+		return 0;
+
 	counts = phy_get_counts(phy);
 	if (counts->init_count == 0)
 		return 0;
@@ -287,18 +272,14 @@ int generic_phy_exit(struct phy *phy)
 		return 0;
 	}
 
-	ops = phy_dev_ops(phy->dev);
-	if (ops->exit) {
-		ret = ops->exit(phy);
-		if (ret) {
-			dev_err(phy->dev, "PHY: Failed to exit %s: %d.\n",
-				phy->dev->name, ret);
-			return ret;
-		}
-	}
-	counts->init_count = 0;
+	ret = ops->exit(phy);
+	if (ret)
+		dev_err(phy->dev, "PHY: Failed to exit %s: %d.\n",
+			phy->dev->name, ret);
+	else
+		counts->init_count = 0;
 
-	return 0;
+	return ret;
 }
 
 int generic_phy_power_on(struct phy *phy)
@@ -309,32 +290,24 @@ int generic_phy_power_on(struct phy *phy)
 
 	if (!generic_phy_valid(phy))
 		return 0;
+	ops = phy_dev_ops(phy->dev);
+	if (!ops->power_on)
+		return 0;
+
 	counts = phy_get_counts(phy);
 	if (counts->power_on_count > 0) {
 		counts->power_on_count++;
 		return 0;
 	}
 
-	ret = regulator_set_enable_if_allowed(counts->supply, true);
-	if (ret && ret != -ENOSYS) {
-		dev_err(phy->dev, "PHY: Failed to enable regulator %s: %d.\n",
-			counts->supply->name, ret);
-		return ret;
-	}
+	ret = ops->power_on(phy);
+	if (ret)
+		dev_err(phy->dev, "PHY: Failed to power on %s: %d.\n",
+			phy->dev->name, ret);
+	else
+		counts->power_on_count = 1;
 
-	ops = phy_dev_ops(phy->dev);
-	if (ops->power_on) {
-		ret = ops->power_on(phy);
-		if (ret) {
-			dev_err(phy->dev, "PHY: Failed to power on %s: %d.\n",
-				phy->dev->name, ret);
-			regulator_set_enable_if_allowed(counts->supply, false);
-			return ret;
-		}
-	}
-	counts->power_on_count = 1;
-
-	return 0;
+	return ret;
 }
 
 int generic_phy_power_off(struct phy *phy)
@@ -345,6 +318,10 @@ int generic_phy_power_off(struct phy *phy)
 
 	if (!generic_phy_valid(phy))
 		return 0;
+	ops = phy_dev_ops(phy->dev);
+	if (!ops->power_off)
+		return 0;
+
 	counts = phy_get_counts(phy);
 	if (counts->power_on_count == 0)
 		return 0;
@@ -353,23 +330,14 @@ int generic_phy_power_off(struct phy *phy)
 		return 0;
 	}
 
-	ops = phy_dev_ops(phy->dev);
-	if (ops->power_off) {
-		ret = ops->power_off(phy);
-		if (ret) {
-			dev_err(phy->dev, "PHY: Failed to power off %s: %d.\n",
-				phy->dev->name, ret);
-			return ret;
-		}
-	}
-	counts->power_on_count = 0;
+	ret = ops->power_off(phy);
+	if (ret)
+		dev_err(phy->dev, "PHY: Failed to power off %s: %d.\n",
+			phy->dev->name, ret);
+	else
+		counts->power_on_count = 0;
 
-	ret = regulator_set_enable_if_allowed(counts->supply, false);
-	if (ret && ret != -ENOSYS)
-		dev_err(phy->dev, "PHY: Failed to disable regulator %s: %d.\n",
-			counts->supply->name, ret);
-
-	return 0;
+	return ret;
 }
 
 int generic_phy_configure(struct phy *phy, void *params)
@@ -381,28 +349,6 @@ int generic_phy_configure(struct phy *phy, void *params)
 	ops = phy_dev_ops(phy->dev);
 
 	return ops->configure ? ops->configure(phy, params) : 0;
-}
-
-int generic_phy_set_mode(struct phy *phy, enum phy_mode mode, int submode)
-{
-	struct phy_ops const *ops;
-
-	if (!generic_phy_valid(phy))
-		return 0;
-	ops = phy_dev_ops(phy->dev);
-
-	return ops->set_mode ? ops->set_mode(phy, mode, submode) : 0;
-}
-
-int generic_phy_set_speed(struct phy *phy, int speed)
-{
-	struct phy_ops const *ops;
-
-	if (!generic_phy_valid(phy))
-		return 0;
-	ops = phy_dev_ops(phy->dev);
-
-	return ops->set_speed ? ops->set_speed(phy, speed) : 0;
 }
 
 int generic_phy_get_bulk(struct udevice *dev, struct phy_bulk *bulk)
@@ -507,39 +453,6 @@ int generic_phy_power_off_bulk(struct phy_bulk *bulk)
 		ret |= generic_phy_power_off(&phys[i]);
 
 	return ret;
-}
-
-int generic_setup_phy(struct udevice *dev, struct phy *phy, int index)
-{
-	int ret;
-
-	ret = generic_phy_get_by_index(dev, index, phy);
-	if (ret)
-		return ret == -ENOENT ? 0 : ret;
-
-	ret = generic_phy_init(phy);
-	if (ret)
-		return ret;
-
-	ret = generic_phy_power_on(phy);
-	if (ret)
-		generic_phy_exit(phy);
-
-	return ret;
-}
-
-int generic_shutdown_phy(struct phy *phy)
-{
-	int ret;
-
-	if (!generic_phy_valid(phy))
-		return 0;
-
-	ret = generic_phy_power_off(phy);
-	if (ret)
-		return ret;
-
-	return generic_phy_exit(phy);
 }
 
 UCLASS_DRIVER(phy) = {

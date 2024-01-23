@@ -1,7 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0
 
-&watchdog {
-	bootph-all;
+&spi1 {
+	u-boot,dm-pre-reloc;
+
+	spi-flash@0 {
+		u-boot,dm-pre-reloc;
+	};
 };
 
-#include "mvebu-u-boot.dtsi"
+&uart0 {
+	u-boot,dm-pre-reloc;
+};
+
+&watchdog {
+	u-boot,dm-pre-reloc;
+};

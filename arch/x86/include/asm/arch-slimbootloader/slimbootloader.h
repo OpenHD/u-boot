@@ -6,6 +6,7 @@
 #ifndef __SLIMBOOTLOADER_ARCH_H__
 #define __SLIMBOOTLOADER_ARCH_H__
 
+#include <common.h>
 #include <asm/hob.h>
 
 /**

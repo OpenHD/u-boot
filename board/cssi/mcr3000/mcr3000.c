@@ -7,6 +7,7 @@
  * Board specific routines for the MCR3000 board
  */
 
+#include <common.h>
 #include <env.h>
 #include <hwconfig.h>
 #include <init.h>
@@ -57,6 +58,8 @@ static const uint cs1_dram_table_66[] = {
 
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
+	const char *sync = "receive";
+
 	ft_cpu_setup(blob, bd);
 
 	/* BRG */
@@ -68,6 +71,16 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 
 	/* Bus Frequency for CPM */
 	do_fixup_by_path_u32(blob, "/soc", "bus-frequency", bd->bi_busfreq, 1);
+
+	/* E1 interface - Set data rate */
+	do_fixup_by_path_u32(blob, "/localbus/e1-wan", "data-rate", 2, 1);
+
+	/* E1 interface - Set channel phase to 0 */
+	do_fixup_by_path_u32(blob, "/localbus/e1-wan", "channel-phase", 0, 1);
+
+	/* E1 interface - rising edge sync pulse transmit */
+	do_fixup_by_path(blob, "/localbus/e1-wan", "rising-edge-sync-pulse",
+			 sync, strlen(sync), 1);
 
 	return 0;
 }
@@ -101,7 +114,7 @@ int dram_init(void)
 	out_be32(&memctl->memc_mcr, 0x80002038);
 	udelay(200);
 
-	gd->ram_size = get_ram_size((long *)CFG_SYS_SDRAM_BASE,
+	gd->ram_size = get_ram_size((long *)CONFIG_SYS_SDRAM_BASE,
 				    SDRAM_MAX_SIZE);
 
 	return 0;
@@ -134,6 +147,20 @@ int board_early_init_f(void)
 	setbits_be32(&immr->im_cpm.cp_pbdir, 0x00020000); /* PROGFPGA output */
 	udelay(1);				/* Wait more than 300ns */
 	setbits_be32(&immr->im_cpm.cp_pbdat, 0x00020000); /* PROGFPGA up */
+
+	return 0;
+}
+
+int board_early_init_r(void)
+{
+	struct udevice *watchdog_dev = NULL;
+
+	if (uclass_get_device(UCLASS_WDT, 0, &watchdog_dev)) {
+		puts("Cannot find watchdog!\n");
+	} else {
+		puts("Enabling watchdog.\n");
+		wdt_start(watchdog_dev, 0xffff, 0);
+	}
 
 	return 0;
 }

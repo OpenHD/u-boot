@@ -8,7 +8,7 @@
  *   Use pointer to provide better alignment.
  * - Remove max_cache_size related interfaces
  *   Includes free_extent_buffer_nocache()
- *   As we don't cache eb in U-Boot.
+ *   As we don't cache eb in U-boot.
  * - Include headers
  *
  * Write related functions are kept as we still need to modify dummy extent

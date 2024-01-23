@@ -5,6 +5,7 @@
  * Copyright (c) 2020, Heinrich Schuchardt
  */
 
+#include <common.h>
 #include <efi_loader.h>
 #include <efi_variable.h>
 #include <u-boot/crc.h>
@@ -40,13 +41,11 @@ efi_var_mem_compare(struct efi_var_entry *var, const efi_guid_t *guid,
 	     i < sizeof(efi_guid_t) && match; ++i)
 		match = (guid1[i] == guid2[i]);
 
-	for (data = var->name, var_name = name;; ++data) {
+	for (data = var->name, var_name = name;; ++data, ++var_name) {
 		if (match)
 			match = (*data == *var_name);
 		if (!*data)
 			break;
-		if (*var_name)
-			++var_name;
 	}
 
 	++data;
@@ -147,7 +146,9 @@ efi_status_t __efi_runtime efi_var_mem_ins(
 
 	var = (struct efi_var_entry *)
 	      ((uintptr_t)efi_var_buf + efi_var_buf->length);
-	var_name_len = u16_strlen(variable_name) + 1;
+	for (var_name_len = 0; variable_name[var_name_len]; ++var_name_len)
+		;
+	++var_name_len;
 	data = var->name + var_name_len;
 
 	if ((uintptr_t)data - (uintptr_t)efi_var_buf + size1 + size2 >
@@ -176,10 +177,6 @@ efi_status_t __efi_runtime efi_var_mem_ins(
 
 u64 __efi_runtime efi_var_mem_free(void)
 {
-	if (efi_var_buf->length + sizeof(struct efi_var_entry) >=
-	    EFI_VAR_BUF_SIZE)
-		return 0;
-
 	return EFI_VAR_BUF_SIZE - efi_var_buf->length -
 	       sizeof(struct efi_var_entry);
 }
@@ -318,14 +315,14 @@ efi_get_next_variable_name_mem(efi_uintn_t *variable_name_size,
 			       u16 *variable_name, efi_guid_t *vendor)
 {
 	struct efi_var_entry *var;
-	efi_uintn_t len, old_size;
+	efi_uintn_t old_size;
 	u16 *pdata;
 
 	if (!variable_name_size || !variable_name || !vendor)
 		return EFI_INVALID_PARAMETER;
 
-	len = *variable_name_size >> 1;
-	if (u16_strnlen(variable_name, len) == len)
+	if (u16_strnlen(variable_name, *variable_name_size) ==
+	    *variable_name_size)
 		return EFI_INVALID_PARAMETER;
 
 	if (!efi_var_mem_find(vendor, variable_name, &var) && *variable_name)

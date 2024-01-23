@@ -12,18 +12,18 @@
 	#size-cells = <1>;
 	i2c@0 {
 		compatible = "sandbox,i2c";
-		bootph-pre-sram;
+		u-boot,dm-tpl;
 		#address-cells = <1>;
 		#size-cells = <0>;
 		spl-test {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 			compatible = "sandbox,spl-test";
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "disabled";
 			pmic@9 {
 				compatible = "sandbox,pmic";
-				bootph-all;
+				u-boot,dm-pre-reloc;
 				reg = <9>;
 				low-power;
 			};

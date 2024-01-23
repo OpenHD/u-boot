@@ -38,12 +38,15 @@ __END__;
    MSBit to LSBit = left to right.
  */
 
-#ifndef _VIDEO_FONT_4X6_
-#define _VIDEO_FONT_4X6_
+#ifndef _VIDEO_FONT_DATA_
+#define _VIDEO_FONT_DATA_
 
-#include <video_font_data.h>
+#define VIDEO_FONT_CHARS	256
+#define VIDEO_FONT_WIDTH	4
+#define VIDEO_FONT_HEIGHT	6
+#define VIDEO_FONT_SIZE		(VIDEO_FONT_CHARS * VIDEO_FONT_HEIGHT)
 
-static unsigned char video_fontdata_4x6[VIDEO_FONT_SIZE(256, 4, 6)] = {
+static unsigned char video_fontdata[VIDEO_FONT_SIZE] = {
 
 	/*{*/
 		/*   Char 0: ' '  */

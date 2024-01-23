@@ -22,9 +22,8 @@
 */
 
 #ifndef USE_HOSTCC
-#include <display_options.h>
+#include <common.h>
 #include <log.h>
-#include <linux/string.h>
 #else
 #include <string.h>
 #endif

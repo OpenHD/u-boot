@@ -18,8 +18,8 @@ import requests
 
 from patman import patchstream
 from patman.patchstream import PatchStream
-from u_boot_pylib import terminal
-from u_boot_pylib import tout
+from patman import terminal
+from patman import tout
 
 # Patches which are part of a multi-patch series are shown with a prefix like
 # [prefix, version, sequence], for example '[RFC, v2, 3/5]'. All but the last

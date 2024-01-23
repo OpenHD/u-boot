@@ -8,6 +8,7 @@
  * It uses the Exit boot service to return.
  */
 
+#include <common.h>
 #include <efi_selftest.h>
 
 static efi_guid_t loaded_image_protocol_guid = EFI_LOADED_IMAGE_PROTOCOL_GUID;

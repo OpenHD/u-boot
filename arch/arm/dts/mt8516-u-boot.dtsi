@@ -5,21 +5,21 @@
  */
 
 &infracfg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &topckgen_ {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &topckgen_cg {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &apmixedsys {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

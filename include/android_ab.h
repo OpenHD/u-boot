@@ -30,7 +30,6 @@ struct disk_partition;
  * @param[in] part_info Place to store the partition information
  * Return: The slot number (>= 0) on success, or a negative on error
  */
-int ab_select_slot(struct blk_desc *dev_desc, struct disk_partition *part_info,
-                   bool dec_tries);
+int ab_select_slot(struct blk_desc *dev_desc, struct disk_partition *part_info);
 
 #endif /* __ANDROID_AB_H */

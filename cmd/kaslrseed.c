@@ -68,9 +68,11 @@ static int do_kaslr_seed(struct cmd_tbl *cmdtp, int flag, int argc, char *const 
 	return ret;
 }
 
-U_BOOT_LONGHELP(kaslrseed,
+#ifdef CONFIG_SYS_LONGHELP
+static char kaslrseed_help_text[] =
 	"[n]\n"
-	"  - append random bytes to chosen kaslr-seed node\n");
+	"  - append random bytes to chosen kaslr-seed node\n";
+#endif
 
 U_BOOT_CMD(
 	kaslrseed, 1, 0, do_kaslr_seed,

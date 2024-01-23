@@ -5,7 +5,7 @@
 
 /{
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		gmac:  ethernet@e0220000 {
 			compatible = "actions,s700-ethernet";
@@ -33,9 +33,9 @@
 };
 
 &uart3 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &cmu {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

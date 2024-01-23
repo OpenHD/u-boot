@@ -21,18 +21,18 @@
 	sysinfo {
 		compatible = "renesas,rcar-sysinfo";
 		i2c-eeprom = <&sysinfo_eeprom>;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &i2c_dvfs {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 
 	sysinfo_eeprom: eeprom@50 {
 		compatible = "rohm,br24t01", "atmel,24c01";
 		reg = <0x50>;
 		pagesize = <8>;
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		status = "okay";
 	};
 };

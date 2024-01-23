@@ -33,7 +33,7 @@ static int poweroff_gpio_request(struct udevice *dev, enum sysreset_t type)
 	int r;
 
 	if (type != SYSRESET_POWER_OFF)
-		return -EPROTONOSUPPORT;
+		return -ENOSYS;
 
 	debug("GPIO poweroff\n");
 

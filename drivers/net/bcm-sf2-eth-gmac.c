@@ -6,7 +6,6 @@
 #ifdef BCM_GMAC_DEBUG
 #ifndef DEBUG
 #define DEBUG
-#include <linux/printk.h>
 #endif
 #endif
 

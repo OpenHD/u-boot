@@ -9,7 +9,6 @@
 #ifndef USE_HOSTCC
 #include <common.h>
 #include <env.h>
-#include <display_options.h>
 #include <init.h>
 #include <lmb.h>
 #include <log.h>
@@ -42,7 +41,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #else /* USE_HOSTCC */
 #include "mkimage.h"
-#include <linux/kconfig.h>
 #include <u-boot/md5.h>
 #include <time.h>
 
@@ -63,6 +61,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <relocate.h>
 #include <linux/lzo.h>
 #include <linux/zstd.h>
+#include <linux/kconfig.h>
 #include <lzma/LzmaTypes.h>
 #include <lzma/LzmaDec.h>
 #include <lzma/LzmaTools.h>
@@ -180,9 +179,6 @@ static const table_entry_t uimage_type[] = {
 	{	IH_TYPE_COPRO, "copro", "Coprocessor Image"},
 	{	IH_TYPE_SUNXI_EGON, "sunxi_egon",  "Allwinner eGON Boot Image" },
 	{	IH_TYPE_SUNXI_TOC0, "sunxi_toc0",  "Allwinner TOC0 Boot Image" },
-	{	IH_TYPE_FDT_LEGACY, "fdt_legacy", "legacy Image with Flat Device Tree ", },
-	{	IH_TYPE_RENESAS_SPKG, "spkgimage", "Renesas SPKG Image" },
-	{	IH_TYPE_STARFIVE_SPL, "sfspl", "StarFive SPL Image" },
 	{	-1,		    "",		  "",			},
 };
 
@@ -195,13 +191,6 @@ static const table_entry_t uimage_comp[] = {
 	{	IH_COMP_LZ4,	"lz4",		"lz4 compressed",	},
 	{	IH_COMP_ZSTD,	"zstd",		"zstd compressed",	},
 	{	-1,		"",		"",			},
-};
-
-static const table_entry_t uimage_phase[] = {
-	{	IH_PHASE_NONE,	"none",		"any",		},
-	{	IH_PHASE_U_BOOT, "u-boot",	"U-Boot phase",	},
-	{	IH_PHASE_SPL,	"spl",		"SPL Phase",	},
-	{	-1,		"",		"",		},
 };
 
 struct table_info {
@@ -225,17 +214,16 @@ static const struct table_info table_info[IH_COUNT] = {
 	{ "compression", IH_COMP_COUNT, uimage_comp },
 	{ "operating system", IH_OS_COUNT, uimage_os },
 	{ "image type", IH_TYPE_COUNT, uimage_type },
-	{ "phase", IH_PHASE_COUNT, uimage_phase },
 };
 
 /*****************************************************************************/
 /* Legacy format routines */
 /*****************************************************************************/
-int image_check_hcrc(const struct legacy_img_hdr *hdr)
+int image_check_hcrc(const image_header_t *hdr)
 {
 	ulong hcrc;
 	ulong len = image_get_header_size();
-	struct legacy_img_hdr header;
+	image_header_t header;
 
 	/* Copy header so we can blank CRC field for re-calculation */
 	memmove(&header, (char *)hdr, image_get_header_size());
@@ -246,7 +234,7 @@ int image_check_hcrc(const struct legacy_img_hdr *hdr)
 	return (hcrc == image_get_hcrc(hdr));
 }
 
-int image_check_dcrc(const struct legacy_img_hdr *hdr)
+int image_check_dcrc(const image_header_t *hdr)
 {
 	ulong data = image_get_data(hdr);
 	ulong len = image_get_data_size(hdr);
@@ -268,7 +256,7 @@ int image_check_dcrc(const struct legacy_img_hdr *hdr)
  * returns:
  *     number of components
  */
-ulong image_multi_count(const struct legacy_img_hdr *hdr)
+ulong image_multi_count(const image_header_t *hdr)
 {
 	ulong i, count = 0;
 	uint32_t *size;
@@ -301,7 +289,7 @@ ulong image_multi_count(const struct legacy_img_hdr *hdr)
  *     data address and size of the component, if idx is valid
  *     0 in data and len, if idx is out of range
  */
-void image_multi_getimg(const struct legacy_img_hdr *hdr, ulong idx,
+void image_multi_getimg(const image_header_t *hdr, ulong idx,
 			ulong *data, ulong *len)
 {
 	int i;
@@ -337,7 +325,7 @@ void image_multi_getimg(const struct legacy_img_hdr *hdr, ulong idx,
 	}
 }
 
-static void image_print_type(const struct legacy_img_hdr *hdr)
+static void image_print_type(const image_header_t *hdr)
 {
 	const char __maybe_unused *os, *arch, *type, *comp;
 
@@ -363,7 +351,7 @@ static void image_print_type(const struct legacy_img_hdr *hdr)
  */
 void image_print_contents(const void *ptr)
 {
-	const struct legacy_img_hdr *hdr = (const struct legacy_img_hdr *)ptr;
+	const image_header_t *hdr = (const image_header_t *)ptr;
 	const char __maybe_unused *p;
 
 	p = IMAGE_INDENT_STRING;
@@ -415,20 +403,15 @@ void image_print_contents(const void *ptr)
  * @type:	OS type (IH_OS_...)
  * @comp_type:	Compression type being used (IH_COMP_...)
  * @is_xip:	true if the load address matches the image start
- * @load:	Load address for printing
  */
-static void print_decomp_msg(int comp_type, int type, bool is_xip,
-			     ulong load)
+static void print_decomp_msg(int comp_type, int type, bool is_xip)
 {
 	const char *name = genimg_get_type_name(type);
 
-	/* Shows "Loading Kernel Image" for example */
 	if (comp_type == IH_COMP_NONE)
-		printf("   %s %s", is_xip ? "XIP" : "Loading", name);
+		printf("   %s %s\n", is_xip ? "XIP" : "Loading", name);
 	else
-		printf("   Uncompressing %s", name);
-
-	printf(" to %lx\n", load);
+		printf("   Uncompressing %s\n", name);
 }
 
 int image_decomp_type(const unsigned char *buf, ulong len)
@@ -453,7 +436,7 @@ int image_decomp(int comp, ulong load, ulong image_start, int type,
 	int ret = -ENOSYS;
 
 	*load_end = load;
-	print_decomp_msg(comp, type, load == image_start, load);
+	print_decomp_msg(comp, type, load == image_start);
 
 	/*
 	 * Load the image to the right place, decompressing if needed. After
@@ -577,7 +560,7 @@ const char *genimg_get_cat_name(enum ih_category category, uint id)
 	entry = get_table_entry(table_info[category].table, id);
 	if (!entry)
 		return unknown_msg(category);
-	return entry->lname;
+	return manual_reloc(entry->lname);
 }
 
 /**
@@ -597,7 +580,7 @@ const char *genimg_get_cat_short_name(enum ih_category category, uint id)
 	entry = get_table_entry(table_info[category].table, id);
 	if (!entry)
 		return unknown_msg(category);
-	return entry->sname;
+	return manual_reloc(entry->sname);
 }
 
 int genimg_get_cat_count(enum ih_category category)
@@ -647,7 +630,7 @@ char *get_table_entry_name(const table_entry_t *table, char *msg, int id)
 	table = get_table_entry(table, id);
 	if (!table)
 		return msg;
-	return table->lname;
+	return manual_reloc(table->lname);
 }
 
 const char *genimg_get_os_name(uint8_t os)
@@ -672,17 +655,12 @@ const char *genimg_get_comp_name(uint8_t comp)
 					comp));
 }
 
-const char *genimg_get_phase_name(enum image_phase_t phase)
-{
-	return get_table_entry_name(uimage_phase, "Unknown Phase", phase);
-}
-
 static const char *genimg_get_short_name(const table_entry_t *table, int val)
 {
 	table = get_table_entry(table, val);
 	if (!table)
 		return "unknown";
-	return table->sname;
+	return manual_reloc(table->sname);
 }
 
 const char *genimg_get_type_short_name(uint8_t type)
@@ -725,7 +703,7 @@ int get_table_entry_id(const table_entry_t *table,
 	const table_entry_t *t;
 
 	for (t = table; t->id >= 0; ++t) {
-		if (t->sname && !strcasecmp(t->sname, name))
+		if (t->sname && !strcasecmp(manual_reloc(t->sname), name))
 			return t->id;
 	}
 	debug("Invalid %s Type: %s\n", table_name, name);
@@ -751,9 +729,4 @@ int genimg_get_type_id(const char *name)
 int genimg_get_comp_id(const char *name)
 {
 	return (get_table_entry_id(uimage_comp, "Compression", name));
-}
-
-int genimg_get_phase_id(const char *name)
-{
-	return get_table_entry_id(uimage_phase, "Phase", name);
 }

@@ -11,7 +11,7 @@
 	compatible = "atmel,sama5d3xmb", "atmel,sama5d3xcm", "atmel,sama5d3", "atmel,sama5";
 
 	chosen {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		stdout-path = &dbgu;
 	};
 
@@ -180,7 +180,7 @@
 			dbgu: serial@ffffee00 {
 				dmas = <0>, <0>;	/*  Do not use DMA for dbgu */
 				status = "okay";
-				bootph-all;
+				u-boot,dm-pre-reloc;
 			};
 
 			watchdog@fffffe40 {

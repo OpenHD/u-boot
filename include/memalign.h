@@ -11,7 +11,6 @@
  * is used to align DMA buffers.
  */
 #ifndef __ASSEMBLY__
-#include <linux/kernel.h>
 #include <asm/cache.h>
 #include <malloc.h>
 

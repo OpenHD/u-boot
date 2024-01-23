@@ -26,16 +26,16 @@
 	};
 
 	clocks {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	/* need PSCI for sysreset during board_f */
 	psci {
-		bootph-some-ram;
+		u-boot,dm-pre-proper;
 	};
 
 	reboot {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 		compatible = "syscon-reboot";
 		regmap = <&rcc>;
 		offset = <0x404>;
@@ -43,15 +43,29 @@
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 
 		ddr: ddr@5a003000 {
-			bootph-all;
+			u-boot,dm-pre-reloc;
 
 			compatible = "st,stm32mp1-ddr";
 
 			reg = <0x5a003000 0x550
 			       0x5a004000 0x234>;
+
+			clocks = <&rcc AXIDCG>,
+				 <&rcc DDRC1>,
+				 <&rcc DDRC2>,
+				 <&rcc DDRPHYC>,
+				 <&rcc DDRCAPB>,
+				 <&rcc DDRPHYCAPB>;
+
+			clock-names = "axidcg",
+				      "ddrc1",
+				      "ddrc2",
+				      "ddrphyc",
+				      "ddrcapb",
+				      "ddrphycapb";
 
 			status = "okay";
 		};
@@ -59,94 +73,94 @@
 };
 
 &bsec {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_csi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_hsi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_hse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_lsi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &clk_lse {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &cpu0_opp_table {
-	bootph-pre-ram;
+	u-boot,dm-spl;
 	opp-650000000 {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 	opp-800000000 {
-		bootph-pre-ram;
+		u-boot,dm-spl;
 	};
 };
 
 &gpioa {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiob {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiod {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioe {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiof {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiog {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioh {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioi {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioj {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpiok {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpioz {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &iwdg2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 /* pre-reloc probe = reserve video frame buffer in video_reserve() */
 &ltdc {
-	bootph-some-ram;
+	u-boot,dm-pre-proper;
 };
 
 /* temp = waiting kernel update */
@@ -157,19 +171,19 @@
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl_z {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pwr_regulators {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &rcc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	#address-cells = <1>;
 	#size-cells = <0>;
 };
@@ -226,7 +240,6 @@
 		mkimage {
 			args = "-T stm32image -a 0x2ffc2500 -e 0x2ffc2500";
 			u-boot-spl {
-				no-write-symbols;
 			};
 		};
 	};

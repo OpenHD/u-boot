@@ -42,7 +42,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static u32 mx53_dram_size[2];
 
-phys_addr_t board_get_usable_ram_top(phys_size_t total_size)
+ulong board_get_usable_ram_top(ulong total_size)
 {
 	/*
 	 * WARNING: We must override get_effective_memsize() function here
@@ -264,7 +264,6 @@ void board_preboot_os(void)
 	gpio_direction_output(IMX_GPIO_NR(6, 0), 0);
 }
 
-#if CONFIG_IS_ENABLED(OF_LIBFDT)
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	if (lvds_compat_string)
@@ -273,7 +272,6 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 
 	return 0;
 }
-#endif
 
 struct display_info_t const displays[] = {
 	{
@@ -360,7 +358,7 @@ int board_late_init(void)
 		return 0;
 
 	addr = hextoul(s, NULL);
-	dst = malloc(CONFIG_VIDEO_LOGO_MAX_SIZE);
+	dst = malloc(CONFIG_SYS_VIDEO_LOGO_MAX_SIZE);
 	if (!dst)
 		return -ENOMEM;
 
@@ -368,8 +366,8 @@ int board_late_init(void)
 	if (ret < 0)
 		goto splasherr;
 
-	len = CONFIG_VIDEO_LOGO_MAX_SIZE;
-	ret = gunzip(dst + 2, CONFIG_VIDEO_LOGO_MAX_SIZE - 2,
+	len = CONFIG_SYS_VIDEO_LOGO_MAX_SIZE;
+	ret = gunzip(dst + 2, CONFIG_SYS_VIDEO_LOGO_MAX_SIZE - 2,
 		     (uchar *)addr, &len);
 	if (ret) {
 		printf("Error: no valid bmp or bmp.gz image at %lx\n", addr);

@@ -8,7 +8,7 @@ import zlib
 
 from binman.etype.blob import Entry_blob
 from dtoc import fdt_util
-from u_boot_pylib import tools
+from patman import tools
 
 class Entry_u_boot_env(Entry_blob):
     """An entry which contains a U-Boot environment

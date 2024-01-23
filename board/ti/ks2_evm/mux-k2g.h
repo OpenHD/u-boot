@@ -6,6 +6,7 @@
  *     Texas Instruments Incorporated, <www.ti.com>
  */
 
+#include <common.h>
 #include <hang.h>
 #include <asm/io.h>
 #include <asm/arch/mux-k2g.h>

@@ -146,9 +146,11 @@ static int lan78xx_read_otp(struct usb_device *udev, u32 offset,
 	ret = lan78xx_read_raw_otp(udev, 0, 1, &sig);
 
 	if (!ret) {
-		if (sig == LAN78XX_OTP_INDICATOR_2)
+		if (sig == LAN78XX_OTP_INDICATOR_1)
+			offset = offset;
+		else if (sig == LAN78XX_OTP_INDICATOR_2)
 			offset += 0x100;
-		else if (sig != LAN78XX_OTP_INDICATOR_1)
+		else
 			return -EINVAL;
 		ret = lan78xx_read_raw_otp(udev, offset, length, data);
 		if (ret)

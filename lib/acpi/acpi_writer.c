@@ -7,13 +7,13 @@
 
 #define LOG_CATEGORY LOGC_ACPI
 
+#include <common.h>
 #include <log.h>
 #include <malloc.h>
 #include <mapmem.h>
 #include <acpi/acpi_table.h>
 #include <asm/global_data.h>
 #include <dm/acpi.h>
-#include <linux/errno.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -48,7 +48,7 @@ int acpi_write_one(struct acpi_ctx *ctx, const struct acpi_writer *entry)
 	return 0;
 }
 
-#ifndef CONFIG_QFW_ACPI
+#ifndef CONFIG_QEMU
 static int acpi_write_all(struct acpi_ctx *ctx)
 {
 	const struct acpi_writer *writer =
@@ -115,7 +115,7 @@ ulong acpi_get_rsdp_addr(void)
 
 	return map_to_sysmem(gd->acpi_ctx->rsdp);
 }
-#endif /* QFW_ACPI */
+#endif /* QEMU */
 
 void acpi_setup_ctx(struct acpi_ctx *ctx, ulong start)
 {

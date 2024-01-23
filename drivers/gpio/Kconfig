@@ -70,7 +70,7 @@ config GPIO_HOG
 
 config SPL_GPIO_HOG
 	bool "Enable GPIO hog support in SPL"
-	depends on SPL_GPIO
+	depends on SPL_GPIO_SUPPORT
 	help
 	  Enable gpio hog support in SPL
 	  The GPIO chip may contain GPIO hog definitions. GPIO hogging
@@ -89,7 +89,7 @@ config DM_GPIO_LOOKUP_LABEL
 
 config SPL_DM_GPIO_LOOKUP_LABEL
 	bool "Enable searching for gpio labelnames"
-	depends on SPL_DM_GPIO
+	depends on DM_GPIO && SPL_DM && SPL_GPIO
 	help
 	  This option enables searching for gpio names in
 	  the defined gpio labels, if the search for the
@@ -110,8 +110,9 @@ config BCM2835_GPIO
 
 config BCM6345_GPIO
 	bool "BCM6345 GPIO driver"
-	depends on DM_GPIO && (ARCH_BMIPS || BCM6856 || \
-			       BCM6858 || BCM63158 || BCM6855)
+	depends on DM_GPIO && (ARCH_BMIPS || ARCH_BCM68360 || \
+			       ARCH_BCM6858 || ARCH_BCM63158 || \
+			       ARCH_BCM6753)
 	help
 	  This driver supports the GPIO banks on BCM6345 SoCs.
 
@@ -168,10 +169,6 @@ config FXL6408_GPIO
 	help
 	  This driver supports the Fairchild FXL6408 device. FXL6408 is a
 	  fully configurable 8-bit I2C-controlled GPIO expander.
-
-config HIKEY_GPIO
-	bool "HI6220 GPIO driver"
-	depends on DM_GPIO
 
 config INTEL_BROADWELL_GPIO
 	bool "Intel Broadwell GPIO driver"
@@ -237,15 +234,6 @@ config MAX7320_GPIO
 	 Support for MAX7320 I2C 8/16-bit GPIO expander.
 	 original maxim device has 8 push/pull outputs,
 	 some clones offers 16bit.
-
-config MAX77663_GPIO
-	bool "MAX77663 GPIO cell of PMIC driver"
-	depends on DM_GPIO && DM_PMIC_MAX77663
-	help
-	  GPIO driver for MAX77663 PMIC from Maxim Semiconductor.
-	  MAX77663 PMIC has 8 pins that can be configured as GPIOs
-	  and 3 GPIO-like pins dedicated for power/reset buttons
-	  and LID sensor.
 
 config MCP230XX_GPIO
 	bool "MCP230XX GPIO driver"
@@ -315,14 +303,15 @@ config CMD_PCA953X
 	  legacy GPIO interface. Several subcommands are provided which mirror
 	  the standard 'gpio' command. It should use that instead.
 
-config QCOM_PMIC_GPIO
-	bool "Qualcomm generic PMIC GPIO/keypad driver"
-	depends on DM_GPIO && PMIC_QCOM
-	select BUTTON
+config PM8916_GPIO
+	bool "Qualcomm PM8916 PMIC GPIO/keypad driver"
+	depends on DM_GPIO && PMIC_PM8916
 	help
 	  Support for GPIO pins and power/reset buttons found on
-	  Qualcomm SoCs PMIC.
-	  The GPIO bank is called "pmic"
+	  Qualcomm PM8916 PMIC.
+	  Default name for GPIO bank is "pm8916".
+	  Power and reset buttons are placed in "pm8916_key" bank and
+          have gpio numbers 0 and 1 respectively.
 
 config PCF8575_GPIO
 	bool "PCF8575 I2C GPIO Expander driver"
@@ -380,26 +369,14 @@ config SUNXI_GPIO
 	help
 	  Support the GPIO device in Allwinner SoCs.
 
-config SUNXI_NEW_PINCTRL
-	bool
-	depends on SUNXI_GPIO
-	---help---
-	The Allwinner D1 and other new SoCs use a different register map
-	for the GPIO block, which we need to know about in the SPL.
-
 config XILINX_GPIO
 	bool "Xilinx GPIO driver"
 	depends on DM_GPIO
 	help
 	  This config enable the Xilinx GPIO driver for Microblaze.
 
-config TCA642X
-	bool "TCA642x legacy GPIO driver"
-
 config CMD_TCA642X
 	bool "tca642x - Command to access tca642x state"
-	depends on TCA642X
-	default y
 	help
 	  DEPRECATED - This needs conversion to driver model
 
@@ -433,13 +410,6 @@ config VYBRID_GPIO
 	depends on DM
 	help
 	  Say yes here to support Vybrid vf610 GPIOs.
-
-config PALMAS_GPIO
-	bool "TI PALMAS series PMICs GPIO"
-	depends on DM_GPIO && PMIC_PALMAS
-	help
-	  Select this option to enable GPIO driver for the TI PALMAS
-	  series chip family.
 
 config PIC32_GPIO
 	bool "Microchip PIC32 GPIO driver"
@@ -521,7 +491,7 @@ config DM_PCA953X
 
 config SPL_DM_PCA953X
 	bool "PCA95[357]x, PCA9698, TCA64xx, and MAX7310 I/O ports in SPL"
-	depends on SPL_DM_GPIO
+	depends on DM_GPIO
 	help
 	  Say yes here to provide access to several register-oriented
 	  SMBus I/O expanders, made mostly by NXP or TI.  Compatible
@@ -541,10 +511,6 @@ config SPL_DM_PCA953X
 
 	  Now, max 24 bits chips and PCA953X compatible chips are
 	  supported
-
-config PCA953X
-	bool "NXP's PCA953X series I2C GPIO (legacy driver)"
-	depends on !DM_PCA953X
 
 config MPC8XXX_GPIO
 	bool "Freescale MPC8XXX GPIO driver"
@@ -569,31 +535,6 @@ config MPC8XXX_GPIO
 	  value setting, the open-drain feature, which can configure individual
 	  GPIOs to work as open-drain outputs, is supported.
 
-config QE_GPIO
-	bool "Freescale QUICC ENGINE GPIO driver"
-	depends on DM_GPIO
-	depends on QE
-	help
-	  This driver supports the QUICC Engine GPIOs of MPC83XX CPUs.
-	  Each GPIO bank is identified by its own entry in the device tree,
-	  i.e.
-
-	  qe_pio_a: gpio-controller@1400 {
-		compatible = "fsl,mpc8323-qe-pario-bank";
-		reg = <0x1400 0x18>;
-		gpio-controller;
-		#gpio-cells = <2>;
-	  };
-
-	  Each bank has 32 GPIOs.
-
-config MPC8XX_GPIO
-	bool "Freescale MPC8XX GPIO driver"
-	depends on DM_GPIO
-	help
-	  This driver supports parallel IO ports from MPC8XX CPUs.
-	  Each GPIO bank is identified by its own entry in the device tree.
-
 config MPC83XX_SPISEL_BOOT
 	bool "Freescale MPC83XX SPISEL_BOOT driver"
 	depends on DM_GPIO && ARCH_MPC830X
@@ -612,7 +553,7 @@ config MT7620_GPIO
 
 config MT7621_GPIO
 	bool "MediaTek MT7621 GPIO driver"
-	depends on DM_GPIO && (SOC_MT7621 || SOC_MT7628)
+	depends on DM_GPIO && SOC_MT7628
 	default y
 	help
 	  Say yes here to support MediaTek MT7621 compatible GPIOs.
@@ -643,11 +584,6 @@ config ZYNQMP_GPIO_MODEPIN
 	  are accessed using xilinx firmware. In modepin register, [3:0] bits
 	  set direction, [7:4] bits read IO, [11:8] bits set/clear IO.
 
-config SH_GPIO_PFC
-	bool "Pinmuxed GPIO support for SuperH"
-	depends on RCAR_GEN2 && !PINCTRL_PFC
-	default y
-
 config SL28CPLD_GPIO
 	bool "Kontron sl28cpld GPIO driver"
 	depends on DM_GPIO && SL28CPLD
@@ -661,31 +597,5 @@ config SLG7XL45106_I2C_GPO
 	   Support for slg7xl45106 i2c gpo expander. It is an i2c based
 	   8-bit gpo expander, all gpo lines are controlled by writing
 	   value into data register.
-
-config TURRIS_OMNIA_MCU
-	bool "Turris Omnia MCU GPIO driver"
-	depends on DM_GPIO
-	default y if TARGET_TURRIS_OMNIA
-	help
-	   Support for GPIOs on MCU connected to Turris Omnia via i2c.
-
-config FTGPIO010
-	bool "Faraday Technology FTGPIO010 driver"
-	depends on DM_GPIO
-	help
-	   Support for GPIOs on Faraday Technology's FTGPIO010 controller.
-
-config ADP5585_GPIO
-	bool "ADP5585 GPIO driver"
-	depends on DM_GPIO && DM_I2C
-	help
-	  Support ADP5585 GPIO expander.
-
-config RZG2L_GPIO
-	bool "Renesas RZ/G2L family GPIO driver"
-	depends on DM_GPIO && PINCTRL_RZG2L
-	help
-	  Support the gpio functionality of the pin function controller (PFC)
-	  on the Renesas RZ/G2L SoC family.
 
 endif

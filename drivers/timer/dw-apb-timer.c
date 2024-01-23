@@ -13,6 +13,7 @@
 #include <reset.h>
 #include <timer.h>
 #include <dm/device_compat.h>
+#include <linux/kconfig.h>
 
 #include <asm/io.h>
 #include <asm/arch/timer.h>
@@ -22,7 +23,7 @@
 #define DW_APB_CTRL		0x8
 
 struct dw_apb_timer_priv {
-	uintptr_t regs;
+	fdt_addr_t regs;
 	struct reset_ctl_bulk resets;
 };
 

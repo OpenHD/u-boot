@@ -6,8 +6,6 @@
 #ifndef __CACHE_H
 #define __CACHE_H
 
-#include <linux/types.h>
-
 struct udevice;
 
 /*

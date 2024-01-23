@@ -10,6 +10,7 @@
 #ifndef __DFU_ENTITY_H_
 #define __DFU_ENTITY_H_
 
+#include <common.h>
 #include <linux/list.h>
 #include <mmc.h>
 #include <spi_flash.h>
@@ -98,12 +99,7 @@ struct virt_internal_data {
 	int dev_num;
 };
 
-
-#if defined(CONFIG_DFU_NAME_MAX_SIZE)
-#define DFU_NAME_SIZE			CONFIG_DFU_NAME_MAX_SIZE
-#else
 #define DFU_NAME_SIZE			32
-#endif
 #ifndef DFU_DEFAULT_POLL_TIMEOUT
 #define DFU_DEFAULT_POLL_TIMEOUT 0
 #endif
@@ -499,7 +495,7 @@ static inline int dfu_fill_entity_mtd(struct dfu_entity *dfu, char *devstr,
 }
 #endif
 
-#if CONFIG_IS_ENABLED(DFU_VIRT)
+#ifdef CONFIG_DFU_VIRT
 int dfu_fill_entity_virt(struct dfu_entity *dfu, char *devstr,
 			 char **argv, int argc);
 int dfu_write_medium_virt(struct dfu_entity *dfu, u64 offset,

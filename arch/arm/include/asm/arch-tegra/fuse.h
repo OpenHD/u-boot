@@ -19,11 +19,4 @@ struct fuse_regs {
 	u32 security_mode;		/* 0x1A0: FUSE_SECURITY_MODE */
 };
 
-/**
- * Calculate SoC UID
- *
- * Return: uid if ok, 0 on error
- */
-unsigned long long tegra_chip_uid(void);
-
 #endif	/* ifndef _FUSE_H_ */

@@ -4,7 +4,6 @@
  *
  */
 #include <common.h>
-#include <event.h>
 #include <init.h>
 #include <malloc.h>
 #include <errno.h>
@@ -85,7 +84,7 @@ int board_init(void)
 	unsigned int reg_data, jtag_id;
 
 	/* Enable timer */
-	writel(1, CFG_SYS_TIMER_BASE);
+	writel(1, CONFIG_SYS_TIMER_BASE);
 
 	/* Enable snoop in CCI400 slave port#4 */
 	writel(3, 0xF5595000);
@@ -122,7 +121,7 @@ void reset_cpu(void)
 }
 
 #ifdef CONFIG_LAST_STAGE_INIT
-static int last_stage_init(void)
+int last_stage_init(void)
 {
 	u32 val;
 
@@ -135,5 +134,4 @@ static int last_stage_init(void)
 
 	return 0;
 }
-EVENT_SPY_SIMPLE(EVT_LAST_STAGE_INIT, last_stage_init);
 #endif

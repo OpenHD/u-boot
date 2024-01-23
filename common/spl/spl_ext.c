@@ -4,23 +4,10 @@
 #include <env.h>
 #include <part.h>
 #include <spl.h>
-#include <spl_load.h>
 #include <asm/u-boot.h>
 #include <ext4fs.h>
 #include <errno.h>
 #include <image.h>
-
-static ulong spl_fit_read(struct spl_load_info *load, ulong file_offset,
-			  ulong size, void *buf)
-{
-	int ret;
-	loff_t actlen;
-
-	ret = ext4fs_read(buf, file_offset, size, &actlen);
-	if (ret)
-		return ret;
-	return actlen;
-}
 
 int spl_load_image_ext(struct spl_image_info *spl_image,
 		       struct spl_boot_device *bootdev,
@@ -28,9 +15,11 @@ int spl_load_image_ext(struct spl_image_info *spl_image,
 		       const char *filename)
 {
 	s32 err;
-	loff_t filelen;
+	struct image_header *header;
+	loff_t filelen, actlen;
 	struct disk_partition part_info = {};
-	struct spl_load_info load;
+
+	header = spl_get_load_buffer(-sizeof(*header), sizeof(*header));
 
 	if (part_get_info(block_dev, partition, &part_info)) {
 		printf("spl: no partition table found\n");
@@ -39,7 +28,7 @@ int spl_load_image_ext(struct spl_image_info *spl_image,
 
 	ext4fs_set_blk_dev(block_dev, &part_info);
 
-	err = ext4fs_mount();
+	err = ext4fs_mount(0);
 	if (!err) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("%s: ext4fs mount err - %d\n", __func__, err);
@@ -52,10 +41,19 @@ int spl_load_image_ext(struct spl_image_info *spl_image,
 		puts("spl: ext4fs_open failed\n");
 		goto end;
 	}
+	err = ext4fs_read((char *)header, 0, sizeof(struct image_header), &actlen);
+	if (err < 0) {
+		puts("spl: ext4fs_read failed\n");
+		goto end;
+	}
 
-	spl_set_bl_len(&load, 1);
-	load.read = spl_fit_read;
-	err = spl_load(spl_image, bootdev, &load, filelen, 0);
+	err = spl_parse_image_header(spl_image, bootdev, header);
+	if (err < 0) {
+		puts("spl: ext: failed to parse image header\n");
+		goto end;
+	}
+
+	err = ext4fs_read((char *)spl_image->load_addr, 0, filelen, &actlen);
 
 end:
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
@@ -84,7 +82,7 @@ int spl_load_image_ext_os(struct spl_image_info *spl_image,
 
 	ext4fs_set_blk_dev(block_dev, &part_info);
 
-	err = ext4fs_mount();
+	err = ext4fs_mount(0);
 	if (!err) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("%s: ext4fs mount err - %d\n", __func__, err);
@@ -99,7 +97,7 @@ int spl_load_image_ext_os(struct spl_image_info *spl_image,
 			puts("spl: ext4fs_open failed\n");
 			goto defaults;
 		}
-		err = ext4fs_read((void *)CONFIG_SPL_PAYLOAD_ARGS_ADDR, 0, filelen, &actlen);
+		err = ext4fs_read((void *)CONFIG_SYS_SPL_ARGS_ADDR, 0, filelen, &actlen);
 		if (err < 0) {
 			printf("spl: error reading image %s, err - %d, falling back to default\n",
 			       file, err);
@@ -129,7 +127,7 @@ defaults:
 	if (err < 0)
 		puts("spl: ext4fs_open failed\n");
 
-	err = ext4fs_read((void *)CONFIG_SPL_PAYLOAD_ARGS_ADDR, 0, filelen, &actlen);
+	err = ext4fs_read((void *)CONFIG_SYS_SPL_ARGS_ADDR, 0, filelen, &actlen);
 	if (err < 0) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("%s: error reading image %s, err - %d\n",

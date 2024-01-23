@@ -5,20 +5,20 @@
  */
 
 &pinctrl_uart1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &gpmi {
-	bootph-pre-ram;
-	bootph-all;
+	u-boot,dm-spl;
+	u-boot,dm-pre-reloc;
 };
 
 &usdhc1 {
-	bootph-pre-ram;
-	bootph-all;
+	u-boot,dm-spl;
+	u-boot,dm-pre-reloc;
 };
 
 &usdhc2 {
-	bootph-pre-ram;
-	bootph-all;
+	u-boot,dm-spl;
+	u-boot,dm-pre-reloc;
 };

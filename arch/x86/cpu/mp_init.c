@@ -69,12 +69,12 @@ DECLARE_GLOBAL_DATA_PTR;
  * CPUS are numbered sequentially from 0 using the device tree:
  *
  *	cpus {
- *		bootph-all;
+ *		u-boot,dm-pre-reloc;
  *		#address-cells = <1>;
  *		#size-cells = <0>;
  *
  *		cpu@0 {
- *			bootph-all;
+ *			u-boot,dm-pre-reloc;
  *			device_type = "cpu";
  *			compatible = "intel,apl-cpu";
  *			reg = <0>;

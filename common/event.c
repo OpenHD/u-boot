@@ -17,7 +17,6 @@
 #include <malloc.h>
 #include <asm/global_data.h>
 #include <linux/list.h>
-#include <relocate.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -27,8 +26,7 @@ const char *const type_name[] = {
 	"test",
 
 	/* Events related to driver model */
-	"dm_post_init_f",
-	"dm_post_init_r",
+	"dm_post_init",
 	"dm_pre_probe",
 	"dm_post_probe",
 	"dm_pre_remove",
@@ -36,24 +34,12 @@ const char *const type_name[] = {
 
 	/* init hooks */
 	"misc_init_f",
-	"fsp_init_r",
-	"settings_r",
-	"last_stage_init",
-
-	/* Fpga load hook */
-	"fpga_load",
-
-	/* fdt hooks */
-	"ft_fixup",
-
-	/* main loop events */
-	"main_loop",
 };
 
 _Static_assert(ARRAY_SIZE(type_name) == EVT_COUNT, "event type_name size");
 #endif
 
-const char *event_type_name(enum event_t type)
+static const char *event_type_name(enum event_t type)
 {
 #if CONFIG_IS_ENABLED(EVENT_DEBUG)
 	return type_name[type];
@@ -75,14 +61,7 @@ static int notify_static(struct event *ev)
 
 			log_debug("Sending event %x/%s to spy '%s'\n", ev->type,
 				  event_type_name(ev->type), event_spy_id(spy));
-			if (spy->flags & EVSPYF_SIMPLE) {
-				const struct evspy_info_simple *simple;
-
-				simple = (struct evspy_info_simple *)spy;
-				ret = simple->func();
-			} else {
-				ret = spy->func(NULL, ev);
-			}
+			ret = spy->func(NULL, ev);
 
 			/*
 			 * TODO: Handle various return codes to
@@ -137,7 +116,7 @@ int event_notify(enum event_t type, void *data, int size)
 
 	ret = notify_static(&event);
 	if (ret)
-		return log_msg_ret("sta", ret);
+		return log_msg_ret("dyn", ret);
 
 	if (CONFIG_IS_ENABLED(EVENT_DYNAMIC)) {
 		ret = notify_dynamic(&event);
@@ -180,6 +159,8 @@ int event_register(const char *id, enum event_t type, event_handler_t func, void
 	struct event_state *state = gd_event_state();
 	struct event_spy *spy;
 
+	if (!CONFIG_IS_ENABLED(EVENT_DYNAMIC))
+		return -ENOSYS;
 	spy = malloc(sizeof(*spy));
 	if (!spy)
 		return log_msg_ret("alloc", -ENOMEM);

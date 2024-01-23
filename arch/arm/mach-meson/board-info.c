@@ -168,7 +168,7 @@ static unsigned int get_socinfo(void)
 	return socinfo;
 }
 
-int checkboard(void)
+int show_board_info(void)
 {
 	unsigned int socinfo;
 

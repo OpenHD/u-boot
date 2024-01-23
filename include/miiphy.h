@@ -14,6 +14,7 @@
 #ifndef _miiphy_h_
 #define _miiphy_h_
 
+#include <common.h>
 #include <linux/mii.h>
 #include <linux/list.h>
 #include <net.h>

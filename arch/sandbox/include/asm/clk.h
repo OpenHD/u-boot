@@ -6,6 +6,7 @@
 #ifndef __SANDBOX_CLK_H
 #define __SANDBOX_CLK_H
 
+#include <common.h>
 #include <clk.h>
 #include <dt-structs.h>
 #include <linux/clk-provider.h>
@@ -38,7 +39,6 @@ enum sandbox_clk_test_id {
 	SANDBOX_CLK_TEST_ID_FIXED,
 	SANDBOX_CLK_TEST_ID_SPI,
 	SANDBOX_CLK_TEST_ID_I2C,
-	SANDBOX_CLK_TEST_ID_I2C_ROOT,
 	SANDBOX_CLK_TEST_ID_DEVM1,
 	SANDBOX_CLK_TEST_ID_DEVM2,
 	SANDBOX_CLK_TEST_ID_DEVM_NULL,

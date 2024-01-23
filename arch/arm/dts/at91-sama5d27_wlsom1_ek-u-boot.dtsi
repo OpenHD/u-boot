@@ -9,42 +9,46 @@
 
 / {
 	chosen {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 };
 
 &hlcdc {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &qspi1 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &qspi1_flash {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sdmmc0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &uart0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &sfr {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
-&pinctrl_sdmmc0_default {
-	bootph-all;
+&pinctrl_sdmmc0_cmd_dat_default {
+	u-boot,dm-pre-reloc;
+};
+
+&pinctrl_sdmmc0_ck_cd_default {
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl_uart0_default {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl_qspi1_default {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };

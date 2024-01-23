@@ -12,6 +12,7 @@
 #ifndef __PING_H__
 #define __PING_H__
 
+#include <common.h>
 #include <net.h>
 
 /*

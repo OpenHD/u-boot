@@ -13,7 +13,7 @@
 	};
 
 	soc {
-		bootph-all;
+		u-boot,dm-pre-reloc;
 	};
 
 	leds {
@@ -46,8 +46,8 @@
 	};
 
 
-	rpc: spi@ee200000 {
-		compatible = "renesas,r7s72100-rpc-if";
+	rpc: rpc@ee200000 {
+		compatible = "renesas,rpc-r7s72100", "renesas,rpc";
 		reg = <0x3fefa000 0x100>, <0x18000000 0x08000000>;
 		bank-width = <2>;
 		num-cs = <1>;
@@ -70,20 +70,20 @@
 };
 
 &ostm0 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &pinctrl {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &scif2 {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 	clock = <66666666>;	/* ToDo: Replace by DM clock driver */
 };
 
 &scif2_pins {
-	bootph-all;
+	u-boot,dm-pre-reloc;
 };
 
 &usbhs0 {

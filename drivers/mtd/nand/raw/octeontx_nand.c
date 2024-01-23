@@ -24,13 +24,17 @@
 #include <linux/mtd/nand_bch.h>
 #include <linux/mtd/nand_ecc.h>
 #include <linux/mtd/rawnand.h>
-#include <linux/time.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <asm/types.h>
 #include <asm/dma-mapping.h>
 #include <asm/arch/clock.h>
 #include "octeontx_bch.h"
+
+#ifdef DEBUG
+# undef CONFIG_LOGLEVEL
+# define CONFIG_LOGLEVEL 8
+#endif
 
 /*
  * The NDF_CMD queue takes commands between 16 - 128 bit.
@@ -292,6 +296,7 @@ union ndf_cmd {
 #define OCTEONTX_NAND_DRIVER_NAME	"octeontx_nand"
 
 #define NDF_TIMEOUT		1000	/** Timeout in ms */
+#define USEC_PER_SEC		1000000	/** Linux compatibility */
 #ifndef NAND_MAX_CHIPS
 # define NAND_MAX_CHIPS		8	/** Linux compatibility */
 #endif
@@ -354,7 +359,7 @@ struct octeontx_probe_device {
 
 static struct bch_vf *bch_vf;
 /** Deferred devices due to BCH not being ready */
-static LIST_HEAD(octeontx_pci_nand_deferred_devices);
+LIST_HEAD(octeontx_pci_nand_deferred_devices);
 
 /** default parameters used for probing chips */
 #define MAX_ONFI_MODE	5

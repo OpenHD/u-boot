@@ -7,7 +7,7 @@
 
 from binman.entry import Entry
 from binman.etype.blob_dtb import Entry_blob_dtb
-from u_boot_pylib import tools
+from patman import tools
 
 # This is imported if needed
 state = None

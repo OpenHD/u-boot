@@ -4,6 +4,7 @@
  */
 
 #include <command.h>
+#include <common.h>
 #include <cpu_func.h>
 
 __weak void reset_cpu(void)

@@ -1,10 +1,10 @@
 .. SPDX-License-Identifier: GPL-2.0+
 
-U-Boot for JetHub J80 (S905W)
-=============================
+U-Boot for JetHub J80
+======================
 
-JetHome Jethub H1 (http://jethome.ru/jethub-h1) is a home automation controller device
-manufactured by JetHome with the following specifications:
+JetHome Jethub H1 (http://jethome.ru/jethub-h1) is a home automation
+controller manufactured by JetHome with the following specifications:
 
  - Amlogic S905W (ARM Cortex-A53) quad-core up to 1.5GHz
  - No video out
@@ -21,7 +21,7 @@ manufactured by JetHome with the following specifications:
  - DC source 5V microUSB
  - Square plastic case
 
-U-Boot Compilation
+U-Boot compilation
 ------------------
 
 .. code-block:: bash
@@ -30,21 +30,14 @@ U-Boot Compilation
     $ make jethub_j80_defconfig
     $ make
 
-U-Boot Signing with Pre-Built FIP repo
---------------------------------------
+Image creation
+--------------
 
-.. code-block:: bash
+For simplified usage, pleaser refer to :doc:`pre-generated-fip` with codename `jethub-j80`
 
-    $ git clone https://github.com/LibreELEC/amlogic-boot-fip --depth=1
-    $ cd amlogic-boot-fip
-    $ mkdir my-output-dir
-    $ ./build-fip.sh jethub-j80 /path/to/u-boot/u-boot.bin my-output-dir
-
-U-Boot Manual Signing
----------------------
-
-Amlogic does not provide sources for the firmware and tools needed to create a bootloader
-image so it is necessary to obtain binaries from sources published by the board vendor:
+Amlogic doesn't provide sources for the firmware and for tools needed
+to create the bootloader image, so it is necessary to obtain binaries
+from the git tree published by the board vendor:
 
 .. code-block:: bash
 
@@ -52,7 +45,7 @@ image so it is necessary to obtain binaries from sources published by the board 
     $ cd jethub-u-boot
     $ export FIPDIR=$PWD
 
-Go back to the mainline U-Boot source tree then:
+Go back to mainline U-Boot source tree then :
 
 .. code-block:: bash
 
@@ -91,16 +84,16 @@ Go back to the mainline U-Boot source tree then:
     $ $FIPDIR/j80/aml_encrypt_gxl --bl3enc --input fip/bl33.bin --compress lz4
     $ $FIPDIR/j80/aml_encrypt_gxl --bl2sig --input fip/bl2_new.bin --output fip/bl2.n.bin.sig
     $ $FIPDIR/j80/aml_encrypt_gxl --bootmk \
-                                  --output fip/u-boot.bin \
-                                  --bl2 fip/bl2.n.bin.sig \
-                                  --bl30 fip/bl30_new.bin.enc \
-                                  --bl31 fip/bl31.img.enc \
-                                  --bl33 fip/bl33.bin.enc
+                --output fip/u-boot.bin \
+                --bl2 fip/bl2.n.bin.sig \
+                --bl30 fip/bl30_new.bin.enc \
+                --bl31 fip/bl31.img.enc \
+                --bl33 fip/bl33.bin.enc
 
-Then write U-Boot to SD or eMMC with:
+and then write the image to SD/eMMC with:
 
 .. code-block:: bash
 
-    $ DEV=/dev/boot_device
+    $ DEV=/dev/your_sd_device
     $ dd if=fip/u-boot.bin.sd.bin of=$DEV conv=fsync,notrunc bs=512 skip=1 seek=1
-    $ dd if=fip/u-boot.bin.sd.bin of=$DEV conv=fsync,notrunc bs=1 count=440
+    $ dd if=fip/u-boot.bin.sd.bin of=$DEV conv=fsync,notrunc bs=1 count=444

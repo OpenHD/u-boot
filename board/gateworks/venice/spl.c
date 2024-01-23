@@ -16,13 +16,10 @@
 #include <asm/arch/imx8mp_pins.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-imx/boot_mode.h>
-#include <asm/mach-imx/mxc_i2c.h>
 #include <asm/arch/ddr.h>
 #include <asm-generic/gpio.h>
-#include <asm/sections.h>
 #include <dm/uclass.h>
 #include <dm/device.h>
-#include <dm/pinctrl.h>
 #include <linux/delay.h>
 #include <power/bd71837.h>
 #include <power/mp5416.h>
@@ -72,9 +69,6 @@ static void spl_dram_init(int size)
 		dram_timing = &dram_timing_2gb_dual_die;
 		size = 2048;
 #elif CONFIG_IMX8MP
-	case 1024:
-		dram_timing = &dram_timing_1gb_single_die;
-		break;
 	case 4096:
 		dram_timing = &dram_timing_4gb_dual_die;
 		break;
@@ -87,13 +81,37 @@ static void spl_dram_init(int size)
 
 	printf("DRAM    : LPDDR4 ");
 	if (size > 512)
-		printf("%d GiB", size / 1024);
+		printf("%d GiB\n", size / 1024);
 	else
-		printf("%d MiB", size);
-	printf(" %dMT/s %dMHz\n",
-	       dram_timing->fsp_msg[0].drate,
-	       dram_timing->fsp_msg[0].drate / 2);
+		printf("%d MiB\n", size);
 	ddr_init(dram_timing);
+}
+
+#define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+
+#ifdef CONFIG_IMX8MM
+static iomux_v3_cfg_t const wdog_pads[] = {
+	IMX8MM_PAD_GPIO1_IO02_WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
+};
+#elif CONFIG_IMX8MN
+static const iomux_v3_cfg_t wdog_pads[] = {
+	IMX8MN_PAD_GPIO1_IO02__WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
+};
+#elif CONFIG_IMX8MP
+static const iomux_v3_cfg_t wdog_pads[] = {
+	MX8MP_PAD_GPIO1_IO02__WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
+};
+#endif
+
+int board_early_init_f(void)
+{
+	struct wdog_regs *wdog = (struct wdog_regs *)WDOG1_BASE_ADDR;
+
+	imx_iomux_v3_setup_multiple_pads(wdog_pads, ARRAY_SIZE(wdog_pads));
+
+	set_wdog_reset(wdog);
+
+	return 0;
 }
 
 /*
@@ -128,8 +146,7 @@ static int power_init_board(void)
 
 	if ((!strncmp(model, "GW71", 4)) ||
 	    (!strncmp(model, "GW72", 4)) ||
-	    (!strncmp(model, "GW73", 4)) ||
-	    (!strncmp(model, "GW7905", 6))) {
+	    (!strncmp(model, "GW73", 4))) {
 		ret = uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
 		if (ret) {
 			printf("PMIC    : failed I2C1 probe: %d\n", ret);
@@ -140,28 +157,17 @@ static int power_init_board(void)
 			printf("PMIC    : failed probe: %d\n", ret);
 			return ret;
 		}
-#ifdef CONFIG_IMX8MM
-		puts("PMIC    : MP5416 (IMX8MM)\n");
+		puts("PMIC    : MP5416\n");
 
 		/* set VDD_ARM SW3 to 0.92V for 1.6GHz */
 		dm_i2c_reg_write(dev, MP5416_VSET_SW3,
 				 BIT(7) | MP5416_VSET_SW3_SVAL(920000));
-#elif CONFIG_IMX8MP
-		puts("PMIC    : MP5416 (IMX8MP)\n");
-
-		/* set VDD_ARM SW3 to 0.95V for 1.6GHz */
-		dm_i2c_reg_write(dev, MP5416_VSET_SW3,
-				 BIT(7) | MP5416_VSET_SW3_SVAL(950000));
-		/* set VDD_SOC SW1 to 0.95V for 1.6GHz */
-		dm_i2c_reg_write(dev, MP5416_VSET_SW1,
-				 BIT(7) | MP5416_VSET_SW1_SVAL(950000));
-#endif
 	}
 
 	else if (!strncmp(model, "GW74", 4)) {
-		ret = uclass_get_device_by_seq(UCLASS_I2C, 2, &bus);
+		ret = uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
 		if (ret) {
-			printf("PMIC    : failed I2C3 probe: %d\n", ret);
+			printf("PMIC    : failed I2C1 probe: %d\n", ret);
 			return ret;
 		}
 		ret = dm_i2c_probe(bus, 0x25, 0, &dev);
@@ -177,25 +183,28 @@ static int power_init_board(void)
 		/* Buck 1 DVS control through PMIC_STBY_REQ */
 		dm_i2c_reg_write(dev, PCA9450_BUCK1CTRL, 0x59);
 
-		/* Set DVS1 to 0.85v for suspend */
-		dm_i2c_reg_write(dev, PCA9450_BUCK1OUT_DVS1, 0x14);
+		/* Set DVS1 to 0.8v for suspend */
+		dm_i2c_reg_write(dev, PCA9450_BUCK1OUT_DVS1, 0x10);
 
-		/* increase VDD_SOC to 0.95V before first DRAM access */
-		dm_i2c_reg_write(dev, PCA9450_BUCK1OUT_DVS0, 0x1C);
+		/* increase VDD_DRAM to 0.95v for 3Ghz DDR */
+		dm_i2c_reg_write(dev, PCA9450_BUCK3OUT_DVS0, 0x1C);
 
-		/* Kernel uses OD/OD freq for SOC */
-		/* To avoid timing risk from SOC to ARM, increase VDD_ARM to OD voltage 0.95v */
-		dm_i2c_reg_write(dev, PCA9450_BUCK2OUT_DVS0, 0x1C);
+		/* VDD_DRAM off in suspend: B1_ENMODE=10 */
+		dm_i2c_reg_write(dev, PCA9450_BUCK3CTRL, 0x4a);
+
+		/* set VDD_SNVS_0V8 from default 0.85V */
+		dm_i2c_reg_write(dev, PCA9450_LDO2CTRL, 0xC0);
+
+		/* set WDOG_B_CFG to cold reset */
+		dm_i2c_reg_write(dev, PCA9450_RESET_CTRL, 0xA1);
 	}
 
 	else if ((!strncmp(model, "GW7901", 6)) ||
-		 (!strncmp(model, "GW7902", 6)) ||
-		 (!strncmp(model, "GW7903", 6)) ||
-		 (!strncmp(model, "GW7904", 6))) {
-		if (!strncmp(model, "GW7902", 6))
-			ret = uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
-		else
+		 (!strncmp(model, "GW7902", 6))) {
+		if (!strncmp(model, "GW7901", 6))
 			ret = uclass_get_device_by_seq(UCLASS_I2C, 1, &bus);
+		else
+			ret = uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
 		if (ret) {
 			printf("PMIC    : failed I2C2 probe: %d\n", ret);
 			return ret;
@@ -236,13 +245,15 @@ static int power_init_board(void)
 
 void board_init_f(ulong dummy)
 {
-	struct udevice *bus, *dev;
-	int i, ret;
+	struct udevice *dev;
+	int ret;
 	int dram_sz;
 
 	arch_cpu_init();
 
 	init_uart_clk(1);
+
+	board_early_init_f();
 
 	timer_init();
 
@@ -268,34 +279,25 @@ void board_init_f(ulong dummy)
 	 *
 	 * On a board with a missing/depleted backup battery for GSC, the
 	 * board may be ready to probe the GSC before its firmware is
-	 * running. Wait here for 50ms for the GSC firmware to let go of
-	 * the SCL/SDA lines to avoid the i2c driver spamming
-	 * 'Arbitration lost' I2C errors
+	 * running. We will wait here indefinately for the GSC EEPROM.
 	 */
-	if (!uclass_get_device_by_seq(UCLASS_I2C, 0, &bus)) {
-		if (!pinctrl_select_state(bus, "gpio")) {
-			struct mxc_i2c_bus *i2c_bus = dev_get_priv(bus);
-			struct gpio_desc *scl_gpio = &i2c_bus->scl_gpio;
-			struct gpio_desc *sda_gpio = &i2c_bus->sda_gpio;
-
-			dm_gpio_set_dir_flags(scl_gpio, GPIOD_IS_IN);
-			dm_gpio_set_dir_flags(sda_gpio, GPIOD_IS_IN);
-			for (i = 0; i < 5; i++) {
-				if (dm_gpio_get_value(scl_gpio) &&
-				    dm_gpio_get_value(sda_gpio))
-					break;
-				mdelay(10);
-			}
-			pinctrl_select_state(bus, "default");
-		}
-	}
-	/* Wait indefiniately until the GSC probes */
+#ifdef CONFIG_IMX8MN
+	/*
+	 * IMX8MN boots quicker than IMX8MM and exposes issue
+	 * where because GSC I2C state machine isn't running and its
+	 * SCL/SDA are driven low the I2C driver spams 'Arbitration lost'
+	 * I2C errors.
+	 *
+	 * TODO: Put a loop here that somehow waits for I2C CLK/DAT to be high
+	 */
+	mdelay(50);
+#endif
 	while (1) {
 		if (!uclass_get_device_by_driver(UCLASS_MISC, DM_DRIVER_GET(gsc), &dev))
 			break;
 		mdelay(1);
 	}
-	dram_sz = venice_eeprom_init(0);
+	dram_sz = eeprom_init(0);
 
 	/* PMIC */
 	power_init_board();
@@ -346,21 +348,6 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	}
 }
 
-unsigned long board_spl_mmc_get_uboot_raw_sector(struct mmc *mmc, unsigned long raw_sect)
-{
-	if (!IS_SD(mmc)) {
-		switch (EXT_CSD_EXTRACT_BOOT_PART(mmc->part_config)) {
-		case 1:
-		case 2:
-			if (IS_ENABLED(CONFIG_IMX8MN) || IS_ENABLED(CONFIG_IMX8MP))
-				raw_sect -= 32 * 2;
-			break;
-		}
-	}
-
-	return raw_sect;
-}
-
 const char *spl_board_loader_name(u32 boot_device)
 {
 	switch (boot_device) {
@@ -373,9 +360,4 @@ const char *spl_board_loader_name(u32 boot_device)
 	default:
 		return NULL;
 	}
-}
-
-void spl_board_init(void)
-{
-	arch_misc_init();
 }

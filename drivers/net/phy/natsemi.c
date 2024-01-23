@@ -33,7 +33,7 @@ static int dp83630_config(struct phy_device *phydev)
 	return 0;
 }
 
-U_BOOT_PHY_DRIVER(dp83630) = {
+static struct phy_driver DP83630_driver = {
 	.name = "NatSemi DP83630",
 	.uid = 0x20005ce1,
 	.mask = 0xfffffff0,
@@ -103,7 +103,7 @@ static int dp83865_startup(struct phy_device *phydev)
 }
 
 
-U_BOOT_PHY_DRIVER(dp83865) = {
+static struct phy_driver DP83865_driver = {
 	.name = "NatSemi DP83865",
 	.uid = 0x20005c70,
 	.mask = 0xfffffff0,
@@ -146,7 +146,7 @@ static int dp83848_startup(struct phy_device *phydev)
 	return dp83848_parse_status(phydev);
 }
 
-U_BOOT_PHY_DRIVER(dp83848) = {
+static struct phy_driver DP83848_driver = {
 	.name = "NatSemi DP83848",
 	.uid = 0x20005c90,
 	.mask = 0x2000ff90,
@@ -155,3 +155,12 @@ U_BOOT_PHY_DRIVER(dp83848) = {
 	.startup = &dp83848_startup,
 	.shutdown = &genphy_shutdown,
 };
+
+int phy_natsemi_init(void)
+{
+	phy_register(&DP83630_driver);
+	phy_register(&DP83865_driver);
+	phy_register(&DP83848_driver);
+
+	return 0;
+}

@@ -10,7 +10,6 @@
 #include <fdtdec.h>
 #include <i2c.h>
 #include <log.h>
-#include <linux/printk.h>
 #include <power/pmic.h>
 #include <power/tps65090.h>
 

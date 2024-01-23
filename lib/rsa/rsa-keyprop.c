@@ -9,6 +9,7 @@
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  */
 
+#include <common.h>
 #include <image.h>
 #include <malloc.h>
 #include <crypto/internal/rsa.h>

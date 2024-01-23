@@ -6,7 +6,7 @@
  * Based on mem.c and sdrc.c
  *
  * Copyright (C) 2010
- * Texas Instruments Incorporated - https://www.ti.com/
+ * Texas Instruments Incorporated - http://www.ti.com/
  */
 
 #include <common.h>
@@ -41,7 +41,7 @@ static u32 get_sdr_cs_size(u32 cs)
 
 	/* TODO: Calculate the size based on EMIF4 configuration */
 	if (cs == CS0)
-		size = 256 * 1024 * 1024;
+		size = CONFIG_SYS_CS0_SIZE;
 
 	return size;
 }
@@ -159,10 +159,10 @@ int dram_init_banksize(void)
 }
 
 /*
- * omap3_mem_init() -
+ * mem_init() -
  *  - Initialize memory subsystem
  */
-void omap3_mem_init(void)
+void mem_init(void)
 {
 	do_emif4_init();
 }
