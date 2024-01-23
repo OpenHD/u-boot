@@ -46,3 +46,13 @@ jobs:
         run: |
           CROSS_COMPILE=arm-linux-gnueabi- make openhd_x20dev_defconfig
           CROSS_COMPILE=arm-linux-gnueabi- make 
+
+      - name: Upload to git
+        uses: 'actions/upload-artifact@v3'
+        with:
+          name: "${{ env.artifact_name }}"
+          path: |
+            *.img
+            *.dtb
+            *.cfg
+          if-no-files-found: error
